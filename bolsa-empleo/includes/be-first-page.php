@@ -12,6 +12,7 @@
     <thead>
       <th></th> <!-- Reservado para el ID -->
       <th>Nombres</th>
+      <th>Apellidos</th>
       <th>Género</th>
       <th>Edad</th>
       <th>Ciudad</th>
@@ -20,7 +21,7 @@
       <th>Académico</th>
       <th>Profesion</th>
       <th>Estado</th>
-      <th>Libreta militar</th>
+      <th>Libreta_militar</th>
       <th>Experiencia</th>
       <th>Diploma</th>
       <th>Estatura</th>
@@ -35,6 +36,7 @@
     <tfoot>
     <th></th> <!-- Reservado para el ID -->
       <th>Nombres</th>
+      <th>Apellidos</th>
       <th>Género</th>
       <th>Edad</th>
       <th>Ciudad</th>
@@ -43,7 +45,7 @@
       <th>Académico</th>
       <th>Profesion</th>
       <th>Estado</th>
-      <th>Libreta militar</th>
+      <th>Libreta_militar</th>
       <th>Experiencia</th>
       <th>Diploma</th>
       <th>Estatura</th>

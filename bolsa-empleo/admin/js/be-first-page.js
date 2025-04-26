@@ -28,6 +28,7 @@ jQuery(document).ready(function ($) {
         columns: [
             { data: '' }, // Reservado para el ID
             { data: 'Nombres' },
+            { data: 'Apellidos' },
             { data: 'Género' },
             { data: 'Edad' },
             { data: 'Ciudad' },
@@ -36,7 +37,7 @@ jQuery(document).ready(function ($) {
             { data: 'Académico' },
             { data: 'Profesion' },
             { data: 'Estado' },
-            { data: 'Libreta militar' },
+            {data: 'Libreta_militar'},
             { data: 'Experiencia' },
             { data: 'Diploma' },
             { data: 'Estatura' },

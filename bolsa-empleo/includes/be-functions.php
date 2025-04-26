@@ -99,30 +99,54 @@ function beLoadCSS($hook)
 add_action('admin_enqueue_scripts', 'beLoadCSS');
 
 // Ajax
-function beGetCv()
-{
+function beGetCv() {
   $nonce = $_POST['nonce'];
-  // Verificacion de seguridad
-  if (!wp_verify_nonce($nonce, 'seg')) {
-    die('No tiene permisos para ejecutar');
-  }
-  global $wpdb;
-  $sql = "SELECT CONCAT(a.meta_value,' ',b.meta_value)  AS 'Nombres', c.meta_value AS 'Género', 
-  d.meta_value AS 'Edad'
-  FROM aesswp_postmeta a 
-  LEFT JOIN aesswp_postmeta b ON a.post_id=b.post_id 
-  LEFT JOIN aesswp_postmeta c ON a.post_id=c.post_id 
-  LEFT JOIN aesswp_postmeta d ON a.post_id=d.post_id 
-  LEFT JOIN aesswp_postmeta e ON a.post_id=e.post_id 
-  LEFT JOIN aesswp_postmeta f ON a.post_id=f.post_id 
+  if (!wp_verify_nonce($nonce, 'seg')) die('No tiene permisos');
 
-  WHERE a.meta_key = 'jobapp_nombre' 
-  AND b.meta_key = 'jobapp_apellidos'
-  AND c.meta_key = 'jobapp_sexo'
-  AND d.meta_key = 'jobapp_edad'
-";
-  $response = $wpdb->get_results($sql);
-
+  // Conexión especial a academ_aess
+  //TODO: Cambiar por la conexión a la base de datos correspondiente
+  $special_db = new wpdb('root', 'camilojc123', 'academ_aess', 'localhost');
+  
+  $sql = "SELECT 
+    p.ID,
+    MAX(CASE WHEN pm.meta_key = 'jobapp_nombre' THEN pm.meta_value END) AS 'Nombres',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_apellidos' THEN pm.meta_value END) AS 'Apellidos',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_sexo' THEN pm.meta_value END) AS 'Género',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_edad' THEN pm.meta_value END) AS 'Edad',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_ciudad' THEN pm.meta_value END) AS 'Ciudad',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_celular' THEN pm.meta_value END) AS 'Celular',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_correo' THEN pm.meta_value END) AS 'Correo',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_academico' THEN pm.meta_value END) AS 'Académico',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_profesion' THEN pm.meta_value END) AS 'Profesion',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_estado' THEN pm.meta_value END) AS 'Estado',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_libreta_militar' THEN pm.meta_value END) AS 'Libreta_militar',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_experiencia' THEN pm.meta_value END) AS 'Experiencia',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_diploma' THEN pm.meta_value END) AS 'Diploma',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_estatura' THEN pm.meta_value END) AS 'Estatura',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_barrio' THEN pm.meta_value END) AS 'Barrio',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_direccion' THEN pm.meta_value END) AS 'Dirección',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_departamento' THEN pm.meta_value END) AS 'Departamento',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_telefono' THEN pm.meta_value END) AS 'Teléfono',
+    MAX(CASE WHEN pm.meta_key = 'jobapp_cedula' THEN pm.meta_value END) AS 'Cédula'
+FROM 
+    aesswp_posts p
+    INNER JOIN aesswp_postmeta pm ON p.ID = pm.post_id
+WHERE 
+    p.post_type = 'jobpost_applicants'
+    AND p.post_status = 'publish'
+    AND pm.meta_key IN (
+        'jobapp_nombre', 'jobapp_apellidos', 'jobapp_sexo',
+        'jobapp_edad', 'jobapp_ciudad', 'jobapp_celular',
+        'jobapp_correo', 'jobapp_academico', 'jobapp_profesion',
+        'jobapp_estado', 'jobapp_libreta_militar', 'jobapp_experiencia',
+        'jobapp_diploma', 'jobapp_estatura', 'jobapp_barrio',
+        'jobapp_direccion', 'jobapp_departamento', 'jobapp_telefono',
+        'jobapp_cedula'
+    )
+GROUP BY 
+    p.ID;";
+  
+  $response = $special_db->get_results($sql);
   wp_send_json($response);
 }
 

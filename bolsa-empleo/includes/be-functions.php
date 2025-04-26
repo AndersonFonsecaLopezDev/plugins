@@ -19,7 +19,7 @@ function be_Add_My_Admin_Link()
   );
   // Agregar el submenu
   add_submenu_page(
-    plugin_dir_path(__FILE__) . 'be-firstpage.php', // Parent slug
+    plugin_dir_path(__FILE__) . 'be-first-page.php', // Parent slug
     'Ajustes', // Titulo de la pagina
     'Ajustes', // Titulo del menu
     'manage_options', // Capability requirement to see the link

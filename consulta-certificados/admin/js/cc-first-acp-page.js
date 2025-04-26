@@ -24,7 +24,16 @@ jQuery(document).ready(function ($) {
             { data: "CURSO" },
             { data: "ACTA" },
             { data: "FECHA_ACTA" },
+            {
+                data: null, // No viene del servidor
+                orderable: false, // No se puede ordenar
+                searchable: false, // No se puede buscar
+                defaultContent: `
+                    <button class="btn btn-sm btn-primary btn-edit">Descargar</button>
+                `
+            }
         ],
+        
         language: {
             url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/es-MX.json',
         },
@@ -36,28 +45,6 @@ jQuery(document).ready(function ($) {
         layout: {
             topStart: {
                 buttons: [
-                    // {
-                    //     text: 'JSON',
-                    //     action: function (e, dt, node, config) {
-                    //         var data = dt.buttons.exportData();
-                    //         DataTable.fileSave(new Blob([JSON.stringify(data)]), 'Export.json');
-                    //     }
-                    // },
-                    {
-                        extend: 'pdfHtml5',
-                        download: 'open',
-                        customize: function (doc, dt, node, config) { // set the cell colours for the PDF
-                            // console.log(doc); // useful if you want to see what the doc object contains
-                            let table = doc.content[1].table.body;
-                            let data;
-                            for (i = 0; i < table.length; i++) // skip table header row (i = 0)
-                            {
-                                for (let j = 0; j < table[i].length; j++) {
-                                    data += table[i][j].text; // couldn't be bothered clearing the Age column sample data above :)
-                                }
-                            }
-                        }
-                    },
                     'copy',
                     'colvis',
                 ]

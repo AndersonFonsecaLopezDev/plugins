@@ -20,6 +20,7 @@
       <th>CURSO</th>
       <th>No. ACTA</th>
       <th>FECHA ACTA</th>
+      <th>ACCIONES</th>
     </thead>
     <tbody id="principalBodyTable" class="the-list">
     </tbody>
@@ -37,6 +38,7 @@
       <th>CURSO</th>
       <th>No. ACTA</th>
       <th>FECHA ACTA</th>
-    </tfoot>
+      <th>ACCIONES</th>
+      </tfoot>
   </table>
 </div>

@@ -17,15 +17,6 @@ function cc_Add_My_Admin_Link()
     plugin_dir_url(__FILE__) . '../admin/img/icon.png', // Icono del menu
     1
   );
-  // Agregar el submenu
-  add_submenu_page(
-    plugin_dir_path(__FILE__) . 'cc-first-acp-page.php', // Parent slug
-    'Ajustes', // Titulo de la pagina
-    'Ajustes', // Titulo del menu
-    'manage_options', // Capability requirement to see the link
-    plugin_dir_path(__FILE__) . 'cc-menu-ajustes.php', // slug
-    null
-  );
   // Agregar submenu cursos vencidos
   add_submenu_page(
     plugin_dir_path(__FILE__) . 'cc-first-acp-page.php', // Parent slug
@@ -35,7 +26,15 @@ function cc_Add_My_Admin_Link()
     plugin_dir_path(__FILE__) . 'cc-menu-cursos-vencidos.php', // slug
     null
   );
- 
+    // Agregar el submenu
+    // add_submenu_page(
+    //   plugin_dir_path(__FILE__) . 'cc-first-acp-page.php', // Parent slug
+    //   'Ajustes', // Titulo de la pagina
+    //   'Ajustes', // Titulo del menu
+    //   'manage_options', // Capability requirement to see the link
+    //   plugin_dir_path(__FILE__) . 'cc-menu-ajustes.php', // slug
+    //   null
+    // );
 }
 // Cargar JS de Bootstrap
 function loadBootstrapJS($hook)

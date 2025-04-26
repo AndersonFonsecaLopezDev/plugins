@@ -1,9 +1,17 @@
 jQuery(document).ready(function ($) {
     $("#search_certificate_button").on("click", function () {
-        let container = $("#dataContainer");
+        let container = $("#cc-search-result");
         container.addClass("row overflow-scroll");
-        let table = $("<table id='principalTable'></table>");
+
+        // Crear tabla, thead y tbody
+        let table = $("<table id='principalTable' class='table table-striped'></table>");
+        let thead = $("<thead></thead>");
+        let tbody = $("<tbody></tbody>");
+        table.append(thead);
+        table.append(tbody);
+
         var document = $("#document_text_box").val() ? $("#document_text_box").val() : 0;
+
         $.ajax({
             type: "POST",
             url: personal_ajax_request.url,
@@ -16,44 +24,39 @@ jQuery(document).ready(function ($) {
                 console.log(response);
                 container.empty();
                 container.append(table);
+                container.show(); 
 
-                let tbody = $("#principalTable tbody");
-                let thead = $("#principalTable thead");
+                if (response.length === 0) {
+                    container.append("<div class='alert alert-warning mt-3'>No se encontraron datos para ese número de certificado.</div>");
+                    return;
+                }
 
-                tbody.empty();
-                thead.empty();
-                // Create the table element
-                table.addClass("table col-12");
                 // Get the keys (column names) of the first object in the JSON data
                 let cols = Object.keys(response[0]);
-                // Create the header element
-                let tr = $("<tr>");
-                // Loop through the column names and create header cells
-                $.each(cols, function (i, item) {
-                    let th = $("<th>");
-                    th.text(item); // Set the column name as the text of the header cell
-                    tr.append(th); // Append the header cell to the header row
-                });
-                thead.append(tr); // Append the header row to the header
-                table.append(tr) // Append the header to the table
 
-                // Loop through the JSON data and create table rows
-                $.each(response, function (i, item) {
-                    let tr = $("<tr>");
-                    // Get the values of the current object in the JSON data
-                    let vals = Object.values(item);
-                    // Loop through the values and create table cells
-                    $.each(vals, (i, elem) => {
-                        let td = $("<td>");
-                        td.text(elem); // Set the value as the text of the table cell
-                        tr.append(td); // Append the table cell to the table row
-                    });
-                    table.append(tr); // Append the table row to the table
+                // Crear header
+                let headerRow = $("<tr>");
+                $.each(cols, function (i, item) {
+                    let th = $("<th>").text(item);
+                    headerRow.append(th);
                 });
-                // container.append(table) // Append the table to the container element
+                thead.append(headerRow);
+
+                // Crear cuerpo
+                $.each(response, function (i, item) {
+                    let row = $("<tr>");
+                    let vals = Object.values(item);
+                    $.each(vals, function (i, elem) {
+                        let td = $("<td>").text(elem);
+                        row.append(td);
+                    });
+                    tbody.append(row);
+                });
+
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
-                console.log("Status: " + textStatus); alert("Error: " + errorThrown);
+                console.log("Status: " + textStatus);
+                alert("Error: " + errorThrown);
             }
         });
     });

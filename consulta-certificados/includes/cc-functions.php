@@ -17,25 +17,24 @@ function cc_Add_My_Admin_Link()
     plugin_dir_url(__FILE__) . '../admin/img/icon.png', // Icono del menu
     1
   );
-    // Agregar submenu cursos vencidos
-    add_submenu_page(
-      plugin_dir_path(__FILE__) . 'cc-first-acp-page.php', // Parent slug
-      'Cursos Vencidos', // Titulo de la pagina
-      'Cursos Vencidos', // Titulo del menu
-      'manage_options', // Capability requirement to see the link
-      plugin_dir_path(__FILE__) . 'cc-menu-cursos-vencidos.php', // slug
-      null
-    );
   // Agregar el submenu
-  // add_submenu_page(
-  //   plugin_dir_path(__FILE__) . 'cc-first-acp-page.php', // Parent slug
-  //   'Ajustes', // Titulo de la pagina
-  //   'Ajustes', // Titulo del menu
-  //   'manage_options', // Capability requirement to see the link
-  //   plugin_dir_path(__FILE__) . 'cc-menu-ajustes.php', // slug
-  //   null
-  // );
-
+  add_submenu_page(
+    plugin_dir_path(__FILE__) . 'cc-first-acp-page.php', // Parent slug
+    'Ajustes', // Titulo de la pagina
+    'Ajustes', // Titulo del menu
+    'manage_options', // Capability requirement to see the link
+    plugin_dir_path(__FILE__) . 'cc-menu-ajustes.php', // slug
+    null
+  );
+  // Agregar submenu cursos vencidos
+  add_submenu_page(
+    plugin_dir_path(__FILE__) . 'cc-first-acp-page.php', // Parent slug
+    'Cursos Vencidos', // Titulo de la pagina
+    'Cursos Vencidos', // Titulo del menu
+    'manage_options', // Capability requirement to see the link
+    plugin_dir_path(__FILE__) . 'cc-menu-cursos-vencidos.php', // slug
+    null
+  );
  
 }
 // Cargar JS de Bootstrap
@@ -94,14 +93,9 @@ function loadJS($hook)
   if ($hook != "consulta-certificados/includes/cc-first-acp-page.php") {
     return;
   }
-  wp_enqueue_script('personal_js', plugins_url('../admin/js/cc-first-acp-page.js', __FILE__), array('jquery'));
+  wp_enqueue_script('personal_js', plugins_url('../admin/js/cc-first-acp-page.js', __FILE__));
+  wp_enqueue_script('personal2_js', plugins_url('../admin/js/cc-search-certificate.js', __FILE__));
   wp_localize_script('personal_js', 'personal_ajax_request', [
-    'url' => admin_url('admin-ajax.php'),
-    'security' => wp_create_nonce('seg')
-  ]);
-
-  wp_enqueue_script('personal2_js', plugins_url('../admin/js/cc-search-certificate.js', __FILE__), array('jquery'));
-  wp_localize_script('personal2_js', 'personal_ajax_request', [
     'url' => admin_url('admin-ajax.php'),
     'security' => wp_create_nonce('seg')
   ]);
@@ -207,63 +201,57 @@ add_action('wp_ajax_get_all_certificates', 'getAllCertificates');
 
 
 
-function getAllCursosVencidos()
-{
-    // Declaración de variables
-    $nonce = $_POST['nonce'];
-    $contador = 0;
+function getAllCursosVencidos() {
+  // Verificación de seguridad
+  if (!wp_verify_nonce($_POST['nonce'], 'seg')) {
+      wp_send_json_error('Acceso no autorizado', 403);
+  }
 
-    // Verificación de seguridad
-    if (!wp_verify_nonce($nonce, 'seg')) {
-        die('No tiene permisos para ejecutar');
-    }
+  $file = plugin_dir_path(__FILE__) . "certificado/listado.csv";
+  $response = [];
+  $fecha_actual = new DateTime();
+  
+  if (($handle = fopen($file, "r")) !== FALSE) {
+      $encabezados = fgetcsv($handle, 1000, ";");
 
-    $response = [];
-    
-    // Abrir el archivo CSV
-    $file = plugin_dir_path(__FILE__) . "certificado/listado.csv"; // listado corto.
-    if (($handle = fopen($file, "r")) !== FALSE) {
-        // Leer la primera línea del archivo (encabezados)
-        $encabezados = fgetcsv($handle, 1000, ";");
+      while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
+          $row = array_combine($encabezados, $data);
+          
+          if (!empty($row['FECHA_ACTA'])) {
+              $fecha_emision = DateTime::createFromFormat('d/m/Y', $row['FECHA_ACTA']);
+              
+              if ($fecha_emision) {
+                  $fecha_vencimiento = clone $fecha_emision;
+                  $fecha_vencimiento->add(new DateInterval('P2Y'));
+                  
+                  if ($fecha_actual > $fecha_vencimiento) {
+                      // Manejo del teléfono (si no existe en el CSV)
+                      $telefono = 'No registrado';
+                      if (isset($row['TÉLEFONO']) && !empty($row['TÉLEFONO'])) {
+                          $telefono = $row['TÉLEFONO'];
+                      } elseif (isset($row['TELEFONO'])) { // Por si acaso viene sin tilde
+                          $telefono = $row['TELEFONO'];
+                      }
 
-        // Obtener la fecha actual
-        $fecha_actual = new DateTime();
-
-        // Leer los datos de cada fila
-        while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
-            // Extraer los datos en un array asociativo
-            $datosExtraidos = array_combine($encabezados, $data);
-
-            // Convertir "FECHA ACTA" a objeto DateTime para comparar
-            if (!empty($datosExtraidos['FECHA_ACTA'])) {
-                $fecha_acta_dt = DateTime::createFromFormat('d/m/Y', $datosExtraidos['FECHA_ACTA']); // Ajustar formato según tu CSV
-                
-                // Verificar si la "FECHA ACTA" es menor a la fecha actual (vencido)
-                if ($fecha_acta_dt && $fecha_acta_dt < $fecha_actual) {
-                    // Almacenar en el array de respuesta
-                    $response[] = [
-                        'nombre' => trim($datosExtraidos['NOMBRE1'] . ' ' . $datosExtraidos['NOMBRE2'] . ' ' . $datosExtraidos['APELLIDO1'] . ' ' . $datosExtraidos['APELLIDO2']),
-                        'curso' => trim($datosExtraidos['CURSO']),
-                        'telefono' => "Se debe solicitar el telefono",
-                        'fecha_acta' => $datosExtraidos['FECHA_ACTA']
-                    ];
-
-                    // Incrementar el contador
-                    $contador++;
-                }
-            }
-        }
-
-        fclose($handle);
-
-        // Devolver los datos en formato JSON
-        wp_send_json($response);
-    } else {
-        // Manejar el caso en que no se pueda abrir el archivo
-        wp_send_json_error("No se pudo abrir el archivo CSV.");
-    }
+                      $response[] = [
+                          'nombre' => trim($row['NOMBRE1'] . ' ' . ($row['NOMBRE2'] ?? '') . ' ' . 
+                                      $row['APELLIDO1'] . ' ' . ($row['APELLIDO2'] ?? '')),
+                          'curso' => $row['CURSO'],
+                          'telefono' => $telefono,
+                          'fecha_acta' => $row['FECHA_ACTA'],
+                        
+                      ];
+                  }
+              }
+          }
+      }
+      fclose($handle);
+      
+      wp_send_json($response);
+  } else {
+      wp_send_json_error("No se pudo abrir listado.csv", 500);
+  }
 }
-
 add_action('wp_ajax_get_all_cursos_vencidos', 'getAllCursosVencidos');
 
 

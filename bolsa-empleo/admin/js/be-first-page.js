@@ -26,7 +26,7 @@ jQuery(document).ready(function ($) {
             dataSrc: ""
         },
         columns: [
-            { data: '' }, // Reservado para el ID
+            { data: 'ID' }, // Reservado para el ID
             { data: 'Nombres' },
             { data: 'Apellidos' },
             { data: 'Género' },

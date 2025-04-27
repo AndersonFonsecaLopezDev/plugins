@@ -100,12 +100,13 @@ add_action('admin_enqueue_scripts', 'beLoadCSS');
 
 // Ajax
 function beGetCv() {
+  
   $nonce = $_POST['nonce'];
-  if (!wp_verify_nonce($nonce, 'seg')) die('No tiene permisos');
-
-  // Conexión especial a academ_aess
-  //TODO: Cambiar por la conexión a la base de datos correspondiente
-  $special_db = new wpdb('root', 'camilojc123', 'academ_aess', 'localhost');
+  // Verificacion de seguridad
+  if (!wp_verify_nonce($nonce, 'seg')) {
+    die('No tiene permisos para ejecutar');
+  }
+  global $wpdb;
   
   $sql = "SELECT 
     p.ID,
@@ -146,7 +147,9 @@ WHERE
 GROUP BY 
     p.ID;";
   
-  $response = $special_db->get_results($sql);
+
+  $response = $wpdb->get_results($sql);
+
   wp_send_json($response);
 }
 

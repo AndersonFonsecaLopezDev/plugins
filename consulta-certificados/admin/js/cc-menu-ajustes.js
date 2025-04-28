@@ -22,7 +22,18 @@ jQuery(document).ready(function ($) {
             processData: false,
             contentType: false,
             beforeSend: function () {
-                $('#upload-response').html('<div style="color:blue;">⏳ Cargando archivo y procesando datos, por favor espera...</div>');
+                $('#upload-response').html(`
+                    <div style="color:blue; display:flex; align-items:center; gap:8px;">
+                        <div class="spinner" style="border: 4px solid #ccc; border-top: 4px solid blue; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite;"></div>
+                        <span>Cargando archivo y procesando datos...</span>
+                    </div>
+                    <style>
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    </style>
+                `);
             },
             success: function (response) {
                 if (response.success) {
@@ -32,7 +43,7 @@ jQuery(document).ready(function ($) {
                         // Si ya existe un datatable, destruirlo primero
                         if ($.fn.DataTable.isDataTable('#importedDataTable')) {
                             importedDataTable.destroy();
-                            $('#importedDataTable').empty(); // Vaciar
+                            $('#importedDataTable').empty(); // Vaciar tabla
                         }
 
                         // Crear encabezados dinámicamente
@@ -43,7 +54,8 @@ jQuery(document).ready(function ($) {
                         });
                         theadHtml += '</tr></thead>';
 
-                        $('#importedDataTable').html(theadHtml);
+                        // Agregar también un tbody vacío para que DataTable lo llene
+                        $('#importedDataTable').html(theadHtml + '<tbody></tbody>');
 
                         // Crear Datatable
                         importedDataTable = $('#importedDataTable').DataTable({
@@ -53,6 +65,8 @@ jQuery(document).ready(function ($) {
                                 url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/es-MX.json'
                             },
                             scrollX: true,
+                            pageLength: 10,
+                            responsive: true
                         });
                     }
 
@@ -62,7 +76,7 @@ jQuery(document).ready(function ($) {
             },
             error: function (xhr) {
                 $('#upload-response').html('<div style="color:red;">❌ Error en la importación</div>');
-                console.log(xhr.responseText);
+                console.error(xhr.responseText);
             }
         });
     });

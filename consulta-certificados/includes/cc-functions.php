@@ -1,10 +1,11 @@
 <?php
+
 use PhpOffice\PhpSpreadsheet\IOFactory; // Si usas PhpSpreadsheet
+
 /*
  * Add my new menu to the Admin Control Panel
  */
-// Hook the 'admin_menu' action hook, run the function named 'cc_Add_My_Admin_Link()'
-add_action('admin_menu', 'cc_Add_My_Admin_Link');
+
 // Add a new top level menu link to the ACP
 function cc_Add_My_Admin_Link()
 {
@@ -37,88 +38,99 @@ function cc_Add_My_Admin_Link()
     null
   );
 }
+// Hook the 'admin_menu' action hook, run the function named 'cc_Add_My_Admin_Link()'
+add_action('admin_menu', 'cc_Add_My_Admin_Link');
 
-// Cargar JS de Bootstrap
-function loadBootstrapJS($hook)
+function cc_load_assets($hook)
 {
-  if (
-    $hook != "consulta-certificados/includes/cc-first-acp-page.php" &&
-    $hook != "consulta-certificados/includes/cc-menu-cursos-vencidos.php"
-  ) {
-    return;
-  }
-  wp_enqueue_script('bootstrap_js', plugins_url('../admin/bootstrap/js/bootstrap.min.js', __FILE__), array('jquery'));
-}
-add_action('admin_enqueue_scripts', 'loadBootstrapJS');
+    // Definir todos los assets aquí
+    $assets = [
+        'consulta-certificados/includes/cc-first-acp-page.php' => [
+            'scripts' => [
+                [
+                    'handle' => 'cc_first_page_js',
+                    'src'    => plugins_url('../admin/js/cc-first-acp-page.js', __FILE__),
+                    'deps'   => ['jquery'],
+                    'localize' => true,
+                ],
+                [
+                    'handle' => 'cc_search_certificate_js',
+                    'src'    => plugins_url('../admin/js/cc-search-certificate.js', __FILE__),
+                    'deps'   => ['jquery'],
+                    'localize' => false,
+                ],
+                [
+                    'handle' => 'datatables_js',
+                    'src'    => plugins_url('../admin/js/datatables.min.js', __FILE__),
+                    'deps'   => ['jquery'],
+                    'localize' => false,
+                ],
+            ],
+            'styles' => [
+                plugins_url('../admin/css/styles.css', __FILE__),
+                plugins_url('../admin/bootstrap/css/bootstrap.min.css', __FILE__),
+                plugins_url('../admin/css/datatables.min.css', __FILE__),
+            ],
+        ],
+        'consulta-certificados/includes/cc-menu-cursos-vencidos.php' => [
+            'scripts' => [
+                [
+                    'handle' => 'cc_cursos_vencidos_js',
+                    'src'    => plugins_url('../admin/js/cc-menu-cursos-vencidos.js', __FILE__),
+                    'deps'   => ['jquery'],
+                    'localize' => true,
+                ],
+                [
+                    'handle' => 'datatables_js',
+                    'src'    => plugins_url('../admin/js/datatables.min.js', __FILE__),
+                    'deps'   => ['jquery'],
+                    'localize' => false,
+                ],
+            ],
+            'styles' => [
+                plugins_url('../admin/bootstrap/css/bootstrap.min.css', __FILE__),
+                plugins_url('../admin/css/datatables.min.css', __FILE__),
+                plugins_url('../admin/css/styles.css', __FILE__),
+            ],
+        ],
+        'consulta-certificados/includes/cc-menu-ajustes.php' => [
+            'scripts' => [
+                [
+                    'handle' => 'cc_ajustes_js',
+                    'src'    => plugins_url('../admin/js/cc-menu-ajustes.js', __FILE__),
+                    'deps'   => ['jquery'],
+                    'localize' => true,
+                ],
+            ],
+            'styles' => [
+                plugins_url('../admin/bootstrap/css/bootstrap.min.css', __FILE__),
+                plugins_url('../admin/css/styles.css', __FILE__),
+            ],
+        ],
+    ];
 
-// Cargar CSS de Bootstrap
-function loadBootstrapCSS($hook)
-{
-  // Comprobar si el hook corresponde a una de las páginas especificadas
-  if (
-    $hook != "consulta-certificados/includes/cc-first-acp-page.php" &&
-    $hook != "consulta-certificados/includes/cc-menu-cursos-vencidos.php"
-  ) {
-    return;
-  }
+    // Si la página tiene assets definidos
+    if (isset($assets[$hook])) {
+        // Cargar estilos
+        foreach ($assets[$hook]['styles'] as $style_src) {
+            wp_enqueue_style(md5($style_src), $style_src);
+        }
 
-  // Encolar el CSS de Bootstrap
-  wp_enqueue_style('bootstrap_css', plugins_url('../admin/bootstrap/css/bootstrap.min.css', __FILE__));
-}
+        // Cargar scripts
+        foreach ($assets[$hook]['scripts'] as $script) {
+            wp_enqueue_script($script['handle'], $script['src'], $script['deps'], false, true);
 
-// Cargar JS de dataTables
-function loadDataTablesJS($hook)
-{
-  if (
-    $hook != "consulta-certificados/includes/cc-first-acp-page.php" &&
-    $hook != "consulta-certificados/includes/cc-menu-cursos-vencidos.php"
-  ) {
-    return;
-  }
-  wp_enqueue_script('dataTables_js', plugins_url('../admin/js/datatables.min.js', __FILE__), array('jquery'));
+            // Si necesita localize
+            if (!empty($script['localize'])) {
+                wp_localize_script($script['handle'], 'personal_ajax_request', [
+                    'url' => admin_url('admin-ajax.php'),
+                    'security' => wp_create_nonce('seg')
+                ]);
+            }
+        }
+    }
 }
-add_action('admin_enqueue_scripts', 'loadDataTablesJS');
-
-// Cargar CSS de dataTables
-function loadDataTablesCSS($hook)
-{
-  if (
-    $hook != "consulta-certificados/includes/cc-first-acp-page.php" &&
-    $hook != "consulta-certificados/includes/cc-menu-cursos-vencidos.php"
-  ) {
-    return;
-  }
-  wp_enqueue_style('dataTables_css', plugins_url('../admin/css/datatables.min.css', __FILE__));
-}
-add_action('admin_enqueue_scripts', 'loadDataTablesCSS');
-
-// Cargar JS personalizado
-function loadJS($hook)
-{
-  if ($hook != "consulta-certificados/includes/cc-first-acp-page.php") {
-    return;
-  }
-  wp_enqueue_script('personal_js', plugins_url('../admin/js/cc-first-acp-page.js', __FILE__));
-  wp_enqueue_script('personal2_js', plugins_url('../admin/js/cc-search-certificate.js', __FILE__));
-  wp_localize_script('personal_js', 'personal_ajax_request', [
-    'url' => admin_url('admin-ajax.php'),
-    'security' => wp_create_nonce('seg')
-  ]);
-}
-add_action('admin_enqueue_scripts', 'loadJS');
-
-// Cargar CSS personalizado
-function loadCSS($hook)
-{
-  if (
-    $hook != "consulta-certificados/includes/cc-first-acp-page.php" &&
-    $hook != "consulta-certificados/includes/cc-menu-cursos-vencidos.php"
-  ) {
-    return;
-  }
-  wp_enqueue_style('personal_css', plugins_url('../admin/css/styles.css', __FILE__));
-}
-add_action('admin_enqueue_scripts', 'loadCSS');
+add_action('admin_enqueue_scripts', 'cc_load_assets');
 
 // Shortcode
 function setShortCode($atts)
@@ -252,30 +264,6 @@ function getAllCursosVencidos()
   }
 }
 add_action('wp_ajax_get_all_cursos_vencidos', 'getAllCursosVencidos');
-
-// Cargar JS para el submenu de cursos vencidos
-function loadCursosVencidosJS($hook)
-{
-  if ($hook != "consulta-certificados/includes/cc-menu-cursos-vencidos.php") {
-    return;
-  }
-  wp_enqueue_script('personal_js', plugins_url('../admin/js/cc-menu-cursos-vencidos.js', __FILE__));
-  wp_localize_script('personal_js', 'personal_ajax_request', [
-    'url' => admin_url('admin-ajax.php'),
-    'security' => wp_create_nonce('seg')
-  ]);
-}
-add_action('admin_enqueue_scripts', 'loadCursosVencidosJS');
-
-// Cargar JS de dataTables
-function loadDataTablesCursosVencidosJS($hook)
-{
-  if ($hook != "consulta-certificados/includes/cc-menu-cursos-vencidos.php") {
-    return;
-  }
-  wp_enqueue_script('dataTables_js', plugins_url('../admin/js/datatables.min.js', __FILE__), array('jquery'));
-}
-add_action('admin_enqueue_scripts', 'loadDataTablesCursosVencidosJS');
 
 function handle_import_excel()
 {

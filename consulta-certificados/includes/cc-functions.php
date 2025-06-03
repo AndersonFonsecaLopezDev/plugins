@@ -321,3 +321,12 @@ function handle_import_excel()
   wp_die();
 }
 add_action('wp_ajax_import_excel', 'handle_import_excel');
+add_action('wp_ajax_generate_diploma', 'generate_diploma_handler');
+add_action('wp_ajax_nopriv_generate_diploma', 'generate_diploma_handler');
+
+function generate_diploma_handler() {
+    include plugin_dir_path(__FILE__) . 'pdf-generador.php';
+    exit;
+}
+add_action('wp_ajax_generate_diploma', 'generate_diploma_handler');
+add_action('wp_ajax_nopriv_generate_diploma', 'generate_diploma_handler');

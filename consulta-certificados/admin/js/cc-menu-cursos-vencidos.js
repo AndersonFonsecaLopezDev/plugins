@@ -28,6 +28,19 @@ jQuery(document).ready(function ($) {
                 buttons: [
                     'copy',
                     'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        text: 'Exportar Excel',
+                        exportOptions: {
+                            modifier: {
+                                search: 'applied',
+                                order: 'applied',
+                                page: 'all' // Exporta todos los registros
+                            }
+                        },
+                        filename: 'cursos_vencidos',
+                        title: null
+                    }
                 ]
             }
         },

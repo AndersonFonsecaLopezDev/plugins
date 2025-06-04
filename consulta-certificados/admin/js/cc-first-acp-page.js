@@ -44,6 +44,20 @@ jQuery(document).ready(function ($) {
                 buttons: [
                     'copy',
                     'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        text: 'Exportar Excel',
+                        exportOptions: {
+                            columns: ':not(:last-child)', // Omite la última columna (Acciones)
+                            modifier: {
+                                search: 'applied',
+                                order: 'applied',
+                                page: 'all' // Exporta todos los registros
+                            }
+                        },
+                        filename: 'listado_certificados',
+                        title: null
+                    }
                 ]
             }
         },

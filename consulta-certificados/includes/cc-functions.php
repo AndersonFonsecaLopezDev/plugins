@@ -233,7 +233,9 @@ function getAllCursosVencidos()
 
         if ($fecha_emision) {
           $fecha_vencimiento = clone $fecha_emision;
-          $fecha_vencimiento->add(new DateInterval('P2Y'));
+
+          $fecha_vencimiento->add(new DateInterval('P1Y'));
+
 
           if ($fecha_actual > $fecha_vencimiento) {
             // Manejo del teléfono (si no existe en el CSV)
@@ -244,6 +246,7 @@ function getAllCursosVencidos()
               $telefono = $row['TELEFONO'];
             }
 
+
             $response[] = [
               'nombre' => trim($row['NOMBRE1'] . ' ' . ($row['NOMBRE2'] ?? '') . ' ' .
                 $row['APELLIDO1'] . ' ' . ($row['APELLIDO2'] ?? '')),
@@ -252,6 +255,7 @@ function getAllCursosVencidos()
               'fecha_acta' => $row['FECHA_ACTA'],
 
             ];
+
           }
         }
       }

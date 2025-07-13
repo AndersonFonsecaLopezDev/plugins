@@ -1,5 +1,4 @@
 jQuery(document).ready(function ($) {
-    // let table = new DataTable('#principalTable');
     var table = $('#principalTable').DataTable({
         ajax: {
             type: "POST",
@@ -25,19 +24,17 @@ jQuery(document).ready(function ($) {
             { data: "ACTA" },
             { data: "FECHA_ACTA" },
             {
-                data: null, // No viene del servidor
-                orderable: false, // No se puede ordenar
-                searchable: false, // No se puede buscar
+                data: null,
+                orderable: false,
+                searchable: false,
                 defaultContent: `
-                    <button class="btn btn-sm btn-primary btn-edit">Descargar</button>
+                    <button class="btn btn-sm btn-primary btn-download">Descargar</button>
                 `
             }
         ],
-        
         language: {
             url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/es-MX.json',
         },
-        // fixedColumns: true,
         scrollX: true,
         fixedHeader: {
             header: true,
@@ -47,28 +44,72 @@ jQuery(document).ready(function ($) {
                 buttons: [
                     'copy',
                     'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        text: 'Exportar Excel',
+                        exportOptions: {
+                            columns: ':not(:last-child)', // Omite la última columna (Acciones)
+                            modifier: {
+                                search: 'applied',
+                                order: 'applied',
+                                page: 'all' // Exporta todos los registros
+                            }
+                        },
+                        filename: 'listado_certificados',
+                        title: null
+                    }
                 ]
             }
         },
         select: true
     });
 
-    // Setup - add a text input to each footer cell
+    // Filtros en el footer
     $('#principalTable tfoot th').each(function (i) {
-        var title = $('#principalTable thead th')
-            .eq($(this).index())
-            .text();
-        $(this).html(
-            '<input type="text" placeholder="' + title + '" data-index="' + i + '" />'
-        );
+        var title = $('#principalTable thead th').eq($(this).index()).text();
+        $(this).html('<input type="text" placeholder="' + title + '" data-index="' + i + '" />');
     });
 
-    // Filter event handler
     $('#principalTable tfoot th input').on('keyup', function () {
-        table
-            .column($(this).data('index'))
-            .search(this.value)
-            .draw();
+        table.column($(this).data('index')).search(this.value).draw();
     });
 
+    // Evento para descargar PDF con los datos de la fila
+    $('#principalTable').on('click', '.btn-download', function () {
+        var rowData = table.row($(this).closest('tr')).data();
+
+        // Crear formulario de descarga
+        var form = $('<form>', {
+            method: 'POST',
+            action: personal_ajax_request.url,
+            target: '_blank', // Abre el PDF en una nueva pestaña
+            style: 'display: none;'
+        }).appendTo('body');
+
+        // Datos a enviar al backend
+        var formData = {
+            action: 'generate_diploma',
+            nonce: personal_ajax_request.security,
+            numero_diploma: rowData.NUMERODIPLOMA,
+            nombre_completo: rowData.NOMBRE1 + ' ' + (rowData.NOMBRE2 || '') + ' ' + rowData.APELLIDO1 + ' ' + (rowData.APELLIDO2 || ''),
+            cedula: rowData.CEDULA,
+            curso: rowData.CURSO,
+            fecha_acta: rowData.FECHA_ACTA
+        };
+
+        // Añadir inputs al formulario
+        $.each(formData, function (key, value) {
+            $('<input>')
+                .attr({ type: 'hidden', name: key, value: value })
+                .appendTo(form);
+        });
+
+        // Enviar formulario
+        form.submit();
+
+        // Eliminar el formulario después de 1 segundo
+        setTimeout(function () {
+            form.remove();
+        }, 1000);
+    });
 });

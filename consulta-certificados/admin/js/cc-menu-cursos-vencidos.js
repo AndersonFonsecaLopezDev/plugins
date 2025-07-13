@@ -13,8 +13,8 @@ jQuery(document).ready(function ($) {
         columns: [
             { data: 'nombre', title: 'NOMBRE' },
             { data: 'curso', title: 'ULTIMO CURSO REALIZADO' },
-            { data: 'telefono', title: 'TÉLEFONO'},
-            { data: 'fecha_acta', title: 'FECHA' }, 
+            { data: 'telefono', title: 'TÉLEFONO' },
+            { data: 'fecha_acta', title: 'FECHA' },
         ],
         language: {
             url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/es-MX.json',
@@ -26,21 +26,21 @@ jQuery(document).ready(function ($) {
         layout: {
             topStart: {
                 buttons: [
-                    {
-                        extend: 'pdfHtml5',
-                        download: 'open',
-                        customize: function (doc, dt, node, config) {
-                            let table = doc.content[1].table.body;
-                            let data;
-                            for (i = 0; i < table.length; i++) {
-                                for (let j = 0; j < table[i].length; j++) {
-                                    data += table[i][j].text;
-                                }
-                            }
-                        }
-                    },
                     'copy',
                     'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        text: 'Exportar Excel',
+                        exportOptions: {
+                            modifier: {
+                                search: 'applied',
+                                order: 'applied',
+                                page: 'all' // Exporta todos los registros
+                            }
+                        },
+                        filename: 'cursos_vencidos',
+                        title: null
+                    }
                 ]
             }
         },

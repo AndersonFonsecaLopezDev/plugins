@@ -213,24 +213,24 @@ function getAllCursosVencidos() {
   if (($handle = fopen($file, "r")) !== FALSE) {
       $encabezados = fgetcsv($handle, 1000, ";");
 
-      while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
-          $row = array_combine($encabezados, $data);
-          
-          if (!empty($row['FECHA_ACTA'])) {
-              $fecha_emision = DateTime::createFromFormat('d/m/Y', $row['FECHA_ACTA']);
-              
-              if ($fecha_emision) {
-                  $fecha_vencimiento = clone $fecha_emision;
-                  $fecha_vencimiento->add(new DateInterval('P2Y'));
-                  
-                  if ($fecha_actual > $fecha_vencimiento) {
-                      // Manejo del teléfono (si no existe en el CSV)
-                      $telefono = 'No registrado';
-                      if (isset($row['TÉLEFONO']) && !empty($row['TÉLEFONO'])) {
-                          $telefono = $row['TÉLEFONO'];
-                      } elseif (isset($row['TELEFONO'])) { // Por si acaso viene sin tilde
-                          $telefono = $row['TELEFONO'];
-                      }
+    while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
+      $row = array_combine($encabezados, $data);
+
+      if (!empty($row['FECHA_ACTA'])) {
+        $fecha_emision = DateTime::createFromFormat('d/m/Y', $row['FECHA_ACTA']);
+
+        if ($fecha_emision) {
+          $fecha_vencimiento = clone $fecha_emision;
+          $fecha_vencimiento->add(new DateInterval('P1Y'));
+
+          if ($fecha_actual > $fecha_vencimiento) {
+            // Manejo del teléfono (si no existe en el CSV)
+            $telefono = 'No registrado';
+            if (isset($row['TÉLEFONO']) && !empty($row['TÉLEFONO'])) {
+              $telefono = $row['TÉLEFONO'];
+            } elseif (isset($row['TELEFONO'])) { // Por si acaso viene sin tilde
+              $telefono = $row['TELEFONO'];
+            }
 
                       $response[] = [
                           'nombre' => trim($row['NOMBRE1'] . ' ' . ($row['NOMBRE2'] ?? '') . ' ' . 

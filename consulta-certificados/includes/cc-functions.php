@@ -297,109 +297,253 @@ function getAllCursosVencidos()
 }
 add_action('wp_ajax_get_all_cursos_vencidos', 'getAllCursosVencidos');
 
-function handle_import_excel()
-{
-  check_ajax_referer('seg', 'nonce');
+// function handle_import_excel()
+// {
+//   check_ajax_referer('seg', 'nonce');
 
-  if (!isset($_FILES['excel_file'])) {
-    wp_send_json_error(['message' => 'No se recibió ningún archivo']);
-    wp_die();
-  }
+//   if (!isset($_FILES['excel_file'])) {
+//     wp_send_json_error(['message' => 'No se recibió ningún archivo']);
+//     wp_die();
+//   }
 
-  $file = $_FILES['excel_file']['tmp_name'];
+//   $file = $_FILES['excel_file']['tmp_name'];
 
-  if (!file_exists($file)) {
-    wp_send_json_error(['message' => 'Archivo no encontrado']);
-    wp_die();
-  }
+//   if (!file_exists($file)) {
+//     wp_send_json_error(['message' => 'Archivo no encontrado']);
+//     wp_die();
+//   }
 
-  require_once plugin_dir_path(__FILE__) . '../vendor/autoload.php';
+//   require_once plugin_dir_path(__FILE__) . '../vendor/autoload.php';
 
-  try {
-    $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
-    $sheet = $spreadsheet->getActiveSheet();
-    $rows = $sheet->toArray(null, true, true, true); // Mantiene índices tipo 'A', 'B', 'C'...
+//   try {
+//     $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+//     $sheet = $spreadsheet->getActiveSheet();
+//     $rows = $sheet->toArray(null, true, true, true); // Mantiene índices tipo 'A', 'B', 'C'...
 
-    global $wpdb;
-    $table = "{$wpdb->prefix}cc_certificados";
+//     global $wpdb;
+//     $table = "{$wpdb->prefix}cc_certificados";
 
-    $inserted_rows = [];
-    $duplicated_rows = [];
+//     $inserted_rows = [];
+//     $duplicated_rows = [];
 
-    foreach ($rows as $index => $row) {
-      if ($index === 1) continue; // Saltar encabezado (fila 1)
+//     foreach ($rows as $index => $row) {
+//       if ($index === 1) continue; // Saltar encabezado (fila 1)
 
-      // Mapear columnas (ajusta según la columna real de tu Excel o CSV)
-      $razon_social    = sanitize_text_field($row['A'] ?? '');
-      $nit             = sanitize_text_field($row['B'] ?? '');
-      $resolucion      = sanitize_text_field($row['C'] ?? '');
-      $fecha_resolucion = !empty($row['D']) ? date('Y-m-d', strtotime($row['D'])) : null;
-      $apellido1       = sanitize_text_field($row['E'] ?? '');
-      $apellido2       = sanitize_text_field($row['F'] ?? '');
-      $nombre1         = sanitize_text_field($row['G'] ?? '');
-      $nombre2         = sanitize_text_field($row['H'] ?? '');
-      $cedula          = sanitize_text_field($row['I'] ?? '');
-      $numerodiploma   = sanitize_text_field($row['J'] ?? '');
-      $curso           = sanitize_text_field($row['K'] ?? '');
-      $acta            = sanitize_text_field($row['L'] ?? '');
-      $fecha_acta      = !empty($row['M']) ? date('Y-m-d', strtotime($row['M'])) : null;
+//       // Mapear columnas (ajusta según la columna real de tu Excel o CSV)
+//       $razon_social    = sanitize_text_field($row['A'] ?? '');
+//       $nit             = sanitize_text_field($row['B'] ?? '');
+//       $resolucion      = sanitize_text_field($row['C'] ?? '');
+//       $fecha_resolucion = !empty($row['D']) ? date('Y-m-d', strtotime($row['D'])) : null;
+//       $apellido1       = sanitize_text_field($row['E'] ?? '');
+//       $apellido2       = sanitize_text_field($row['F'] ?? '');
+//       $nombre1         = sanitize_text_field($row['G'] ?? '');
+//       $nombre2         = sanitize_text_field($row['H'] ?? '');
+//       $cedula          = sanitize_text_field($row['I'] ?? '');
+//       $numerodiploma   = sanitize_text_field($row['J'] ?? '');
+//       $curso           = sanitize_text_field($row['K'] ?? '');
+//       $acta            = sanitize_text_field($row['L'] ?? '');
+//       $fecha_acta      = !empty($row['M']) ? date('Y-m-d', strtotime($row['M'])) : null;
 
-      // Validar si viene el número de diploma
-      if (empty($numerodiploma)) {
-        continue; // Saltar fila si falta el diploma
-      }
+//       // Validar si viene el número de diploma
+//       if (empty($numerodiploma)) {
+//         continue; // Saltar fila si falta el diploma
+//       }
 
-      // Verificar si ya existe
-      $exists = $wpdb->get_var($wpdb->prepare(
-        "SELECT COUNT(*) FROM $table WHERE numerodiploma = %s",
-        $numerodiploma
-      ));
+//       // Verificar si ya existe
+//       $exists = $wpdb->get_var($wpdb->prepare(
+//         "SELECT COUNT(*) FROM $table WHERE numerodiploma = %s",
+//         $numerodiploma
+//       ));
 
-      if ($exists) {
-        $duplicated_rows[] = $numerodiploma;
-        continue;
-      }
+//       if ($exists) {
+//         $duplicated_rows[] = $numerodiploma;
+//         continue;
+//       }
 
-      // Insertar el registro
-      $wpdb->insert($table, [
-        'razon_social'     => $razon_social,
-        'nit'              => $nit,
-        'resolucion'       => $resolucion,
-        'fecha_resolucion' => $fecha_resolucion,
-        'apellido1'        => $apellido1,
-        'apellido2'        => $apellido2,
-        'nombre1'          => $nombre1,
-        'nombre2'          => $nombre2,
-        'cedula'           => $cedula,
-        'numerodiploma'    => $numerodiploma,
-        'curso'            => $curso,
-        'acta'             => $acta,
-        'fecha_acta'       => $fecha_acta,
-      ]);
+//       // Insertar el registro
+//       $wpdb->insert($table, [
+//         'razon_social'     => $razon_social,
+//         'nit'              => $nit,
+//         'resolucion'       => $resolucion,
+//         'fecha_resolucion' => $fecha_resolucion,
+//         'apellido1'        => $apellido1,
+//         'apellido2'        => $apellido2,
+//         'nombre1'          => $nombre1,
+//         'nombre2'          => $nombre2,
+//         'cedula'           => $cedula,
+//         'numerodiploma'    => $numerodiploma,
+//         'curso'            => $curso,
+//         'acta'             => $acta,
+//         'fecha_acta'       => $fecha_acta,
+//       ]);
 
-      // Guardar para previsualización si quieres
-      $inserted_rows[] = [
-        'razon_social' => $razon_social,
-        'nit'          => $nit,
-        'resolucion'   => $resolucion,
-        'numerodiploma' => $numerodiploma,
-        'nombre_completo' => trim("$nombre1 $nombre2 $apellido1 $apellido2"),
-        'curso'        => $curso,
-      ];
+//       // Guardar para previsualización si quieres
+//       $inserted_rows[] = [
+//         'razon_social' => $razon_social,
+//         'nit'          => $nit,
+//         'resolucion'   => $resolucion,
+//         'numerodiploma' => $numerodiploma,
+//         'nombre_completo' => trim("$nombre1 $nombre2 $apellido1 $apellido2"),
+//         'curso'        => $curso,
+//       ];
+//     }
+
+//     wp_send_json_success([
+//       'message' => 'Importación completada correctamente.',
+//       'inserted' => count($inserted_rows),
+//       'duplicated' => count($duplicated_rows),
+//       'duplicated_list' => $duplicated_rows,
+//       'rows' => $inserted_rows,
+//     ]);
+//   } catch (Exception $e) {
+//     wp_send_json_error(['message' => 'Error al leer el archivo: ' . $e->getMessage()]);
+//   }
+
+//   wp_die();
+// }
+
+function handle_import_excel() {
+    check_ajax_referer('seg', 'nonce');
+
+    if (!isset($_FILES['excel_file'])) {
+        wp_send_json_error(['message' => 'No se recibió ningún archivo']);
+        wp_die();
     }
 
-    wp_send_json_success([
-      'message' => 'Importación completada correctamente.',
-      'inserted' => count($inserted_rows),
-      'duplicated' => count($duplicated_rows),
-      'duplicated_list' => $duplicated_rows,
-      'rows' => $inserted_rows,
-    ]);
-  } catch (Exception $e) {
-    wp_send_json_error(['message' => 'Error al leer el archivo: ' . $e->getMessage()]);
-  }
+    $file = $_FILES['excel_file']['tmp_name'];
 
-  wp_die();
+    if (!file_exists($file)) {
+        wp_send_json_error(['message' => 'Archivo no encontrado']);
+        wp_die();
+    }
+
+    require_once plugin_dir_path(__FILE__) . '../vendor/autoload.php';
+
+    // Ruta del archivo destino
+    $output_file = plugin_dir_path(__FILE__) . "certificado/listado.csv";
+
+    try {
+        // Cargar el archivo subido
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+        $sheet = $spreadsheet->getActiveSheet();
+        $rows = $sheet->toArray(null, true, true, true);
+
+        // Verificar si el archivo destino existe
+        if (file_exists($output_file)) {
+            $existingSpreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($output_file);
+            $existingSheet = $existingSpreadsheet->getActiveSheet();
+            $highestRow = $existingSheet->getHighestRow();
+        } else {
+            // Crear nuevo spreadsheet si no existe
+            $existingSpreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $existingSheet = $existingSpreadsheet->getActiveSheet();
+            
+            // Agregar encabezados
+            $headers = [
+                'A' => 'RAZON SOCIAL', 'B' => 'NIT', 'C' => 'RESOLUCION', 
+                'D' => 'FECHA RESOLUCION', 'E' => 'APELLIDO1', 'F' => 'APELLIDO2',
+                'G' => 'NOMBRE1', 'H' => 'NOMBRE2', 'I' => 'CEDULA', 
+                'J' => 'NUMERODIPLOMA', 'K' => 'CURSO', 'L' => 'ACTA', 
+                'M' => 'FECHA_ACTA'
+            ];
+            
+            foreach ($headers as $col => $header) {
+                $existingSheet->setCellValue($col.'1', $header);
+            }
+            
+            $highestRow = 1;
+        }
+
+        $inserted_rows = [];
+        $duplicated_rows = [];
+
+        foreach ($rows as $index => $row) {
+            if ($index === 1) continue; // Saltar encabezado
+
+            // Mapear columnas
+            $razon_social    = sanitize_text_field($row['A'] ?? '');
+            $nit             = sanitize_text_field($row['B'] ?? '');
+            $resolucion      = sanitize_text_field($row['C'] ?? '');
+            $fecha_resolucion = !empty($row['D']) ? date('Y-m-d', strtotime($row['D'])) : null;
+            $apellido1       = sanitize_text_field($row['E'] ?? '');
+            $apellido2       = sanitize_text_field($row['F'] ?? '');
+            $nombre1         = sanitize_text_field($row['G'] ?? '');
+            $nombre2         = sanitize_text_field($row['H'] ?? '');
+            $cedula          = sanitize_text_field($row['I'] ?? '');
+            $numerodiploma   = sanitize_text_field($row['J'] ?? '');
+            $curso           = sanitize_text_field($row['K'] ?? '');
+            $acta            = sanitize_text_field($row['L'] ?? '');
+            $fecha_acta      = !empty($row['M']) ? date('Y-m-d', strtotime($row['M'])) : null;
+
+            // Validar número de diploma
+            if (empty($numerodiploma)) {
+                continue;
+            }
+
+            // Verificar duplicados en el archivo existente
+            $is_duplicate = false;
+            if ($highestRow > 1) {
+                for ($i = 2; $i <= $highestRow; $i++) {
+                    if ($existingSheet->getCell('J'.$i)->getValue() == $numerodiploma) {
+                        $duplicated_rows[] = $numerodiploma;
+                        $is_duplicate = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($is_duplicate) {
+                continue;
+            }
+
+            // Agregar nueva fila
+            $newRow = $highestRow + 1;
+            $existingSheet->setCellValue('A'.$newRow, $razon_social);
+            $existingSheet->setCellValue('B'.$newRow, $nit);
+            $existingSheet->setCellValue('C'.$newRow, $resolucion);
+            $existingSheet->setCellValue('D'.$newRow, $fecha_resolucion);
+            $existingSheet->setCellValue('E'.$newRow, $apellido1);
+            $existingSheet->setCellValue('F'.$newRow, $apellido2);
+            $existingSheet->setCellValue('G'.$newRow, $nombre1);
+            $existingSheet->setCellValue('H'.$newRow, $nombre2);
+            $existingSheet->setCellValue('I'.$newRow, $cedula);
+            $existingSheet->setCellValue('J'.$newRow, $numerodiploma);
+            $existingSheet->setCellValue('K'.$newRow, $curso);
+            $existingSheet->setCellValue('L'.$newRow, $acta);
+            $existingSheet->setCellValue('M'.$newRow, $fecha_acta);
+
+            $highestRow = $newRow;
+            
+            $inserted_rows[] = [
+                'razon_social' => $razon_social,
+                'nit' => $nit,
+                'numerodiploma' => $numerodiploma,
+                'nombre_completo' => trim("$nombre1 $nombre2 $apellido1 $apellido2"),
+                'curso' => $curso
+            ];
+        }
+
+        // Guardar el archivo
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($existingSpreadsheet, 'Csv');
+        $writer->setDelimiter(';');
+        $writer->setEnclosure('');
+        $writer->setLineEnding("\r\n");
+        $writer->setSheetIndex(0);
+        $writer->save($output_file);
+
+        wp_send_json_success([
+            'message' => 'Datos agregados al archivo correctamente.',
+            'inserted' => count($inserted_rows),
+            'duplicated' => count($duplicated_rows),
+            'duplicated_list' => $duplicated_rows,
+            'rows' => $inserted_rows,
+            'output_file' => $output_file
+        ]);
+    } catch (Exception $e) {
+        wp_send_json_error(['message' => 'Error al procesar el archivo: ' . $e->getMessage()]);
+    }
+
+    wp_die();
 }
 
 add_action('wp_ajax_import_excel', 'handle_import_excel');

@@ -9,9 +9,9 @@ $nombre_profesor = "Juan Pérez";
 
 <div class="container mt-5">
   <h1 class="mb-4"><?php echo esc_html__('Registro de Asistencia Diaria', 'text-domain'); ?></h1>
-  <h2><?php echo esc_html__( $nombre_curso); ?></h2>
-  <h4><?php echo esc_html__('Fecha: ' . $fecha_actual); ?></h4>
-  <h4 class="mb-4"><?php echo esc_html__('Profesor: ' . $nombre_profesor); ?></h4>
+  <h2><?php echo esc_html($nombre_curso); ?></h2>
+  <h4 class="text-muted"><?php echo esc_html__('Fecha: ' . $fecha_actual); ?></h4>
+  <h4 class="mb-4 text-muted"><?php echo esc_html__('Profesor: ' . $nombre_profesor); ?></h4>
 
   <form method="post" id="asistencia-form">
     <div class="table-responsive">
@@ -25,7 +25,7 @@ $nombre_profesor = "Juan Pérez";
         </thead>
         <tbody>
           <?php
-          // Simular datos de alumnos
+          // Simulación de datos de alumnos (luego puedes conectar con tu base de datos)
           $alumnos = [
             ['nombre' => 'Juan Camilo Cuenca', 'documento' => '12345678'],
             ['nombre' => 'Anderson Fonseca', 'documento' => '87654321'],
@@ -50,7 +50,7 @@ $nombre_profesor = "Juan Pérez";
   </form>
 
   <?php
-  // Simulación de guardado
+  // Simulación del guardado de asistencia (puedes luego reemplazar por guardado en BD)
   if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asistencia'])) {
     echo '<div class="alert alert-success alert-dismissible fade show mt-3" role="alert">';
     echo '✅ Asistencia guardada correctamente.';
@@ -60,7 +60,7 @@ $nombre_profesor = "Juan Pérez";
   ?>
 </div>
 
-<!-- Estilo extra opcional para check blanco al marcar -->
+<!-- Estilo para personalizar el checkbox al marcar -->
 <style>
   input[type="checkbox"].form-check-input:checked {
     background-color: #0d6efd;

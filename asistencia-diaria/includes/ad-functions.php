@@ -11,8 +11,33 @@ function ad_Add_My_Admin_Link()
     'asistencia-diaria',              // SLUG (clave única)
     'ad_render_admin_page',           // Función callback que imprime la página
     'dashicons-list-view',
-    2
+    1
   );
+
+  add_submenu_page(
+    'asistencia-diaria',               // SLUG del menú principal
+    'Lista de Estudiantes',            // Título de la subpágina
+    'Lista de Estudiantes',            // Texto en el menú de la subpágina
+    'manage_options',                  // Capacidad requerida
+    'list-estudiantes',             // SLUG de la subpágina
+    'ad_render_list_estudiantes_page'  // Función callback que imprime la subpágina
+  );
+
+  add_submenu_page(
+    'asistencia-diaria',               // SLUG del menú principal (mismo que el menú principal)
+    'Lista de Cursos',                 // Título de la subpágina
+    'Lista de Cursos',                 // Texto en el menú de la subpágina
+    'manage_options',                  // Capacidad requerida
+    'lista-cursos',                    // SLUG de la subpágina
+    'ad_render_lista_cursos'           // Función callback que imprime la subpágina
+  );
+}
+function ad_render_lista_cursos() {
+  include plugin_dir_path(__FILE__) . 'ad-card-page.php';
+}
+
+function ad_render_list_estudiantes_page() {
+  include plugin_dir_path(__FILE__) . 'ad-list-estudiantes-page.php';
 }
 
 // Esta función se ejecuta cuando se carga la página del admin
@@ -26,6 +51,7 @@ function mostrar_asistencia_diaria() {
     include plugin_dir_path(__FILE__) . 'ad-first-page.php';
     return ob_get_clean();
 }
+
 
 // Registrar el shortcode
 add_shortcode('asistencia_diaria', 'mostrar_asistencia_diaria');

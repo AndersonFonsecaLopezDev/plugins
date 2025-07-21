@@ -80,12 +80,12 @@ $pdf->Image($firma_academica_path, 140, 215, 40); // (x, y, width)
 $pdf->SetFontSize(10);
 
 // NRO en la primera línea
-$pdf->SetXY(140, 266);
-$pdf->Write(7, 'NRO: ' . $numero_diploma);
+$pdf->SetXY(140, 269);
+$pdf->Write(4, 'NRO: ' . $numero_diploma);
 
 // NRI justo debajo
-$pdf->SetXY(140, 269.5);
-$pdf->Write(7, 'NRI: RENTESC ' . $resolucion);
+$pdf->SetXY(140, 272);
+$pdf->Write(4, 'NRI: RENTESC ' . $resolucion);
 
 
 // Descargar PDF directamente

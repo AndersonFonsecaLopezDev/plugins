@@ -29,8 +29,8 @@ class Shortcode
         <div class="card-body">
           <form id="cc-search-form">
             <div class="mb-3">
-              <label for="certificate_number" class="form-label">Número de documento</label>
-              <input type="text" class="form-control" id="document_text_box" name="certificate_number" placeholder="Ej: 123456" required>
+              <label for="certificate_number" class="form-label col-9">Número de documento</label>
+              <input type="text" class="form-control col-3" id="document_text_box" name="certificate_number" placeholder="Ej: 123456" required>
             </div>
             <div class="d-flex justify-content-center">
               <button type="button" class="btn btn-primary col-3 px-2" id="search_certificate_button">Buscar</button>

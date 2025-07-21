@@ -1,6 +1,95 @@
 jQuery(document).ready(function ($) {
     var importedDataTable;
+    var previewedData = [];
 
+    function isCSV(fileName) {
+        return fileName.toLowerCase().endsWith('.csv');
+    }
+
+    // Botón para previsualizar
+    $('#preview_excel_button').on('click', function (e) {
+        e.preventDefault();
+
+        let fileInput = $('#excel_file')[0];
+        if (fileInput.files.length === 0) {
+            alert('Por favor selecciona un archivo.');
+            return;
+        }
+
+        let file = fileInput.files[0];
+        let reader = new FileReader();
+
+        reader.onload = function (e) {
+            let headers = [];
+            let bodyData = [];
+
+            if (isCSV(file.name)) {
+                // Procesar CSV
+                let text = e.target.result;
+                let rows = text.split('\n').map(row => row.split(',').map(cell => cell.trim()));
+
+                if (rows.length > 0) {
+                    headers = rows[0];
+                    bodyData = rows.slice(1).filter(row => row.length > 1);
+                }
+            } else {
+                // Procesar Excel
+                let data = new Uint8Array(e.target.result);
+                let workbook = XLSX.read(data, { type: 'array' });
+
+                let firstSheetName = workbook.SheetNames[0];
+                let worksheet = workbook.Sheets[firstSheetName];
+
+                let jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                if (jsonData.length > 0) {
+                    headers = jsonData[0];
+                    bodyData = jsonData.slice(1).filter(row => row.length > 0);
+                }
+            }
+
+            previewedData = { headers, bodyData };
+
+            if (headers.length > 0) {
+                if ($.fn.DataTable.isDataTable('#importedDataTable')) {
+                    importedDataTable.destroy();
+                    $('#importedDataTable').empty();
+                }
+
+                // Crear thead dinámico
+                let theadHtml = '<thead><tr>';
+                $.each(headers, function (i, header) {
+                    theadHtml += '<th>' + header + '</th>';
+                });
+                theadHtml += '</tr></thead>';
+
+                $('#importedDataTable').html(theadHtml);
+
+                // Crear DataTable
+                importedDataTable = $('#importedDataTable').DataTable({
+                    data: bodyData,
+                    columns: headers.map(() => ({ data: null })),
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/es-MX.json'
+                    },
+                    scrollX: true
+                });
+
+                $('#upload-response').html('<div style="color:green;">✅ Archivo cargado y previsualizado, listo para importar.</div>');
+                $('#upload_excel_button').prop('disabled', false);
+            } else {
+                $('#upload-response').html('<div style="color:red;">❌ El archivo está vacío o no tiene datos válidos.</div>');
+            }
+        };
+
+        if (isCSV(file.name)) {
+            reader.readAsText(file);
+        } else {
+            reader.readAsArrayBuffer(file);
+        }
+    });
+
+    // Botón para importar al servidor
     $('#upload_excel_button').on('click', function (e) {
         e.preventDefault();
 
@@ -22,61 +111,19 @@ jQuery(document).ready(function ($) {
             processData: false,
             contentType: false,
             beforeSend: function () {
-                $('#upload-response').html(`
-                    <div style="color:blue; display:flex; align-items:center; gap:8px;">
-                        <div class="spinner" style="border: 4px solid #ccc; border-top: 4px solid blue; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite;"></div>
-                        <span>Cargando archivo y procesando datos...</span>
-                    </div>
-                    <style>
-                        @keyframes spin {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                        }
-                    </style>
-                `);
+                $('#upload-response').html('<div style="color:blue;">⏳ Subiendo archivo, por favor espera...</div>');
             },
             success: function (response) {
                 if (response.success) {
                     $('#upload-response').html('<div style="color:green;">✅ ' + response.data.message + '</div>');
-
-                    if (response.data.rows && response.data.rows.length > 0) {
-                        // Si ya existe un datatable, destruirlo primero
-                        if ($.fn.DataTable.isDataTable('#importedDataTable')) {
-                            importedDataTable.destroy();
-                            $('#importedDataTable').empty(); // Vaciar tabla
-                        }
-
-                        // Crear encabezados dinámicamente
-                        let cols = Object.keys(response.data.rows[0]);
-                        let theadHtml = '<thead><tr>';
-                        $.each(cols, function (i, col) {
-                            theadHtml += '<th>' + col + '</th>';
-                        });
-                        theadHtml += '</tr></thead>';
-
-                        // Agregar también un tbody vacío para que DataTable lo llene
-                        $('#importedDataTable').html(theadHtml + '<tbody></tbody>');
-
-                        // Crear Datatable
-                        importedDataTable = $('#importedDataTable').DataTable({
-                            data: response.data.rows,
-                            columns: cols.map(col => ({ data: col })),
-                            language: {
-                                url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/es-MX.json'
-                            },
-                            scrollX: true,
-                            pageLength: 10,
-                            responsive: true
-                        });
-                    }
-
+                    $('#upload_excel_button').prop('disabled', true);
                 } else {
                     $('#upload-response').html('<div style="color:red;">❌ ' + response.data.message + '</div>');
                 }
             },
             error: function (xhr) {
-                $('#upload-response').html('<div style="color:red;">❌ Error en la importación</div>');
-                console.error(xhr.responseText);
+                $('#upload-response').html('<div style="color:red;">❌ Error en la importación.</div>');
+                console.log(xhr.responseText);
             }
         });
     });

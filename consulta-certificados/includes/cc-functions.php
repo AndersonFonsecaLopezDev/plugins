@@ -43,92 +43,99 @@ add_action('admin_menu', 'cc_Add_My_Admin_Link');
 
 function cc_load_assets($hook)
 {
-    // Definir todos los assets aquí
-    $assets = [
-        'consulta-certificados/includes/cc-first-acp-page.php' => [
-            'scripts' => [
-                [
-                    'handle' => 'cc_first_page_js',
-                    'src'    => plugins_url('../admin/js/cc-first-acp-page.js', __FILE__),
-                    'deps'   => ['jquery'],
-                    'localize' => true,
-                ],
-                [
-                    'handle' => 'cc_search_certificate_js',
-                    'src'    => plugins_url('../admin/js/cc-search-certificate.js', __FILE__),
-                    'deps'   => ['jquery'],
-                    'localize' => false,
-                ],
-                [
-                    'handle' => 'datatables_js',
-                    'src'    => plugins_url('../admin/js/datatables.min.js', __FILE__),
-                    'deps'   => ['jquery'],
-                    'localize' => false,
-                ],
-            ],
-            'styles' => [
-                plugins_url('../admin/css/styles.css', __FILE__),
-                plugins_url('../admin/bootstrap/css/bootstrap.min.css', __FILE__),
-                plugins_url('../admin/css/datatables.min.css', __FILE__),
-            ],
+  // Definir todos los assets aquí
+  $assets = [
+    'consulta-certificados/includes/cc-first-acp-page.php' => [
+      'scripts' => [
+        [
+          'handle' => 'cc_first_page_js',
+          'src'    => plugins_url('../admin/js/cc-first-acp-page.js', __FILE__),
+          'deps'   => ['jquery'],
+          'localize' => true,
         ],
-        'consulta-certificados/includes/cc-menu-cursos-vencidos.php' => [
-            'scripts' => [
-                [
-                    'handle' => 'cc_cursos_vencidos_js',
-                    'src'    => plugins_url('../admin/js/cc-menu-cursos-vencidos.js', __FILE__),
-                    'deps'   => ['jquery'],
-                    'localize' => true,
-                ],
-                [
-                    'handle' => 'datatables_js',
-                    'src'    => plugins_url('../admin/js/datatables.min.js', __FILE__),
-                    'deps'   => ['jquery'],
-                    'localize' => false,
-                ],
-            ],
-            'styles' => [
-                plugins_url('../admin/bootstrap/css/bootstrap.min.css', __FILE__),
-                plugins_url('../admin/css/datatables.min.css', __FILE__),
-                plugins_url('../admin/css/styles.css', __FILE__),
-            ],
+        [
+          'handle' => 'cc_search_certificate_js',
+          'src'    => plugins_url('../admin/js/cc-search-certificate.js', __FILE__),
+          'deps'   => ['jquery'],
+          'localize' => false,
         ],
-        'consulta-certificados/includes/cc-menu-ajustes.php' => [
-            'scripts' => [
-                [
-                    'handle' => 'cc_ajustes_js',
-                    'src'    => plugins_url('../admin/js/cc-menu-ajustes.js', __FILE__),
-                    'deps'   => ['jquery'],
-                    'localize' => true,
-                ],
-            ],
-            'styles' => [
-                plugins_url('../admin/bootstrap/css/bootstrap.min.css', __FILE__),
-                plugins_url('../admin/css/styles.css', __FILE__),
-            ],
+        [
+          'handle' => 'datatables_js',
+          'src'    => plugins_url('../admin/js/datatables.min.js', __FILE__),
+          'deps'   => ['jquery'],
+          'localize' => false,
         ],
-    ];
+      ],
+      'styles' => [
+        plugins_url('../admin/css/styles.css', __FILE__),
+        plugins_url('../admin/bootstrap/css/bootstrap.min.css', __FILE__),
+        plugins_url('../admin/css/datatables.min.css', __FILE__),
+      ],
+    ],
+    'consulta-certificados/includes/cc-menu-cursos-vencidos.php' => [
+      'scripts' => [
+        [
+          'handle' => 'cc_cursos_vencidos_js',
+          'src'    => plugins_url('../admin/js/cc-menu-cursos-vencidos.js', __FILE__),
+          'deps'   => ['jquery'],
+          'localize' => true,
+        ],
+        [
+          'handle' => 'datatables_js',
+          'src'    => plugins_url('../admin/js/datatables.min.js', __FILE__),
+          'deps'   => ['jquery'],
+          'localize' => false,
+        ],
+      ],
+      'styles' => [
+        plugins_url('../admin/bootstrap/css/bootstrap.min.css', __FILE__),
+        plugins_url('../admin/css/datatables.min.css', __FILE__),
+        plugins_url('../admin/css/styles.css', __FILE__),
+      ],
+    ],
+    'consulta-certificados/includes/cc-menu-ajustes.php' => [
+      'scripts' => [
+        [
+          'handle' => 'cc_ajustes_js',
+          'src'    => plugins_url('../admin/js/cc-menu-ajustes.js', __FILE__),
+          'deps'   => ['jquery'],
+          'localize' => true,
+        ],
+        [
+          'handle' => 'datatables_js',
+          'src'    => plugins_url('../admin/js/datatables.min.js', __FILE__),
+          'deps'   => ['jquery'],
+          'localize' => false,
+        ],
+      ],
+      'styles' => [
+        plugins_url('../admin/bootstrap/css/bootstrap.min.css', __FILE__),
+        plugins_url('../admin/css/datatables.min.css', __FILE__),
+        plugins_url('../admin/css/styles.css', __FILE__),
+      ],
+    ],
+  ];
 
-    // Si la página tiene assets definidos
-    if (isset($assets[$hook])) {
-        // Cargar estilos
-        foreach ($assets[$hook]['styles'] as $style_src) {
-            wp_enqueue_style(md5($style_src), $style_src);
-        }
-
-        // Cargar scripts
-        foreach ($assets[$hook]['scripts'] as $script) {
-            wp_enqueue_script($script['handle'], $script['src'], $script['deps'], false, true);
-
-            // Si necesita localize
-            if (!empty($script['localize'])) {
-                wp_localize_script($script['handle'], 'personal_ajax_request', [
-                    'url' => admin_url('admin-ajax.php'),
-                    'security' => wp_create_nonce('seg')
-                ]);
-            }
-        }
+  // Si la página tiene assets definidos
+  if (isset($assets[$hook])) {
+    // Cargar estilos
+    foreach ($assets[$hook]['styles'] as $style_src) {
+      wp_enqueue_style(md5($style_src), $style_src);
     }
+
+    // Cargar scripts
+    foreach ($assets[$hook]['scripts'] as $script) {
+      wp_enqueue_script($script['handle'], $script['src'], $script['deps'], false, true);
+
+      // Si necesita localize
+      if (!empty($script['localize'])) {
+        wp_localize_script($script['handle'], 'personal_ajax_request', [
+          'url' => admin_url('admin-ajax.php'),
+          'security' => wp_create_nonce('seg')
+        ]);
+      }
+    }
+  }
 }
 add_action('admin_enqueue_scripts', 'cc_load_assets');
 
@@ -286,32 +293,81 @@ function handle_import_excel()
   try {
     $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
     $sheet = $spreadsheet->getActiveSheet();
-    $rows = $sheet->toArray();
+    $rows = $sheet->toArray(null, true, true, true); // Mantiene índices tipo 'A', 'B', 'C'...
 
     global $wpdb;
     $table = "{$wpdb->prefix}cc_certificados";
+
     $inserted_rows = [];
+    $duplicated_rows = [];
 
     foreach ($rows as $index => $row) {
-      if ($index === 0) continue; // Saltar encabezado
+      if ($index === 1) continue; // Saltar encabezado (fila 1)
 
+      // Mapear columnas (ajusta según la columna real de tu Excel o CSV)
+      $razon_social    = sanitize_text_field($row['A'] ?? '');
+      $nit             = sanitize_text_field($row['B'] ?? '');
+      $resolucion      = sanitize_text_field($row['C'] ?? '');
+      $fecha_resolucion = !empty($row['D']) ? date('Y-m-d', strtotime($row['D'])) : null;
+      $apellido1       = sanitize_text_field($row['E'] ?? '');
+      $apellido2       = sanitize_text_field($row['F'] ?? '');
+      $nombre1         = sanitize_text_field($row['G'] ?? '');
+      $nombre2         = sanitize_text_field($row['H'] ?? '');
+      $cedula          = sanitize_text_field($row['I'] ?? '');
+      $numerodiploma   = sanitize_text_field($row['J'] ?? '');
+      $curso           = sanitize_text_field($row['K'] ?? '');
+      $acta            = sanitize_text_field($row['L'] ?? '');
+      $fecha_acta      = !empty($row['M']) ? date('Y-m-d', strtotime($row['M'])) : null;
+
+      // Validar si viene el número de diploma
+      if (empty($numerodiploma)) {
+        continue; // Saltar fila si falta el diploma
+      }
+
+      // Verificar si ya existe
+      $exists = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM $table WHERE numerodiploma = %s",
+        $numerodiploma
+      ));
+
+      if ($exists) {
+        $duplicated_rows[] = $numerodiploma;
+        continue;
+      }
+
+      // Insertar el registro
       $wpdb->insert($table, [
-        'razon_social' => sanitize_text_field($row[0]),
-        'nit'          => sanitize_text_field($row[1]),
-        'resolucion'   => sanitize_text_field($row[2]),
-        // etc.
+        'razon_social'     => $razon_social,
+        'nit'              => $nit,
+        'resolucion'       => $resolucion,
+        'fecha_resolucion' => $fecha_resolucion,
+        'apellido1'        => $apellido1,
+        'apellido2'        => $apellido2,
+        'nombre1'          => $nombre1,
+        'nombre2'          => $nombre2,
+        'cedula'           => $cedula,
+        'numerodiploma'    => $numerodiploma,
+        'curso'            => $curso,
+        'acta'             => $acta,
+        'fecha_acta'       => $fecha_acta,
       ]);
 
+      // Guardar para previsualización si quieres
       $inserted_rows[] = [
-        'razon_social' => sanitize_text_field($row[0]),
-        'nit'          => sanitize_text_field($row[1]),
-        'resolucion'   => sanitize_text_field($row[2]),
-        // etc.
+        'razon_social' => $razon_social,
+        'nit'          => $nit,
+        'resolucion'   => $resolucion,
+        'numerodiploma' => $numerodiploma,
+        'nombre_completo' => trim("$nombre1 $nombre2 $apellido1 $apellido2"),
+        'curso'        => $curso,
       ];
     }
 
     wp_send_json_success([
       'message' => 'Importación completada correctamente.',
+      'inserted' => count($inserted_rows),
+      'duplicated' => count($duplicated_rows),
+      'duplicated_list' => $duplicated_rows,
       'rows' => $inserted_rows,
     ]);
   } catch (Exception $e) {
@@ -320,4 +376,5 @@ function handle_import_excel()
 
   wp_die();
 }
+
 add_action('wp_ajax_import_excel', 'handle_import_excel');

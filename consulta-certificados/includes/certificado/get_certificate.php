@@ -1,31 +1,29 @@
 <?php
-//$_POST['id'] = 41934833;
+$nonce = isset($_POST['nonce']) ? $_POST['nonce'] : '';
+if (!wp_verify_nonce($nonce, 'seg')) {
+	status_header(403);
+	echo json_encode(['error' => 'Nonce inválido']);
+	wp_die();
+}
 
-$check = false;
+$document = isset($_POST['document']) ? trim($_POST['document']) : '';
 $response = [];
-if (isset($_POST['id']) && !empty($_POST['id'])) {
-	$id = $_POST['id'];
-	$row = 1;
-	$key = null;
+$found = false;
+
+if (!empty($document)) {
 	$file = "/home/academ/public_html/certificado/listado.csv";
+
 	if (($handle = fopen($file, "r")) !== FALSE) {
-		while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-			$num = count($data);
-			$row++;
-			for ($c=0; $c < $num; $c++) {
-				$array_row = explode(';', $data[$c]);
-				if (is_null($key)) {
-			    	$key = array_search('CEDULA', $array_row);
-			    	if (!is_null($key)) {
-			    		array_push($response, $array_row);
-			    	}
-				}else{
-					if (array_key_exists($key, $array_row)){
-						if ($array_row[$key] == $id) {
-							$check = true;
-							array_push($response, $array_row);
-						}
-					}
+		// Leer encabezados
+		$headers = fgetcsv($handle, 1000, ";");
+		$key = array_search('CEDULA', $headers);
+
+		if ($key !== false) {
+			while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
+				if (isset($data[$key]) && trim($data[$key]) == $document) {
+					$found = true;
+					// Agregar fila completa
+					$response[] = $data;
 				}
 			}
 		}
@@ -33,10 +31,5 @@ if (isset($_POST['id']) && !empty($_POST['id'])) {
 	}
 }
 
-if ($check) {
-	echo json_encode($response);
-}else{
-	echo json_encode([]);
-}
-
-?>
+echo json_encode($found ? $response : []);
+wp_die(); // Importante para terminar correctamente

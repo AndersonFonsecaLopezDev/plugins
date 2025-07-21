@@ -152,41 +152,63 @@ function setShortCode($atts)
 }
 add_shortcode("ENC", "setShortCode");
 
-// Ajax
+function cc_verify_nonce($nonce)
+{
+  if (!wp_verify_nonce($nonce, 'seg')) {
+    status_header(403);
+    wp_send_json_error('Acceso no autorizado', 403);
+    wp_die();
+  }
+  return true;
+}
+
 function getCertificate()
 {
-  // Declaración de variables
-  $document = $_POST['document'];
+  // Verificar que existan los parámetros necesarios
+  if (!isset($_POST['nonce']) || !isset($_POST['document'])) {
+    status_header(400);
+    wp_send_json_error('Parámetros incompletos');
+    wp_die();
+  }
+
   $nonce = $_POST['nonce'];
-  // Verificacion de seguridad
-  if (!wp_verify_nonce($nonce, 'seg')) {
-    die('No tiene permisos para ejecutar');
+  $document = $_POST['document'];
+
+  // Verificación de seguridad
+  cc_verify_nonce($nonce);
+
+  $response = [];
+  $file = plugin_dir_path(__FILE__) . "certificado/listado.csv";
+
+  if (!file_exists($file)) {
+    wp_send_json_error('Archivo no encontrado', 404);
+    wp_die();
   }
-  if (isset($document) && !empty($document)) {
-    // Inicializar el array para almacenar los datos filtrados
-    $response = [];
-    // Abrir el archivo Csv
-    $file = plugin_dir_path(__FILE__) . "certificado/listado.csv";
-    if (($handle = fopen($file, "r")) !== FALSE) {
-      // Leer la primera línea del archivo (encabezados)
-      $encabezados = fgetcsv($handle, 1000, ";");
-      while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
-        // Extraer el valor del campo "cédula"
-        $cedula = $data[array_search("CEDULA", $encabezados)];
-        // Verificar si la cédula coincide con el criterio de búsqueda
-        if ($cedula == $document) { // Reemplazar "VALOR_CEDULA" con el valor real
-          // Extraer los datos deseados
-          $datosExtraidos = array_combine($encabezados, $data);
-          // Almacenar los datos extraídos en el array filtrado
-          $response[] = $datosExtraidos;
-        }
-      }
-      fclose($handle);
+
+  if (($handle = fopen($file, "r")) !== FALSE) {
+    $encabezados = fgetcsv($handle, 1000, ";");
+    $key = array_search("CEDULA", $encabezados);
+
+    if ($key === false) {
+      wp_send_json_error('Columna CEDULA no encontrada', 500);
+      wp_die();
     }
-    wp_send_json($response);
+
+    while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
+      if (isset($data[$key]) && trim($data[$key]) === $document) {
+        $response[] = array_combine($encabezados, $data);
+      }
+    }
+    fclose($handle);
   }
+
+  wp_send_json($response);
+  wp_die(); // IMPORTANTE: Terminar la ejecución
 }
+
+// 3. Registrar hooks CORRECTAMENTE
 add_action('wp_ajax_get_certificate', 'getCertificate');
+add_action('wp_ajax_nopriv_get_certificate', 'getCertificate');
 
 // Ajax
 function getAllCertificates()
@@ -262,7 +284,6 @@ function getAllCursosVencidos()
               'fecha_acta' => $row['FECHA_ACTA'],
 
             ];
-
           }
         }
       }
@@ -385,9 +406,10 @@ add_action('wp_ajax_import_excel', 'handle_import_excel');
 add_action('wp_ajax_generate_diploma', 'generate_diploma_handler');
 add_action('wp_ajax_nopriv_generate_diploma', 'generate_diploma_handler');
 
-function generate_diploma_handler() {
-    include plugin_dir_path(__FILE__) . 'pdf-generador.php';
-    exit;
+function generate_diploma_handler()
+{
+  include plugin_dir_path(__FILE__) . 'pdf-generador.php';
+  exit;
 }
 add_action('wp_ajax_generate_diploma', 'generate_diploma_handler');
 add_action('wp_ajax_nopriv_generate_diploma', 'generate_diploma_handler');

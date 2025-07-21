@@ -9,6 +9,8 @@ $cedula = $_POST['cedula'] ?? '';
 $curso = $_POST['curso'] ?? '';
 $fecha_acta = $_POST['fecha_acta'] ?? '';
 $numero_diploma = $_POST['numero_diploma'] ?? '';
+$resolucion = $_POST['resolucion'] ?? '';
+
 
 // Crear PDF
 $pdf = new FPDI();
@@ -48,16 +50,43 @@ $x_centrado_curso = (($ancho_pagina - $ancho_texto_curso) / 2) + $desplazamiento
 $pdf->SetXY($x_centrado_curso, $curso_y);
 $pdf->Write(10, $curso);
 
-// Obtener fecha actual en español
+// Convertir fecha_acta (formato: dd/mm/yyyy) a objeto DateTime
+$fecha_obj = DateTime::createFromFormat('d/m/Y', $fecha_acta);
+
 setlocale(LC_TIME, 'es_ES.UTF-8', 'spanish');
+
 $ciudad = "Armenia";
-$fecha_actual = strftime("%B %d de %Y"); // Ejemplo: abril 25 de 2025
-$texto_ciudad_fecha = $ciudad . ", " . ucfirst($fecha_actual);
+
+// Formatear como: "julio 21 de 2025"
+$fecha_formateada = strftime("%B %d de %Y", $fecha_obj->getTimestamp());
+$texto_ciudad_fecha = $ciudad . ", " . ucfirst($fecha_formateada);
+
 
 // Ciudad y fecha actual
 $pdf->SetXY(83, 255); // Ajusta la posición Y según lo necesites
 $pdf->SetFontSize(10);
 $pdf->Write(10, $texto_ciudad_fecha);
+
+// Agregar firmas
+$firma_director_path = __DIR__ . '/firma-Director-General.png';
+$firma_academica_path = __DIR__ . '/firma-Directora-Academica.png';
+
+// Firma Director General (izquierda)
+$pdf->Image($firma_director_path, 40, 210, 50); // (x, y, width) Ajusta Y y width según tu diseño
+
+// Firma Directora Académica (derecha)
+$pdf->Image($firma_academica_path, 140, 215, 40); // (x, y, width)
+
+$pdf->SetFontSize(10);
+
+// NRO en la primera línea
+$pdf->SetXY(140, 266);
+$pdf->Write(7, 'NRO: ' . $numero_diploma);
+
+// NRI justo debajo
+$pdf->SetXY(140, 269.5);
+$pdf->Write(7, 'NRI: RENTESC ' . $resolucion);
+
 
 // Descargar PDF directamente
 $pdf->Output('D', 'diploma_'.$numero_diploma.'.pdf');

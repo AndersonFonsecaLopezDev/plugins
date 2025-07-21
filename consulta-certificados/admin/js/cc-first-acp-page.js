@@ -94,7 +94,9 @@ jQuery(document).ready(function ($) {
             nombre_completo: rowData.NOMBRE1 + ' ' + (rowData.NOMBRE2 || '') + ' ' + rowData.APELLIDO1 + ' ' + (rowData.APELLIDO2 || ''),
             cedula: rowData.CEDULA,
             curso: rowData.CURSO,
-            fecha_acta: rowData.FECHA_ACTA
+            fecha_acta: rowData.FECHA_ACTA,
+            resolucion: rowData.RESOLUCION,
+
         };
 
         // Añadir inputs al formulario

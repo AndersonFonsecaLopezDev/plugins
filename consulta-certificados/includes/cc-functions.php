@@ -240,7 +240,9 @@ function getAllCursosVencidos()
 
         if ($fecha_emision) {
           $fecha_vencimiento = clone $fecha_emision;
-          $fecha_vencimiento->add(new DateInterval('P2Y'));
+
+          $fecha_vencimiento->add(new DateInterval('P1Y'));
+
 
           if ($fecha_actual > $fecha_vencimiento) {
             // Manejo del teléfono (si no existe en el CSV)
@@ -251,6 +253,7 @@ function getAllCursosVencidos()
               $telefono = $row['TELEFONO'];
             }
 
+
             $response[] = [
               'nombre' => trim($row['NOMBRE1'] . ' ' . ($row['NOMBRE2'] ?? '') . ' ' .
                 $row['APELLIDO1'] . ' ' . ($row['APELLIDO2'] ?? '')),
@@ -259,6 +262,7 @@ function getAllCursosVencidos()
               'fecha_acta' => $row['FECHA_ACTA'],
 
             ];
+
           }
         }
       }
@@ -378,3 +382,12 @@ function handle_import_excel()
 }
 
 add_action('wp_ajax_import_excel', 'handle_import_excel');
+add_action('wp_ajax_generate_diploma', 'generate_diploma_handler');
+add_action('wp_ajax_nopriv_generate_diploma', 'generate_diploma_handler');
+
+function generate_diploma_handler() {
+    include plugin_dir_path(__FILE__) . 'pdf-generador.php';
+    exit;
+}
+add_action('wp_ajax_generate_diploma', 'generate_diploma_handler');
+add_action('wp_ajax_nopriv_generate_diploma', 'generate_diploma_handler');

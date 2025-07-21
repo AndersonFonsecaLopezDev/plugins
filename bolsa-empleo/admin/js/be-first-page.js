@@ -26,7 +26,7 @@ jQuery(document).ready(function ($) {
             dataSrc: ""
         },
         columns: [
-            { data: 'ID' }, // Reservado para el ID
+            { data: 'ID' },
             { data: 'Nombres' },
             { data: 'Apellidos' },
             { data: 'Género' },
@@ -37,7 +37,7 @@ jQuery(document).ready(function ($) {
             { data: 'Académico' },
             { data: 'Profesion' },
             { data: 'Estado' },
-            {data: 'Libreta_militar'},
+            { data: 'Libreta_militar'},
             { data: 'Experiencia' },
             { data: 'Diploma' },
             { data: 'Estatura' },
@@ -46,7 +46,6 @@ jQuery(document).ready(function ($) {
             { data: 'Departamento' },
             { data: 'Teléfono' },
             { data: 'Cédula' },
-
         ],
         language: {
             url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/es-MX.json',
@@ -55,6 +54,27 @@ jQuery(document).ready(function ($) {
         fixedColumns: true,
         fixedHeader: {
             header: true,
+        },
+        layout: {
+            topStart: {
+                buttons: [
+                    'copy',
+                    'colvis',
+                    {
+                        extend: 'excelHtml5',
+                        text: 'Exportar Excel',
+                        exportOptions: {
+                            modifier: {
+                                search: 'applied',
+                                order: 'applied',
+                                page: 'all' // Exporta todos los registros
+                            }
+                        },
+                        filename: 'listado_de_hojas_de_vida_existentes_cvs',
+                        title: null
+                    }
+                ]
+            }
         },
         select: true
     });

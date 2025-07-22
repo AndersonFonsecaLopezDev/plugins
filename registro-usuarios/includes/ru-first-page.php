@@ -1,3 +1,6 @@
+<?php
+include_once "ru-functions.php"; 
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -179,28 +182,96 @@
         <button type="submit" class="btn btn-primary w-100">Siguiente</button>
       </div>
 
-      <!-- Paso 2 -->
-      <div class="step-section" id="step2">
-        <div class="mb-3">
-          <label class="form-label">Nombre completo</label>
-          <input type="text" class="form-control" id="nombre" name="nombre" required>
-        </div>
 
-        <div class="mb-3">
-          <label class="form-label">Teléfono</label>
-          <input type="tel" class="form-control" id="telefono" name="telefono">
-        </div>
+<!-- Paso 2 -->
+<div id="step2" class="step-section">
+  <h2 class="form-title mb-4">Paso 2: Información personal</h2>
 
-        <div class="mb-3">
-          <label class="form-label">Dirección</label>
-          <input type="text" class="form-control" id="direccion" name="direccion">
-        </div>
+  <div class="mb-3">
+    <label for="first_name" class="form-label">Primer nombre</label>
+    <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Tu primer nombre">
+  </div>
 
-        <button type="button" class="btn btn-secondary mt-3" onclick="goToStep(1)">Atrás</button>
-        <button type="button" class="btn btn-primary mt-3 float-end" onclick="goToStep(3)">Siguiente</button>
-      </div>
+  <div class="mb-3">
+    <label for="middle_name" class="form-label">Segundo nombre</label>
+    <input type="text" class="form-control" id="middle_name" name="middle_name" placeholder="Tu segundo nombre (opcional)">
+  </div>
 
-      <!-- Paso 3 -->
+  <div class="mb-3">
+    <label for="last_name" class="form-label">Primer apellido</label>
+    <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Tu primer apellido">
+  </div>
+
+  <div class="mb-3">
+    <label for="second_last_name" class="form-label">Segundo apellido</label>
+    <input type="text" class="form-control" id="second_last_name" name="second_last_name" placeholder="Tu segundo apellido (opcional)">
+  </div>
+
+  <div class="mb-3">
+    <label for="national_id" class="form-label">Cédula</label>
+    <input type="text" class="form-control" id="national_id" name="national_id" placeholder="Número de cédula">
+  </div>
+
+  <div class="mb-3">
+    <label for="gender" class="form-label">Género</label>
+    <select class="form-select" id="gender" name="gender">
+      <option value="">Selecciona una opción</option>
+      <option value="masculino">Masculino</option>
+      <option value="femenino">Femenino</option>
+      <option value="otro">Otro</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label for="birthdate" class="form-label">Fecha de nacimiento</label>
+    <input type="date" class="form-control" id="birthdate" name="birthdate">
+  </div>
+
+  <div class="mb-3">
+    <label for="Departamento" class="form-label">Departamento</label>
+    <input type="text" class="form-control" id="departamento" name="departamento" placeholder="Tu departamento">
+  </div>
+
+  <div class="mb-3">
+    <label for="city" class="form-label">Ciudad</label>
+    <input type="text" class="form-control" id="city" name="city" placeholder="Tu ciudad">
+  </div>
+
+  <div class="mb-3">
+    <label for="address" class="form-label">Dirección de residencia</label>
+    <input type="text" class="form-control" id="address" name="address" placeholder="Tu dirección">
+  </div>
+
+  <div class="mb-3">
+    <label for="phone_number" class="form-label">Teléfono</label>
+    <input type="tel" class="form-control" id="phone_number" name="phone_number" placeholder="3001234567">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">¿Tienes libreta militar?</label>
+    <select class="form-select" id="has_military_id" name="has_military_id">
+      <option value="">Selecciona una opción</option>
+      <option value="1">Sí</option>
+      <option value="0">No</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">¿Tienes experiencia laboral?</label>
+    <select class="form-select" id="has_work_experience" name="has_work_experience">
+      <option value="">Selecciona una opción</option>
+      <option value="1">Sí</option>
+      <option value="0">No</option>
+    </select>
+  </div>
+
+  <div class="d-flex justify-content-between mt-4">
+    <button type="button" class="btn btn-secondary" onclick="goToStep(1)">Atrás</button>
+    <button type="button" class="btn btn-primary" onclick="goToStep(3)">Siguiente</button>
+  </div>
+</div>
+
+<!-- Paso 3 -->
       <div class="step-section" id="step3">
         <div class="mb-3">
           <label class="form-label">Código de activación</label>
@@ -214,6 +285,7 @@
   </div>
 
   <script>
+    
     function togglePassword(id) {
       const input = document.getElementById(id);
       input.type = input.type === 'password' ? 'text' : 'password';
@@ -286,6 +358,7 @@
       }
     });
 
+ 
     // Inicializar con solo el paso 1 habilitado
     document.querySelectorAll('.step-section').forEach((step, index) => {
       const isActive = step.classList.contains('active');

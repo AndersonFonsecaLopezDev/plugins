@@ -11,7 +11,7 @@ function ru_Add_My_Admin_Link(){
         'ru_render_admin_page',           // Función callback que imprime la página
         'dashicons-admin-users', // Icono del menú
         1
-    );
+    );  
 }
 
 

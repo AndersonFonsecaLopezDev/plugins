@@ -1,6 +1,11 @@
 <?php
 include_once "ru-functions.php";
 include_once "ru-password.php";
+require_once __DIR__ . '/ru-localitations.php';
+
+// Inicializar arrays de departamentos y ciudades
+$departamentos = ru_get_departamentos_colombia();
+$ciudades = ru_get_ciudades_colombia();
 
 // Función para guardar datos en la base de datos
 function guardar_usuario_en_bd($datos)
@@ -435,12 +440,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="mb-3">
           <label for="departamento" class="form-label">Departamento de residencia *</label>
-          <input type="text" class="form-control" id="departamento" name="departamento" placeholder="Ingresa tu departamento de residencia">
+          <select class="form-select" id="departamento" name="departamento" required>
+            <option value="">Selecciona un departamento</option>
+            <?php foreach ($departamentos as $dep): ?>
+              <option value="<?php echo $dep; ?>"><?php echo $dep; ?></option>
+            <?php endforeach; ?>
+          </select>
         </div>
 
         <div class="mb-3">
           <label for="city" class="form-label">Ciudad de residencia *</label>
-          <input type="text" class="form-control" id="city" name="city" placeholder="Ingresa tu ciudad de residencia">
+          <select class="form-select" id="city" name="city" required disabled>
+            <option value="">Primero selecciona un departamento</option>
+          </select>
         </div>
 
         <div class="mb-3">
@@ -606,6 +618,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     });
 
     updateProgress(1); // Paso inicial
+  </script>
+  <script>
+    // Script para ciudades por departamento
+    var ciudadesPorDepartamento = <?php echo json_encode($ciudades); ?>;
+    document.addEventListener('DOMContentLoaded', function() {
+      var departamentoSelect = document.getElementById('departamento');
+      var ciudadSelect = document.getElementById('city');
+      departamentoSelect.addEventListener('change', function() {
+        var dep = this.value;
+        var ciudades = ciudadesPorDepartamento[dep] || [];
+        ciudadSelect.innerHTML = '';
+        if (ciudades.length > 0) {
+          ciudadSelect.disabled = false;
+          ciudades.forEach(function(ciudad) {
+            var option = document.createElement('option');
+            option.value = ciudad;
+            option.textContent = ciudad;
+            ciudadSelect.appendChild(option);
+          });
+        } else {
+          ciudadSelect.disabled = true;
+          var option = document.createElement('option');
+          option.value = '';
+          option.textContent = 'Primero selecciona un departamento';
+          ciudadSelect.appendChild(option);
+        }
+      });
+      // Si hay un departamento seleccionado al cargar, disparar el evento
+      if(departamentoSelect.value) {
+        departamentoSelect.dispatchEvent(new Event('change'));
+      }
+    });
   </script>
 </body>
 

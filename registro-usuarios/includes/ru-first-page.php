@@ -1,5 +1,6 @@
 <?php
 include_once "ru-functions.php";
+include_once "ru-password.php";
 
 // Función para guardar datos en la base de datos
 function guardar_usuario_en_bd($datos)
@@ -35,10 +36,12 @@ function guardar_usuario_en_bd($datos)
       $address = trim($datos['address'] ?? '');
       $user_role = 'estudiante'; // Valor por defecto
       $contrasena = trim($datos['password'] ?? '');
+      // Hashear la contraseña antes de guardar
+      $contrasena = hash_password($contrasena);
       $codigo_activacion = trim($datos['codigo_activacion'] ?? '');
 
       $stmt->bind_param(
-        "ssssssssssssss",
+        "sssssssssssssss",
         $first_name,
         $middle_name,
         $last_name,
@@ -84,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   echo "<script>console.log('Total POST fields:', " . count($_POST) . ");</script>";
 
   // Verificar campos específicos
-  $required_fields = ['username', 'email', 'password'];
+  $required_fields = [ 'email', 'password'];
   $missing_fields = [];
 
   foreach ($required_fields as $field) {
@@ -97,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   echo "<script>console.log('Missing fields:', " . json_encode($missing_fields) . ");</script>";
 
   // Verificar que se recibieron todos los datos necesarios
-  if (isset($_POST['username']) && isset($_POST['email']) && isset($_POST['password'])) {
+  if (isset($_POST['email']) && isset($_POST['password'])) {
     echo "<script>console.log('All required fields present - proceeding with registration');</script>";
     $resultado = guardar_usuario_en_bd($_POST);
 
@@ -128,8 +131,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-
+  <!-- iziToast CSS y JS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
 
 
   <style>
@@ -319,12 +323,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="form-container mt-5">
     <h1 class="text-center form-title mb-4">Registro</h1>
 
-    <!-- Mostrar mensaje de resultado -->
+    <!-- Mostrar mensaje de resultado con iziToast -->
     <?php if ($mensaje): ?>
-      <div class="alert alert-<?php echo $tipo_mensaje === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show" role="alert">
-        <?php echo htmlspecialchars($mensaje); ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
+      <script>
+        iziToast.<?php echo $tipo_mensaje === 'success' ? 'success' : 'error'; ?>({
+          title: '<?php echo $tipo_mensaje === 'success' ? 'Éxito' : 'Error'; ?>',
+          message: '<?php echo addslashes($mensaje); ?>',
+          position: 'topRight',
+          timeout: 5000
+        });
+      </script>
     <?php endif; ?>
 
     <!-- Barra de pasos -->
@@ -482,6 +490,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
 
   <script>
+    function showToast(type, title, message) {
+      iziToast[type]({
+        title: title,
+        message: message,
+        position: 'topRight',
+        timeout: 4000
+      });
+    }
+
     function togglePassword(id) {
       const input = document.getElementById(id);
       input.type = input.type === 'password' ? 'text' : 'password';
@@ -512,43 +529,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       // Validar email
       if (!email) {
-        alert('Debes ingresar un correo electrónico.');
+        showToast('error', 'Error', 'Debes ingresar un correo electrónico.');
         return;
       }
 
       // Validar formato de email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        alert('Correo inválido');
+        showToast('error', 'Error', 'Correo inválido');
         return;
       }
 
       // Validar contraseña
       if (!pass) {
-        alert('Debes ingresar una contraseña.');
+        showToast('error', 'Error', 'Debes ingresar una contraseña.');
         return;
       }
 
       // Validar longitud de contraseña
       if (pass.length < 6) {
-        alert('La contraseña debe tener al menos 6 caracteres.');
+        showToast('error', 'Error', 'La contraseña debe tener al menos 6 caracteres.');
         return;
       }
 
       // Validar que se repita la contraseña
       if (!repeat) {
-        alert('Debes repetir la contraseña.');
+        showToast('error', 'Error', 'Debes repetir la contraseña.');
         return;
       }
 
       // Validar que las contraseñas coincidan
       if (pass !== repeat) {
-        alert('Las contraseñas no coinciden. Por favor, verifica que ambas contraseñas sean idénticas.');
+        showToast('error', 'Error', 'Las contraseñas no coinciden. Por favor, verifica que ambas contraseñas sean idénticas.');
         return;
       }
 
-      // Si todo está bien, mostrar mensaje de éxito y continuar
-      // Guardar el email para mostrarlo en el paso 3
+      // Si todo está bien, continuar directamente sin mostrar mensaje de éxito
       document.getElementById('userEmail').textContent = email;
       goToStep(2);
     }
@@ -574,7 +590,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       const codigo = document.getElementById('codigo_activacion').value;
       if (!codigo) {
         e.preventDefault();
-        alert('Debes ingresar el código de activación.');
+        showToast('error', 'Error', 'Debes ingresar el código de activación.');
         return;
       }
 

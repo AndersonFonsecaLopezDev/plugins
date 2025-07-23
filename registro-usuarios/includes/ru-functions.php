@@ -16,13 +16,13 @@ function ru_Add_My_Admin_Link(){
 
 
 function ru_render_admin_page() {
-  include plugin_dir_path(__FILE__) . 'ru-first-page.php';
+  include_once plugin_dir_path(__FILE__) . 'ru-first-page.php';
 }
 
 
 function mostrar_registro_usuarios() {
   ob_start();
-  include plugin_dir_path(__FILE__) . 'ru-first-page.php';
+  include_once plugin_dir_path(__FILE__) . 'ru-first-page.php';
   return ob_get_clean();
 }
 

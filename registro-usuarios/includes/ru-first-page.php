@@ -12,10 +12,9 @@ function guardar_usuario_en_bd($datos) {
         $sql = "INSERT INTO wp_aess_users (
             first_name, middle_name, last_name, second_last_name, 
             national_id, gender, birth_date, departamento, city, 
-            phone_number, email, username, has_military_id, 
-            has_work_experience, address, user_role, contrasena, 
-            acepto_terminos, codigo_activacion
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            phone_number, email, address, user_role, contrasena, 
+            codigo_activacion
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         $stmt = $conn->prepare($sql);
 
@@ -32,21 +31,16 @@ function guardar_usuario_en_bd($datos) {
             $city = trim($datos['city'] ?? '');
             $phone_number = trim($datos['phone_number'] ?? '');
             $email = trim($datos['email'] ?? '');
-            $username = trim($datos['username'] ?? '');
-            $has_military_id = $datos['has_military_id'] ?? 0;
-            $has_work_experience = $datos['has_work_experience'] ?? 0;
             $address = trim($datos['address'] ?? '');
             $user_role = 'estudiante'; // Valor por defecto
             $contrasena = trim($datos['password'] ?? '');
-            $acepto_terminos = isset($datos['terms']) ? 1 : 0;
             $codigo_activacion = trim($datos['codigo_activacion'] ?? '');
             
-            $stmt->bind_param("ssssssssssssiiissis", 
+            $stmt->bind_param("ssssssssssssss", 
                 $first_name, $middle_name, $last_name, $second_last_name,
                 $national_id, $gender, $birth_date, $departamento, $city,
-                $phone_number, $email, $username, $has_military_id,
-                $has_work_experience, $address, $user_role, $contrasena,
-                $acepto_terminos, $codigo_activacion
+                $phone_number, $email, $address, $user_role, $contrasena,
+                $codigo_activacion
             );
             
             if ($stmt->execute()) {
@@ -120,6 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>Registro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
 
   <style>
     :root {
@@ -138,12 +133,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .btn-primary {
       background-color: var(--primary-color);
       border-color: var(--primary-color);
+      font-size: 16px;
+      font-weight: 500;
+      padding: 12px 24px;
+      min-width: 120px;
     }
 
     .btn-secondary {
       background-color: var(--secondary-color);
       border-color: var(--secondary-color);
       color: black;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 12px 24px;
+      min-width: 120px;
     }
 
     .form-title {
@@ -157,6 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       background-color: #f8f9fa;
       border-radius: 12px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      overflow: hidden; /* Prevent progress bar overflow */
     }
 
     .toggle-password {
@@ -170,6 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       align-items: center;
       margin-bottom: 2rem;
       position: relative;
+      padding: 0 20px; /* Add padding to prevent overflow */
     }
 
  .progress-steps::before {
@@ -190,6 +195,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       text-align: center;
       flex: 1;
       z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 80px; /* Limit step width */
     }
 
     .step-circle {
@@ -197,12 +206,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       height: 40px;
       border-radius: 50%;
       background-color: #ccc;
-      margin: auto;
+      margin: 0 auto;
       line-height: 40px;
       color: white;
       font-weight: bold;
       position: relative;
       z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      min-width: 40px;
+      min-height: 40px;
     }
 
     .step.active .step-circle {
@@ -213,7 +228,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .step-label {
       margin-top: 0.5rem;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 12px; /* Smaller font size */
+      text-align: center;
+      width: 100%;
+      line-height: 1.2;
     }
 
     .progress-line {
@@ -231,6 +249,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     .alert {
       margin-bottom: 1rem;
+    }
+
+    /* Make select elements same width as other inputs */
+    .form-control {
+      width: 100%;
+    }
+
+    select.form-control, .form-control[type="select"] {
+      width: 100% !important;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    select, select.form-control, select.form-select {
+      width: 100% !important;
+      display: block !important;
+    }
+
+    /* Button container for consistent sizing */
+    .btn-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin-top: 2rem;
+    }
+
+    .btn-container .btn {
+      flex: 1;
+      max-width: 200px;
+    }
+
+    .btn-single {
+      width: 100%;
+      margin-top: 1rem;
     }
 
   </style>
@@ -263,6 +315,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
   <div class="step" id="progress3">
     <div class="step-circle">3</div>
+    <div class="step-label">Verificación</div>
+  </div>
+  <div class="step" id="progress4">
+    <div class="step-circle">4</div>
     <div class="step-label">Código</div>
   </div>
 </div>
@@ -270,20 +326,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form id="registerForm" action="" method="post">
       <!-- Paso 1 -->
       <div class="step-section active" id="step1">
-        <div class="mb-3">
-          <label for="username" class="form-label">Nombre de usuario</label>
-          <input type="text" class="form-control" id="username" name="username" required>
-        </div>
-
+        <h2 class="form-title mb-4">Paso 1: Crear cuenta</h2>
+     
         <div class="mb-3">
           <label for="email" class="form-label">Correo electrónico</label>
-          <input type="email" class="form-control" id="email" name="email" required>
+          <input type="email" class="form-control" id="email" name="email" placeholder="Ingresa tu correo electrónico" required>
         </div>
 
         <div class="mb-3">
           <label for="password" class="form-label">Contraseña</label>
           <div class="input-group">
-            <input type="password" class="form-control" id="password" name="password" required>
+            <input type="password" class="form-control" id="password" name="password" placeholder="Ingresa tu contraseña" required>
             <button type="button" class="btn btn-outline-secondary toggle-password" onclick="togglePassword('password')">👁️</button>
           </div>
         </div>
@@ -291,19 +344,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="mb-3">
           <label for="repeatPassword" class="form-label">Repetir Contraseña</label>
           <div class="input-group">
-            <input type="password" class="form-control" id="repeatPassword" name="repeatPassword" required>
+            <input type="password" class="form-control" id="repeatPassword" name="repeatPassword" placeholder="Repite tu contraseña" required>
             <button type="button" class="btn btn-outline-secondary toggle-password" onclick="togglePassword('repeatPassword')">👁️</button>
           </div>
         </div>
 
-        <div class="form-check mb-3">
-          <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
-          <label class="form-check-label" for="terms">
-            Acepto los <a href="#">términos y condiciones</a>.
-          </label>
-        </div>
-
-        <button type="button" class="btn btn-primary w-100" onclick="validateStep1()">Siguiente</button>
+        <button type="button" class="btn btn-primary btn-single" onclick="validateStep1()">Siguiente</button>
       </div>
 
 
@@ -313,27 +359,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="mb-3">
           <label for="first_name" class="form-label">Primer nombre</label>
-          <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Tu primer nombre">
+          <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Ingresa tu primer nombre">
         </div>
 
         <div class="mb-3">
           <label for="middle_name" class="form-label">Segundo nombre</label>
-          <input type="text" class="form-control" id="middle_name" name="middle_name" placeholder="Tu segundo nombre (opcional)">
+          <input type="text" class="form-control" id="middle_name" name="middle_name" placeholder="Ingresa tu segundo nombre (opcional)">
         </div>
 
         <div class="mb-3">
           <label for="last_name" class="form-label">Primer apellido</label>
-          <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Tu primer apellido">
+          <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Ingresa tu primer apellido">
         </div>
 
         <div class="mb-3">
           <label for="second_last_name" class="form-label">Segundo apellido</label>
-          <input type="text" class="form-control" id="second_last_name" name="second_last_name" placeholder="Tu segundo apellido (opcional)">
+          <input type="text" class="form-control" id="second_last_name" name="second_last_name" placeholder="Ingresa tu segundo apellido (opcional)">
         </div>
 
         <div class="mb-3">
           <label for="national_id" class="form-label">Cédula</label>
-          <input type="text" class="form-control" id="national_id" name="national_id" placeholder="Número de cédula">
+          <input type="text" class="form-control" id="national_id" name="national_id" placeholder="Ingresa tu número de cédula">
         </div>
 
         <div class="mb-3">
@@ -352,44 +398,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="mb-3">
-          <label for="Departamento" class="form-label">Departamento</label>
-          <input type="text" class="form-control" id="departamento" name="departamento" placeholder="Tu departamento">
+          <label for="departamento" class="form-label">Departamento de residencia</label>
+          <input type="text" class="form-control" id="departamento" name="departamento" placeholder="Ingresa tu departamento de residencia">
         </div>
 
         <div class="mb-3">
-          <label for="city" class="form-label">Ciudad</label>
-          <input type="text" class="form-control" id="city" name="city" placeholder="Tu ciudad">
+          <label for="city" class="form-label">Ciudad de residencia</label>
+          <input type="text" class="form-control" id="city" name="city" placeholder="Ingresa tu ciudad de residencia">
         </div>
 
         <div class="mb-3">
           <label for="address" class="form-label">Dirección de residencia</label>
-          <input type="text" class="form-control" id="address" name="address" placeholder="Tu dirección">
+          <input type="text" class="form-control" id="address" name="address" placeholder="Ingresa tu dirección completa">
         </div>
 
         <div class="mb-3">
           <label for="phone_number" class="form-label">Teléfono</label>
-          <input type="tel" class="form-control" id="phone_number" name="phone_number" placeholder="3001234567">
+          <input type="tel" class="form-control" id="phone_number" name="phone_number" placeholder="Ingresa tu número de teléfono">
         </div>
 
-        <div class="mb-3">
-          <label class="form-label">¿Tienes libreta militar?</label>
-          <select class="form-select" id="has_military_id" name="has_military_id">
-            <option value="">Selecciona una opción</option>
-            <option value="1">Sí</option>
-            <option value="0">No</option>
-          </select>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">¿Tienes experiencia laboral?</label>
-          <select class="form-select" id="has_work_experience" name="has_work_experience">
-            <option value="">Selecciona una opción</option>
-            <option value="1">Sí</option>
-            <option value="0">No</option>
-          </select>
-        </div>
-
-        <div class="d-flex justify-content-between mt-4">
+        <div class="btn-container">
           <button type="button" class="btn btn-secondary" onclick="goToStep(1)">Atrás</button>
           <button type="button" class="btn btn-primary" onclick="goToStep(3)">Siguiente</button>
         </div>
@@ -397,13 +425,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <!-- Paso 3 -->
       <div class="step-section" id="step3">
-        <div class="mb-3">
-          <label class="form-label">Código de activación</label>
-          <input type="text" class="form-control" id="codigo_activacion" name="codigo_activacion" required>
+        <h2 class="form-title mb-4">Paso 3: Verificación de correo</h2>
+        <div class="text-center mb-4">
+          <p class="lead">Querido usuario, a su correo <strong id="userEmail"></strong> llegó un código de verificación para activar su cuenta.</p>
+          <p>Por favor, revise su bandeja de entrada y copie el código que recibió.</p>
         </div>
 
-        <button type="button" class="btn btn-secondary mt-3" onclick="goToStep(2)">Atrás</button>
-        <button type="submit" class="btn btn-primary mt-3 float-end">Finalizar Registro</button>
+        <div class="btn-container">
+          <button type="button" class="btn btn-secondary" onclick="goToStep(2)">Atrás</button>
+          <button type="button" class="btn btn-primary" onclick="goToStep(4)">Siguiente</button>
+        </div>
+      </div>
+
+      <!-- Paso 4 -->
+      <div class="step-section" id="step4">
+        <h2 class="form-title mb-4">Paso 4: Código de activación</h2>
+        <div class="mb-3">
+          <label class="form-label">Código de activación</label>
+          <input type="text" class="form-control" id="codigo_activacion" name="codigo_activacion" placeholder="Ingresa el código de activación" required>
+        </div>
+
+        <div class="btn-container">
+          <button type="button" class="btn btn-secondary" onclick="goToStep(3)">Atrás</button>
+          <button type="submit" class="btn btn-primary">Finalizar Registro</button>
+        </div>
       </div>
   </form>
   </div>
@@ -436,18 +481,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     function validateStep1() {
       const pass = document.getElementById('password').value;
       const repeat = document.getElementById('repeatPassword').value;
-      const termsAccepted = document.getElementById('terms').checked;
+      const email = document.getElementById('email').value;
 
       if (pass !== repeat) {
         alert('Las contraseñas no coinciden.');
         return;
       }
-
-      if (!termsAccepted) {
-        alert('Debes aceptar los términos y condiciones.');
-        return;
-      }
-
+      
+      // Guardar el email para mostrarlo en el paso 3
+      document.getElementById('userEmail').textContent = email;
+      
       goToStep(2);
     }
 

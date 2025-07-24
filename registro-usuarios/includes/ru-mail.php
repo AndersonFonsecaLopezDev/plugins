@@ -16,7 +16,7 @@ function enviar_correo($para, $asunto, $mensaje_html, $nombre_para = '') {
         $mail->SMTPSecure = 'tls';
         $mail->Port       = 587;
 
-        $mail->setFrom('camilocuencadev@gmail.com', 'Camilo Cuenca'); // Cambia esto
+        $mail->setFrom('camilocuencadev@gmail.com', 'Academia Aess'); // Cambia esto
         $mail->addAddress($para, $nombre_para);
 
         $mail->isHTML(true);

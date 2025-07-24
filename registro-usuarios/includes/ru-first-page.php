@@ -399,6 +399,9 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
     </script>
   <?php endif; ?>
 
+  <!-- Título principal antes de la barra de progreso -->
+  <h1 class="text-center mb-4" style="color: var(--primary-color); font-weight: bold;">Registro</h1>
+
   <!-- Barra de pasos -->
   <div class="progress-steps">
     <div class="progress-line"></div>

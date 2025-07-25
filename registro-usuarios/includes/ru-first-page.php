@@ -450,6 +450,13 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
         </div>
       </div>
 
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="termsCheck" required>
+        <label class="form-check-label" for="termsCheck">
+          Acepto los <a href="#" target="_blank">términos y condiciones</a> *
+        </label>
+      </div>
+
       <button type="button" class="btn btn-primary btn-single" onclick="validateStep1()">Siguiente</button>
     </div>
 
@@ -601,6 +608,7 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
       const email = document.getElementById('email').value;
       const pass = document.getElementById('password').value;
       const repeat = document.getElementById('repeatPassword').value;
+      const terms = document.getElementById('termsCheck').checked;
 
       // Validar email
       if (!email) {
@@ -636,6 +644,12 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
       // Validar que las contraseñas coincidan
       if (pass !== repeat) {
         showToast('error', 'Error', 'Las contraseñas no coinciden. Por favor, verifica que ambas contraseñas sean idénticas.');
+        return;
+      }
+
+      // Validar términos y condiciones
+      if (!terms) {
+        showToast('error', 'Error', 'Debes aceptar los términos y condiciones para continuar.');
         return;
       }
 

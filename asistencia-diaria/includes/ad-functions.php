@@ -42,7 +42,7 @@ function ad_render_list_estudiantes_page() {
 
 // Esta función se ejecuta cuando se carga la página del admin
 function ad_render_admin_page() {
-  include plugin_dir_path(__FILE__) . 'ad-first-page.php';
+  include plugin_dir_path(__FILE__) . 'dashboard.php';
 }
 
 

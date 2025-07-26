@@ -32,7 +32,21 @@ $result = $stmt->get_result();
 $clases = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// Organizar clases por día
+// Organizar clases por día y hora para detectar superposiciones
+$clases_por_dia_hora = [];
+foreach ($dias as $dia) {
+    $clases_por_dia_hora[$dia] = [];
+    foreach ($horas as $hora) {
+        $clases_por_dia_hora[$dia][$hora] = [];
+    }
+}
+
+foreach ($clases as $clase) {
+    $hora_inicio = substr($clase['start_time'], 0, 2) . ':00';
+    $clases_por_dia_hora[$clase['schedule_day']][$hora_inicio][] = $clase;
+}
+
+// Organizar clases por día (para compatibilidad)
 $clases_por_dia = [];
 foreach ($dias as $dia) {
     $clases_por_dia[$dia] = [];
@@ -186,9 +200,10 @@ $mysqli->close();
             border-radius: 18px;
             box-shadow: 0 2px 12px rgba(3,76,140,0.04);
         }
+        
         .calendar-scroll {
-            /* Sin scroll personalizado */
         }
+        
         .calendar-grid {
             display: grid;
             grid-template-columns: 90px repeat(7, 1fr);
@@ -250,6 +265,7 @@ $mysqli->close();
             background: var(--bg-cell);
             min-height: 120px;
             position: relative;
+            overflow: hidden;
         }
         .calendar-event {
             position: absolute;
@@ -273,6 +289,87 @@ $mysqli->close();
             word-break: break-word;
             white-space: normal;
             text-decoration: none;
+        }
+        
+        /* Estilos para eventos superpuestos en columna */
+        .calendar-event.superpuesto {
+            width: calc(100% - 20px);
+            min-height: 30px;
+            max-height: 50px;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            z-index: 10;
+            margin-bottom: 2px;
+            position: absolute;
+            left: 10px;
+            right: 10px;
+        }
+        
+        .calendar-event.superpuesto:nth-child(1) {
+            top: 5px;
+        }
+        
+        .calendar-event.superpuesto:nth-child(2) {
+            top: 55px;
+        }
+        
+        .calendar-event.superpuesto:nth-child(3) {
+            top: 105px;
+        }
+        
+        .calendar-event.superpuesto:nth-child(4) {
+            top: 155px;
+        }
+        
+        /* Mejorar la visualización de eventos superpuestos */
+        .calendar-cell {
+            position: relative;
+        }
+        
+        .calendar-cell.multiple-events {
+            overflow: hidden;
+        }
+        
+        .calendar-event.superpuesto:hover {
+            z-index: 20;
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(3,76,140,0.20);
+        }
+        
+        /* Tooltip de información */
+        .event-tooltip {
+            position: fixed;
+            background: #2c3e50;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            pointer-events: none;
+            display: none;
+            max-width: 280px;
+            line-height: 1.4;
+        }
+        
+        .tooltip-title {
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        
+        .tooltip-info {
+            margin: 3px 0;
+            font-size: 0.85rem;
+        }
+        
+        .tooltip-info strong {
+            color: #ecf0f1;
+        }
+        
+        .modal-info strong {
+            color: var(--text-muted);
         }
         .calendar-event span {
             display: block;
@@ -409,6 +506,336 @@ $mysqli->close();
             font-size: 1.5rem;
             margin-bottom: 0.5rem;
         }
+        
+        /* ===== RESPONSIVE DESIGN ===== */
+        
+        /* Tablets (768px - 1024px) */
+        @media (max-width: 1024px) {
+            .dashboard-wrapper {
+                padding: 1.5rem 0.5rem;
+                margin: 0 0.5rem;
+            }
+            
+            .calendar-grid {
+                min-width: 900px;
+                grid-template-columns: 80px repeat(7, 1fr);
+                grid-template-rows: 60px repeat(<?php echo count($horas); ?>, 100px);
+            }
+            
+            .calendar-header-cell {
+                font-size: 1rem;
+                height: 60px;
+            }
+            
+            .calendar-header-cell .fecha {
+                font-size: 1.1em;
+            }
+            
+            .calendar-hour {
+                font-size: 0.9rem;
+                padding: 6px 8px 0 0;
+            }
+            
+            .calendar-event {
+                padding: 10px 14px;
+                font-size: 1rem;
+                min-height: 50px;
+                max-height: 100px;
+            }
+            
+            .calendar-event.superpuesto {
+                min-height: 25px;
+                max-height: 40px;
+                padding: 3px 6px;
+                font-size: 0.75rem;
+            }
+            
+            .calendar-event.superpuesto:nth-child(2) {
+                top: 45px;
+            }
+            
+            .calendar-event.superpuesto:nth-child(3) {
+                top: 85px;
+            }
+            
+            .calendar-event.superpuesto:nth-child(4) {
+                top: 125px;
+            }
+            
+            .calendar-title {
+                font-size: 1.8rem;
+            }
+            
+            .calendar-month {
+                font-size: 1.1rem;
+            }
+            
+            .asistencia-form {
+                margin: 1.5rem 1rem;
+                padding: 1.5rem;
+            }
+            
+            .asistencia-form table {
+                font-size: 0.9rem;
+            }
+            
+            .asistencia-form th, .asistencia-form td {
+                padding: 0.5rem 0.3rem;
+            }
+        }
+        
+        /* Mobile Large (481px - 767px) */
+        @media (max-width: 767px) {
+            .dashboard-wrapper {
+                padding: 1rem 0.25rem;
+                margin: 0 0.25rem;
+                border-radius: 12px;
+            }
+            
+            .calendar-grid {
+                min-width: 700px;
+                grid-template-columns: 70px repeat(7, 1fr);
+                grid-template-rows: 50px repeat(<?php echo count($horas); ?>, 80px);
+            }
+            
+            .calendar-header-cell {
+                font-size: 0.9rem;
+                height: 50px;
+            }
+            
+            .calendar-header-cell .dia {
+                font-size: 0.8em;
+            }
+            
+            .calendar-header-cell .fecha {
+                font-size: 1em;
+            }
+            
+            .calendar-hour {
+                font-size: 0.8rem;
+                padding: 4px 6px 0 0;
+            }
+            
+            .calendar-event {
+                padding: 8px 10px;
+                font-size: 0.9rem;
+                min-height: 40px;
+                max-height: 80px;
+                left: 5px;
+                right: 5px;
+            }
+            
+            .calendar-event.superpuesto {
+                min-height: 20px;
+                max-height: 35px;
+                padding: 2px 4px;
+                font-size: 0.7rem;
+                left: 5px;
+                right: 5px;
+            }
+            
+            .calendar-event.superpuesto:nth-child(1) {
+                top: 3px;
+            }
+            
+            .calendar-event.superpuesto:nth-child(2) {
+                top: 38px;
+            }
+            
+            .calendar-event.superpuesto:nth-child(3) {
+                top: 73px;
+            }
+            
+            .calendar-event.superpuesto:nth-child(4) {
+                top: 108px;
+            }
+            
+            .calendar-title {
+                font-size: 1.5rem;
+                margin-top: 1rem;
+            }
+            
+            .calendar-month {
+                font-size: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .asistencia-form {
+                margin: 1rem 0.5rem;
+                padding: 1rem;
+                border-radius: 12px;
+            }
+            
+            .asistencia-form table {
+                font-size: 0.8rem;
+            }
+            
+            .asistencia-form th, .asistencia-form td {
+                padding: 0.4rem 0.2rem;
+            }
+            
+            .asistencia-form select {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.8rem;
+            }
+            
+            .asistencia-form button {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
+            
+            .asistencia-titulo {
+                font-size: 1.3rem;
+            }
+            
+            .volver-btn {
+                padding: 0.4rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Mobile Small (320px - 480px) */
+        @media (max-width: 480px) {
+            .dashboard-wrapper {
+                padding: 0.5rem 0.1rem;
+                margin: 0 0.1rem;
+                border-radius: 8px;
+            }
+            
+            .calendar-grid {
+                min-width: 600px;
+                grid-template-columns: 60px repeat(7, 1fr);
+                grid-template-rows: 45px repeat(<?php echo count($horas); ?>, 70px);
+            }
+            
+            .calendar-header-cell {
+                font-size: 0.8rem;
+                height: 45px;
+            }
+            
+            .calendar-header-cell .dia {
+                font-size: 0.7em;
+            }
+            
+            .calendar-header-cell .fecha {
+                font-size: 0.9em;
+            }
+            
+            .calendar-hour {
+                font-size: 0.7rem;
+                padding: 3px 4px 0 0;
+            }
+            
+            .calendar-event {
+                padding: 6px 8px;
+                font-size: 0.8rem;
+                min-height: 35px;
+                max-height: 70px;
+                left: 3px;
+                right: 3px;
+                border-radius: 6px;
+            }
+            
+            .calendar-event.superpuesto {
+                min-height: 18px;
+                max-height: 30px;
+                padding: 1px 3px;
+                font-size: 0.65rem;
+                left: 3px;
+                right: 3px;
+            }
+            
+            .calendar-event.superpuesto:nth-child(1) {
+                top: 2px;
+            }
+            
+            .calendar-event.superpuesto:nth-child(2) {
+                top: 32px;
+            }
+            
+            .calendar-event.superpuesto:nth-child(3) {
+                top: 62px;
+            }
+            
+            .calendar-event.superpuesto:nth-child(4) {
+                top: 92px;
+            }
+            
+            .calendar-title {
+                font-size: 1.3rem;
+                margin-top: 0.8rem;
+            }
+            
+            .calendar-month {
+                font-size: 0.9rem;
+                margin-bottom: 0.8rem;
+            }
+            
+            .asistencia-form {
+                margin: 0.8rem 0.25rem;
+                padding: 0.8rem;
+                border-radius: 8px;
+            }
+            
+            .asistencia-form table {
+                font-size: 0.75rem;
+            }
+            
+            .asistencia-form th, .asistencia-form td {
+                padding: 0.3rem 0.15rem;
+            }
+            
+            .asistencia-form select {
+                padding: 0.15rem 0.3rem;
+                font-size: 0.75rem;
+            }
+            
+            .asistencia-form button {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+            
+            .asistencia-titulo {
+                font-size: 1.1rem;
+            }
+            
+            .volver-btn {
+                padding: 0.3rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            
+            .event-tooltip {
+                max-width: 250px;
+                padding: 10px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .tooltip-title {
+                font-size: 0.9rem;
+            }
+            
+            .tooltip-info {
+                font-size: 0.75rem;
+            }
+        }
+        
+        /* Landscape orientation adjustments */
+        @media (max-height: 600px) and (orientation: landscape) {
+            
+            .calendar-grid {
+                grid-template-rows: 60px repeat(<?php echo count($horas); ?>, 90px);
+            }
+            
+            .calendar-event {
+                min-height: 45px;
+                max-height: 90px;
+            }
+            
+            .calendar-event.superpuesto {
+                min-height: 22px;
+                max-height: 40px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -463,7 +890,8 @@ $mysqli->close();
     <div class="calendar-title">Agenda semanal de clases</div>
     <div class="calendar-month"><?php echo $mes_actual . ' ' . $anio_actual; ?></div>
     <div class="dashboard-wrapper">
-        <div class="calendar-grid">
+        <div class="calendar-scroll">
+            <div class="calendar-grid">
             <div></div>
             <?php foreach ($fechas_semana as $i => $fecha): ?>
                 <div class="calendar-header-cell">
@@ -478,17 +906,27 @@ $mysqli->close();
             <?php foreach ($horas as $hora): ?>
                 <div class="calendar-hour"><?php echo $hora; ?></div>
                 <?php foreach ($dias as $i => $dia): ?>
-                    <div class="calendar-cell">
+                    <div class="calendar-cell<?php echo count($clases_por_dia_hora[$dia][$hora]) > 1 ? ' multiple-events' : ''; ?>">
                         <?php
                         // Mostrar eventos que empiezan en esta hora
-                        foreach ($clases_por_dia[$dia] as $clase) {
-                            if (substr($clase['start_time'], 0, 2) == substr($hora, 0, 2)) {
-                                $url = 'admin.php?page=asistencia-diaria&grupo_id=' . $clase['grupo_id'];
-                                echo '<a class="calendar-event" href="' . $url . '">
-                                    <span>' . htmlspecialchars($clase['course_name']) . '</span>
-                                    <span class="grupo">Grupo: ' . htmlspecialchars($clase['group_code']) . '</span>
-                                </a>';
-                            }
+                        $eventos_en_hora = $clases_por_dia_hora[$dia][$hora];
+                        $total_eventos = count($eventos_en_hora);
+                        
+                        foreach ($eventos_en_hora as $index => $clase) {
+                            $url = 'admin.php?page=asistencia-diaria&grupo_id=' . $clase['grupo_id'];
+                            $clase_css = $total_eventos > 1 ? 'calendar-event superpuesto' : 'calendar-event';
+                            $data_info = htmlspecialchars(json_encode([
+                                'curso' => $clase['course_name'],
+                                'grupo' => $clase['group_code'],
+                                'dia' => $dia,
+                                'hora_inicio' => $clase['start_time'],
+                                'hora_fin' => $clase['end_time']
+                            ]), ENT_QUOTES);
+                            
+                            echo '<a class="' . $clase_css . '" href="' . $url . '" data-info="' . $data_info . '">
+                                <span>' . htmlspecialchars($clase['course_name']) . '</span>
+                                <span class="grupo">Grupo: ' . htmlspecialchars($clase['group_code']) . '</span>
+                            </a>';
                         }
                         ?>
                     </div>
@@ -496,9 +934,18 @@ $mysqli->close();
             <?php endforeach; ?>
         </div>
     </div>
+    
+    <!-- Tooltip de información del evento -->
+    <div class="event-tooltip" id="eventTooltip">
+        <div class="tooltip-title" id="tooltipTitle"></div>
+        <div class="tooltip-info"><strong>Grupo:</strong> <span id="tooltipGrupo"></span></div>
+        <div class="tooltip-info"><strong>Día:</strong> <span id="tooltipDia"></span></div>
+        <div class="tooltip-info"><strong>Horario:</strong> <span id="tooltipHorario"></span></div>
+    </div>
 <?php endif; ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Funcionalidad para el formulario de asistencia
     const selects = document.querySelectorAll('.asistencia-form select');
     selects.forEach(select => {
         select.addEventListener('change', function() {
@@ -512,7 +959,71 @@ document.addEventListener('DOMContentLoaded', function() {
             select.classList.add(select.value);
         }
     });
+    
+    // Funcionalidad para el tooltip de eventos
+    const eventCards = document.querySelectorAll('.calendar-event');
+    const tooltip = document.getElementById('eventTooltip');
+    let hoverTimeout;
+    
+    eventCards.forEach(card => {
+        card.addEventListener('mouseenter', function(e) {
+            const dataInfo = this.getAttribute('data-info');
+            if (dataInfo) {
+                const info = JSON.parse(dataInfo);
+                
+                // Mostrar tooltip después de un pequeño delay
+                hoverTimeout = setTimeout(() => {
+                    document.getElementById('tooltipTitle').textContent = info.curso;
+                    document.getElementById('tooltipGrupo').textContent = info.grupo;
+                    document.getElementById('tooltipDia').textContent = info.dia.charAt(0).toUpperCase() + info.dia.slice(1);
+                    document.getElementById('tooltipHorario').textContent = info.hora_inicio + ' - ' + info.hora_fin;
+                    
+                    tooltip.style.display = 'block';
+                    updateTooltipPosition(e);
+                }, 200);
+            }
+        });
+        
+        card.addEventListener('mousemove', function(e) {
+            if (tooltip.style.display === 'block') {
+                updateTooltipPosition(e);
+            }
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            clearTimeout(hoverTimeout);
+            tooltip.style.display = 'none';
+        });
+    });
+    
+    // Función para actualizar la posición del tooltip
+    function updateTooltipPosition(e) {
+        const offset = 15;
+        const tooltipWidth = tooltip.offsetWidth;
+        const tooltipHeight = tooltip.offsetHeight;
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        
+        let left = e.clientX + offset;
+        let top = e.clientY + offset;
+        
+        // Ajustar si el tooltip se sale por la derecha
+        if (left + tooltipWidth > windowWidth) {
+            left = e.clientX - tooltipWidth - offset;
+        }
+        
+        // Ajustar si el tooltip se sale por abajo
+        if (top + tooltipHeight > windowHeight) {
+            top = e.clientY - tooltipHeight - offset;
+        }
+        
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+    }
 });
+
+
 </script>
 </body>
+</html> 
 </html> 

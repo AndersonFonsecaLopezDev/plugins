@@ -116,22 +116,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   // Verificar que se recibieron todos los datos necesarios
   if (isset($_POST['email']) && isset($_POST['password'])) {
-    echo "<script>console.log('All required fields present - proceeding with registration');</script>";
-    $resultado = guardar_usuario_en_bd($_POST);
+    // Validar edad si se proporcionó fecha de nacimiento
+    if (isset($_POST['birthdate']) && !empty($_POST['birthdate'])) {
+      $fechaNacimiento = new DateTime($_POST['birthdate']);
+      $fechaActual = new DateTime();
+      $edad = $fechaActual->diff($fechaNacimiento)->y;
+      
+      if ($edad < 18) {
+        $mensaje = 'Error: Debes ser mayor de edad (18 años o más) para registrarte.';
+        $tipo_mensaje = 'error';
+        echo "<script>console.log('Error: Usuario menor de edad - Edad: " . $edad . " años');</script>";
+      } else {
+        echo "<script>console.log('All required fields present - proceeding with registration');</script>";
+        $resultado = guardar_usuario_en_bd($_POST);
 
-    if ($resultado['success']) {
-      $mensaje = 'Usuario registrado exitosamente! Se ha enviado un código de activación a tu correo.';
-      $tipo_mensaje = 'success';
-      $mostrar_paso_verificacion = true;
-      $correo_usuario = $resultado['email'];
-      // Guardar el código de activación en sesión para validación posterior
-      session_start();
-      $_SESSION['codigo_activacion'] = $resultado['codigo_activacion'];
-      $_SESSION['email_registro'] = $resultado['email'];
+        if ($resultado['success']) {
+          $mensaje = 'Usuario registrado exitosamente! Se ha enviado un código de activación a tu correo.';
+          $tipo_mensaje = 'success';
+          $mostrar_paso_verificacion = true;
+          $correo_usuario = $resultado['email'];
+          // Guardar el código de activación en sesión para validación posterior
+          session_start();
+          $_SESSION['codigo_activacion'] = $resultado['codigo_activacion'];
+          $_SESSION['email_registro'] = $resultado['email'];
+        } else {
+          $mensaje = 'Error al registrar: ' . $resultado['error'];
+          $tipo_mensaje = 'error';
+          echo "<script>console.log('Error al guardar usuario: " . addslashes($resultado['error']) . "');</script>";
+        }
+      }
     } else {
-      $mensaje = 'Error al registrar: ' . $resultado['error'];
-      $tipo_mensaje = 'error';
-      echo "<script>console.log('Error al guardar usuario: " . addslashes($resultado['error']) . "');</script>";
+      echo "<script>console.log('All required fields present - proceeding with registration');</script>";
+      $resultado = guardar_usuario_en_bd($_POST);
+
+      if ($resultado['success']) {
+        $mensaje = 'Usuario registrado exitosamente! Se ha enviado un código de activación a tu correo.';
+        $tipo_mensaje = 'success';
+        $mostrar_paso_verificacion = true;
+        $correo_usuario = $resultado['email'];
+        // Guardar el código de activación en sesión para validación posterior
+        session_start();
+        $_SESSION['codigo_activacion'] = $resultado['codigo_activacion'];
+        $_SESSION['email_registro'] = $resultado['email'];
+      } else {
+        $mensaje = 'Error al registrar: ' . $resultado['error'];
+        $tipo_mensaje = 'error';
+        echo "<script>console.log('Error al guardar usuario: " . addslashes($resultado['error']) . "');</script>";
+      }
     }
   } else {
     $mensaje = 'Faltan datos requeridos: ' . implode(', ', $missing_fields);
@@ -377,6 +408,18 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
       width: 100%;
       margin-top: 1rem;
     }
+
+    .invalid-feedback {
+      display: block;
+      color: #dc3545;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+
+    .is-invalid {
+      border-color: #dc3545;
+      box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
   </style>
 </head>
 
@@ -503,7 +546,10 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
 
       <div class="mb-3">
         <label for="birthdate" class="form-label">Fecha de nacimiento *</label>
-        <input type="date" class="form-control" id="birthdate" name="birthdate" max="" required>
+        <input type="date" class="form-control" id="birthdate" name="birthdate" max="" required onchange="validarEdad(this.value)">
+        <div id="edad-error" class="invalid-feedback" style="display: none;">
+          Debes ser mayor de edad (18 años o más) para registrarte.
+        </div>
       </div>
 
       <div class="mb-3">
@@ -604,6 +650,35 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
       }
     }
 
+    function validarEdad(fechaNacimiento) {
+      if (!fechaNacimiento) return;
+      
+      const fechaNac = new Date(fechaNacimiento);
+      const fechaActual = new Date();
+      const edad = fechaActual.getFullYear() - fechaNac.getFullYear();
+      const mesActual = fechaActual.getMonth();
+      const mesNac = fechaNac.getMonth();
+      
+      // Ajustar edad si aún no ha cumplido años este año
+      if (mesActual < mesNac || (mesActual === mesNac && fechaActual.getDate() < fechaNac.getDate())) {
+        edad--;
+      }
+      
+      const input = document.getElementById('birthdate');
+      const errorDiv = document.getElementById('edad-error');
+      
+      if (edad < 18) {
+        input.classList.add('is-invalid');
+        errorDiv.style.display = 'block';
+        showToast('error', 'Error', 'Debes ser mayor de edad (18 años o más) para registrarte.');
+        return false;
+      } else {
+        input.classList.remove('is-invalid');
+        errorDiv.style.display = 'none';
+        return true;
+      }
+    }
+
     function validateStep1() {
       const email = document.getElementById('email').value;
       const pass = document.getElementById('password').value;
@@ -666,8 +741,17 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
       // Habilitar todos los campos antes de enviar
       document.querySelectorAll('#registerForm input').forEach(input => input.disabled = false);
 
-      const codigo = document.getElementById('codigo_activacion').value;
-      if (!codigo) {
+      // Validar edad si estamos en el paso 2 (datos personales)
+      const birthdate = document.getElementById('birthdate');
+      if (birthdate && birthdate.value) {
+        if (!validarEdad(birthdate.value)) {
+          e.preventDefault();
+          return;
+        }
+      }
+
+      const codigo = document.getElementById('codigo_activacion2');
+      if (codigo && !codigo.value) {
         e.preventDefault();
         showToast('error', 'Error', 'Debes ingresar el código de activación.');
         return;

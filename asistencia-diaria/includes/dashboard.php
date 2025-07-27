@@ -55,8 +55,8 @@ foreach ($clases as $clase) {
     $clases_por_dia[$clase['schedule_day']][] = $clase;
 }
 
-// Obtener fechas de la semana actual (lunes a domingo)
-$hoy = new DateTime();
+// Obtener fechas de la semana actual (lunes a domingo) - Zona horaria de Colombia
+$hoy = new DateTime('now', new DateTimeZone('America/Bogota'));
 $dia_semana = (int)$hoy->format('N'); // 1 (lunes) - 7 (domingo)
 $inicio_semana = clone $hoy;
 $inicio_semana->modify('-' . ($dia_semana - 1) . ' days');

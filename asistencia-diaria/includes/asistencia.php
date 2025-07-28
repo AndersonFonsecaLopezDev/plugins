@@ -182,6 +182,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asistencia'])) {
             font-family: monospace;
             font-size: 0.9rem;
         }
+        /* Estilos para las pestañas */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 2rem;
+        }
+        .tab {
+            padding: 1rem 2rem;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #666;
+            border-radius: 8px 8px 0 0;
+            margin-right: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            background: #0073aa;
+            color: white;
+        }
+        .tab:hover {
+            background: #005f8d;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -198,15 +230,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asistencia'])) {
             <div class="mensaje"><?php echo esc_html($mensaje); ?></div>
         <?php endif; ?>
 
-        <div class="debug-info">
-            <strong>DEBUG INFO:</strong><br>
-            <strong>Group ID:</strong> <?php echo $grupo_id; ?><br>
-            <strong>Prefijo de tablas:</strong> <?php echo $wpdb->prefix; ?><br>
-            <strong>Query ejecutada:</strong> <?php echo $query; ?><br>
-            <strong>Estado de la consulta:</strong> <?php echo $debug_error; ?><br>
-            <strong>Número de estudiantes encontrados:</strong> <?php echo count($estudiantes); ?><br>
-            <strong>Último error SQL:</strong> <?php echo $wpdb->last_error ?: 'Ninguno'; ?>
+        <!-- PESTAÑAS -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('asistencia')">📝 Tomar Asistencia</button>
+            <button class="tab" onclick="showTab('resumen')">📊 Ver Resumen</button>
         </div>
+
+        <!-- PESTAÑA: TOMAR ASISTENCIA -->
+        <div id="tab-asistencia" class="tab-content active">
+            <div class="debug-info">
+                <strong>DEBUG INFO:</strong><br>
+                <strong>Group ID:</strong> <?php echo $grupo_id; ?><br>
+                <strong>Prefijo de tablas:</strong> <?php echo $wpdb->prefix; ?><br>
+                <strong>Query ejecutada:</strong> <?php echo $query; ?><br>
+                <strong>Estado de la consulta:</strong> <?php echo $debug_error; ?><br>
+                <strong>Número de estudiantes encontrados:</strong> <?php echo count($estudiantes); ?><br>
+                <strong>Último error SQL:</strong> <?php echo $wpdb->last_error ?: 'Ninguno'; ?>
+            </div>
 
         <?php if (empty($estudiantes)): ?>
             <div class="debug-info" style="background: #f8d7da; color: #721c24;">
@@ -253,6 +293,158 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asistencia'])) {
                 <button type="submit">Guardar Asistencia</button>
             </form>
         <?php endif; ?>
+        </div>
+
+        <!-- PESTAÑA: VER RESUMEN -->
+        <div id="tab-resumen" class="tab-content">
+            <h2 style="color: #333; text-align: center; margin-bottom: 1.5rem;">📊 Resumen de Asistencias</h2>
+            
+            <?php
+            // Consulta para obtener el resumen de asistencias por estudiante
+            $resumen_query = $wpdb->prepare(
+                "SELECT 
+                    u.id AS user_id,
+                    u.national_id AS cedula,
+                    CONCAT(u.first_name, ' ', u.last_name) AS nombre_completo,
+                    COUNT(CASE WHEN a.status = 'asistió' THEN 1 END) AS asistencias,
+                    COUNT(CASE WHEN a.status = 'faltó' THEN 1 END) AS faltas,
+                    COUNT(CASE WHEN a.status = 'justificado' THEN 1 END) AS justificados,
+                    COUNT(CASE WHEN a.status = 'tarde' THEN 1 END) AS retardos,
+                    COUNT(a.id) AS total_clases
+                FROM {$wpdb->prefix}aess_enrollments e
+                JOIN {$wpdb->prefix}aess_users u ON u.id = e.user_id
+                LEFT JOIN {$wpdb->prefix}aess_attendance a 
+                    ON a.user_id = u.id AND a.group_id = e.group_id
+                WHERE e.group_id = %d AND e.status = 'activo'
+                GROUP BY u.id
+                ORDER BY nombre_completo",
+                $grupo_id
+            );
+            
+            $resumen_estudiantes = $wpdb->get_results($resumen_query);
+            
+            // Debug: Verificar la consulta y resultados
+            $debug_resumen = "Consulta de resumen: " . $resumen_query . "<br>";
+            $debug_resumen .= "Error SQL: " . ($wpdb->last_error ?: 'Ninguno') . "<br>";
+            $debug_resumen .= "Número de estudiantes en resumen: " . count($resumen_estudiantes) . "<br>";
+            $debug_resumen .= "Grupo ID: " . $grupo_id . "<br>";
+            ?>
+            
+            <!-- DEBUG INFO PARA RESUMEN -->
+            <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-family: monospace; font-size: 0.9rem;">
+                <strong>DEBUG RESUMEN:</strong><br>
+                <?php echo $debug_resumen; ?>
+            </div>
+            
+            <?php if (empty($resumen_estudiantes)): ?>
+                <div style="text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 8px; color: #6c757d;">
+                    <strong>No hay registros de asistencia para este grupo todavía.</strong><br>
+                    Los datos aparecerán aquí una vez que comiences a registrar asistencias.
+                </div>
+            <?php else: ?>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 0.8rem; text-align: left; border-bottom: 1px solid #eee; background: #f6f8fa; font-weight: bold; color: #333;">Cédula</th>
+                            <th style="padding: 0.8rem; text-align: left; border-bottom: 1px solid #eee; background: #f6f8fa; font-weight: bold; color: #333;">Nombre Completo</th>
+                            <th style="padding: 0.8rem; text-align: center; border-bottom: 1px solid #eee; background: #f6f8fa; font-weight: bold; color: #333;">Asistencias</th>
+                            <th style="padding: 0.8rem; text-align: center; border-bottom: 1px solid #eee; background: #f6f8fa; font-weight: bold; color: #333;">Faltas</th>
+                            <th style="padding: 0.8rem; text-align: center; border-bottom: 1px solid #eee; background: #f6f8fa; font-weight: bold; color: #333;">Retardos</th>
+                            <th style="padding: 0.8rem; text-align: center; border-bottom: 1px solid #eee; background: #f6f8fa; font-weight: bold; color: #333;">Justificados</th>
+                            <th style="padding: 0.8rem; text-align: center; border-bottom: 1px solid #eee; background: #f6f8fa; font-weight: bold; color: #333;">Total Clases</th>
+                            <th style="padding: 0.8rem; text-align: center; border-bottom: 1px solid #eee; background: #f6f8fa; font-weight: bold; color: #333;">% Asistencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($resumen_estudiantes as $estudiante): ?>
+                            <tr style="background: <?php echo ($estudiante->total_clases > 0) ? '#f9fbfc' : '#fff'; ?>">
+                                <td style="padding: 0.8rem; text-align: left; border-bottom: 1px solid #eee;"><?php echo esc_html($estudiante->cedula); ?></td>
+                                <td style="padding: 0.8rem; text-align: left; border-bottom: 1px solid #eee;"><?php echo esc_html($estudiante->nombre_completo); ?></td>
+                                <td style="padding: 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #28a745; font-weight: bold;"><?php echo $estudiante->asistencias; ?></td>
+                                <td style="padding: 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #dc3545; font-weight: bold;"><?php echo $estudiante->faltas; ?></td>
+                                <td style="padding: 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #ffc107; font-weight: bold;"><?php echo $estudiante->retardos; ?></td>
+                                <td style="padding: 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #17a2b8; font-weight: bold;"><?php echo $estudiante->justificados; ?></td>
+                                <td style="padding: 0.8rem; text-align: center; border-bottom: 1px solid #eee; font-weight: bold;"><?php echo $estudiante->total_clases; ?></td>
+                                <td style="padding: 0.8rem; text-align: center; border-bottom: 1px solid #eee; font-weight: bold;">
+                                    <?php 
+                                    if ($estudiante->total_clases > 0) {
+                                        $porcentaje = round(($estudiante->asistencias * 100) / $estudiante->total_clases, 1);
+                                        $color = ($porcentaje >= 80) ? '#28a745' : (($porcentaje >= 60) ? '#ffc107' : '#dc3545');
+                                        echo "<span style='color: {$color};'>{$porcentaje}%</span>";
+                                    } else {
+                                        echo "0%";
+                                    }
+                                    ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                
+                <!-- Estadísticas generales -->
+                <?php
+                $total_estudiantes = count($resumen_estudiantes);
+                $total_asistencias = array_sum(array_column($resumen_estudiantes, 'asistencias'));
+                $total_faltas = array_sum(array_column($resumen_estudiantes, 'faltas'));
+                $total_retardos = array_sum(array_column($resumen_estudiantes, 'retardos'));
+                $total_justificados = array_sum(array_column($resumen_estudiantes, 'justificados'));
+                $total_clases = array_sum(array_column($resumen_estudiantes, 'total_clases'));
+                $promedio_asistencia = ($total_clases > 0) ? round(($total_asistencias * 100) / $total_clases, 1) : 0;
+                ?>
+                
+                <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-top: 1.5rem; text-align: center;">
+                    <h3 style="margin: 0 0 1rem 0; color: #1976d2;">Estadísticas Generales del Grupo</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                        <div>
+                            <strong>Total Estudiantes:</strong><br>
+                            <span style="font-size: 1.2rem; color: #1976d2;"><?php echo $total_estudiantes; ?></span>
+                        </div>
+                        <div>
+                            <strong>Total Asistencias:</strong><br>
+                            <span style="font-size: 1.2rem; color: #28a745;"><?php echo $total_asistencias; ?></span>
+                        </div>
+                        <div>
+                            <strong>Total Faltas:</strong><br>
+                            <span style="font-size: 1.2rem; color: #dc3545;"><?php echo $total_faltas; ?></span>
+                        </div>
+                        <div>
+                            <strong>Total Retardos:</strong><br>
+                            <span style="font-size: 1.2rem; color: #ffc107;"><?php echo $total_retardos; ?></span>
+                        </div>
+                        <div>
+                            <strong>Total Justificados:</strong><br>
+                            <span style="font-size: 1.2rem; color: #17a2b8;"><?php echo $total_justificados; ?></span>
+                        </div>
+                        <div>
+                            <strong>Promedio Asistencia:</strong><br>
+                            <span style="font-size: 1.2rem; color: <?php echo ($promedio_asistencia >= 80) ? '#28a745' : (($promedio_asistencia >= 60) ? '#ffc107' : '#dc3545'); ?>"><?php echo $promedio_asistencia; ?>%</span>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
+
+    <script>
+        function showTab(tabName) {
+            // Ocultar todas las pestañas
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Desactivar todas las pestañas
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar la pestaña seleccionada
+            document.getElementById('tab-' + tabName).classList.add('active');
+            
+            // Activar el botón de la pestaña seleccionada
+            event.target.classList.add('active');
+        }
+    </script>
 </body>
 </html> 

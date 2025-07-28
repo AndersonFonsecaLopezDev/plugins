@@ -167,7 +167,6 @@ if ($grupo_id) {
         $stmt->close();
     }
 }
-$mysqli->close();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -193,9 +192,9 @@ $mysqli->close();
             color: var(--text-main);
         }
         .dashboard-wrapper {
-            max-width: 1500px;
+            max-width: 2200px;
             margin: 0 auto;
-            padding: 2rem 1rem;
+            padding: 4rem 3rem;
             background: var(--bg-light);
             border-radius: 18px;
             box-shadow: 0 2px 12px rgba(3,76,140,0.04);
@@ -394,24 +393,26 @@ $mysqli->close();
         .calendar-month {
             text-align: center;
             color: var(--text-muted);
-            font-size: 1.2rem;
-            margin-bottom: 1.2rem;
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            font-weight: 600;
         }
         .asistencia-form {
-            max-width: 700px;
+            max-width: 1000px;
             margin: 2rem auto;
             background: #fff;
             border-radius: 16px;
             box-shadow: 0 2px 12px rgba(3,76,140,0.08);
-            padding: 2rem 2rem 1.5rem 2rem;
+            padding: 3rem 3rem 2rem 3rem;
         }
         .asistencia-form table {
             width: 100%;
             border-collapse: collapse;
         }
         .asistencia-form th, .asistencia-form td {
-            padding: 0.6rem 0.4rem;
+            padding: 1rem 0.8rem;
             text-align: left;
+            font-size: 16px;
         }
         .asistencia-form th {
             background: #f6f8fa;
@@ -420,15 +421,16 @@ $mysqli->close();
             background: #f9fbfc;
         }
         .asistencia-form select {
-            padding: 0.3rem 0.6rem;
-            border-radius: 6px;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
             border: 1px solid #ccc;
+            font-size: 16px;
         }
-        .asistencia-form select option[value="asistio"] {
+        .asistencia-form select option[value="asistió"] {
             background-color: #d4edda;
             color: #155724;
         }
-        .asistencia-form select option[value="falto"] {
+        .asistencia-form select option[value="faltó"] {
             background-color: #f8d7da;
             color: #721c24;
         }
@@ -443,12 +445,12 @@ $mysqli->close();
         .asistencia-form select option:checked {
             font-weight: bold;
         }
-        .asistencia-form select.asistio {
+        .asistencia-form select.asistió {
             background-color: #d4edda;
             color: #155724;
             border-color: #c3e6cb;
         }
-        .asistencia-form select.falto {
+        .asistencia-form select.faltó {
             background-color: #f8d7da;
             color: #721c24;
             border-color: #f5c6cb;
@@ -464,13 +466,13 @@ $mysqli->close();
             border-color: #bee5eb;
         }
         .asistencia-form button {
-            margin-top: 1.2rem;
+            margin-top: 1.5rem;
             background: #034C8C;
             color: #fff;
             border: none;
-            border-radius: 8px;
-            padding: 0.7rem 1.5rem;
-            font-size: 1rem;
+            border-radius: 10px;
+            padding: 1rem 2rem;
+            font-size: 18px;
             cursor: pointer;
             transition: background 0.2s;
         }
@@ -481,17 +483,21 @@ $mysqli->close();
             text-align: center;
             color: #007a1a;
             font-weight: bold;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 18px;
+            padding: 1rem;
+            background: #d4edda;
+            border-radius: 8px;
         }
         .volver-btn {
             display: inline-block;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             background: #e6f0fa;
             color: #034C8C;
             border: none;
-            border-radius: 8px;
-            padding: 0.5rem 1.2rem;
-            font-size: 1rem;
+            border-radius: 10px;
+            padding: 0.8rem 1.5rem;
+            font-size: 16px;
             cursor: pointer;
             text-decoration: none;
             font-weight: 500;
@@ -836,6 +842,83 @@ $mysqli->close();
                 max-height: 40px;
             }
         }
+        
+        /* Estilos para pestañas estilo Google Chrome */
+        .chrome-tabs {
+            display: flex;
+            background: #f1f3f4;
+            border-bottom: 1px solid #dadce0;
+            border-radius: 8px 8px 0 0;
+            padding: 0;
+            margin: 0;
+            position: relative;
+        }
+        
+        .chrome-tab {
+            background: #f8f9fa;
+            border: 1px solid #dadce0;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            padding: 18px 36px;
+            margin-right: 3px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 500;
+            color: #5f6368;
+            transition: all 0.2s ease;
+            position: relative;
+            min-width: 180px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chrome-tab:hover {
+            background: #f1f3f4;
+            color: #202124;
+        }
+        
+        .chrome-tab.active {
+            background: #fff;
+            color: #202124;
+            border-color: #dadce0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            z-index: 1;
+        }
+        
+        .chrome-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #fff;
+        }
+        
+        .chrome-tab-content {
+            display: none;
+            background: #fff;
+            border: 1px solid #dadce0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 36px;
+            min-height: 600px;
+            overflow-x: auto;
+        }
+        
+        .chrome-tab-content.active {
+            display: block;
+        }
+        
+        .tab-container {
+            margin-top: 3rem;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
@@ -846,44 +929,180 @@ $mysqli->close();
         <?php if ($mensaje): ?>
             <div class="mensaje"><?php echo htmlspecialchars($mensaje); ?></div>
         <?php endif; ?>
-        <form method="post">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Estudiante</th>
-                        <th>Cédula</th>
-                        <th>Correo</th>
-                        <th>Asistencia</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($estudiantes as $est): ?>
+        
+        <!-- SISTEMA DE PESTAÑAS ESTILO GOOGLE CHROME -->
+        <div class="tab-container">
+            <div class="chrome-tabs">
+                <div class="chrome-tab active" onclick="showChromeTab('asistencia')">
+                    📝 Toma de Asistencia
+                </div>
+                <div class="chrome-tab" onclick="showChromeTab('resumen')">
+                    📊 Resumen de Asistencias
+                </div>
+            </div>
+            
+            <!-- PESTAÑA: TOMA DE ASISTENCIA -->
+            <div id="tab-asistencia" class="chrome-tab-content active">
+                <form method="post">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Cédula</th>
+                                <th>Correo</th>
+                                <th>Asistencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($estudiantes as $est): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($est['first_name'] . ' ' . $est['last_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($est['national_id']); ?></td>
+                                    <td><?php echo htmlspecialchars($est['email']); ?></td>
+                                    <td>
+                                        <select name="asistencia[<?php echo $est['id']; ?>]">
+                                            <?php
+                                            $opciones = [
+                                                'asistió' => 'Asistió',
+                                                'faltó' => 'Faltó',
+                                                'tarde' => 'Tarde',
+                                                'justificado' => 'Justificado'
+                                            ];
+                                            $valor = isset($asistencias[$est['id']]) ? $asistencias[$est['id']] : '';
+                                            foreach ($opciones as $key => $label):
+                                            ?>
+                                                <option value="<?php echo $key; ?>" <?php if ($valor === $key) echo 'selected'; ?>><?php echo $label; ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <button type="submit">Guardar asistencia</button>
+                </form>
+            </div>
+            
+            <!-- PESTAÑA: RESUMEN DE ASISTENCIAS -->
+            <div id="tab-resumen" class="chrome-tab-content">
+                <h2 style="color: #333; text-align: center; margin-bottom: 2rem; font-size: 2rem; font-weight: 600;">📊 Resumen de Asistencias</h2>
+            
+            <?php
+            // Consulta para obtener el resumen de asistencias por estudiante
+            $resumen_query = $mysqli->prepare(
+                "SELECT 
+                    u.id AS user_id,
+                    u.national_id AS cedula,
+                    CONCAT(u.first_name, ' ', u.last_name) AS nombre_completo,
+                    COUNT(CASE WHEN a.status = 'asistió' THEN 1 END) AS asistencias,
+                    COUNT(CASE WHEN a.status = 'faltó' THEN 1 END) AS faltas,
+                    COUNT(CASE WHEN a.status = 'justificado' THEN 1 END) AS justificados,
+                    COUNT(CASE WHEN a.status = 'tarde' THEN 1 END) AS retardos,
+                    COUNT(a.id) AS total_clases
+                FROM wp_aess_enrollments e
+                JOIN wp_aess_users u ON u.id = e.user_id
+                LEFT JOIN wp_aess_attendance a 
+                    ON a.user_id = u.id AND a.group_id = e.group_id
+                WHERE e.group_id = ? AND e.status = 'activo'
+                GROUP BY u.id
+                ORDER BY nombre_completo"
+            );
+            $resumen_query->bind_param('i', $grupo_id);
+            $resumen_query->execute();
+            $resumen_estudiantes = $resumen_query->get_result()->fetch_all(MYSQLI_ASSOC);
+            $resumen_query->close();
+            ?>
+            
+            <?php if (empty($resumen_estudiantes)): ?>
+                <div style="text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 12px; color: #6c757d; font-size: 18px;">
+                    <strong style="font-size: 20px;">No hay registros de asistencia para este grupo todavía.</strong><br><br>
+                    Los datos aparecerán aquí una vez que comiences a registrar asistencias.
+                </div>
+            <?php else: ?>
+                <div style="overflow-x: auto; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <table style="width: 100%; min-width: 1200px; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 16px;">
+                    <thead>
                         <tr>
-                            <td><?php echo htmlspecialchars($est['first_name'] . ' ' . $est['last_name']); ?></td>
-                            <td><?php echo htmlspecialchars($est['national_id']); ?></td>
-                            <td><?php echo htmlspecialchars($est['email']); ?></td>
-                            <td>
-                                <select name="asistencia[<?php echo $est['id']; ?>]">
-                                    <?php
-                                    $opciones = [
-                                        'asistio' => 'Asistió',
-                                        'falto' => 'Faltó',
-                                        'tarde' => 'Tarde',
-                                        'justificado' => 'Justificado'
-                                    ];
-                                    $valor = isset($asistencias[$est['id']]) ? $asistencias[$est['id']] : '';
-                                    foreach ($opciones as $key => $label):
-                                    ?>
-                                        <option value="<?php echo $key; ?>" <?php if ($valor === $key) echo 'selected'; ?>><?php echo $label; ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </td>
+                            <th style="padding: 1rem 0.8rem; text-align: left; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 120px;">Cédula</th>
+                            <th style="padding: 1rem 0.8rem; text-align: left; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 200px;">Nombre Completo</th>
+                            <th style="padding: 1rem 0.8rem; text-align: center; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 100px;">Asistencias</th>
+                            <th style="padding: 1rem 0.8rem; text-align: center; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 100px;">Faltas</th>
+                            <th style="padding: 1rem 0.8rem; text-align: center; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 100px;">Retardos</th>
+                            <th style="padding: 1rem 0.8rem; text-align: center; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 100px;">Justificados</th>
+                            <th style="padding: 1rem 0.8rem; text-align: center; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 100px;">Total Clases</th>
+                            <th style="padding: 1rem 0.8rem; text-align: center; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 120px;">% Asistencia</th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-            <button type="submit">Guardar asistencia</button>
-        </form>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($resumen_estudiantes as $estudiante): ?>
+                            <tr style="background: <?php echo ($estudiante['total_clases'] > 0) ? '#f9fbfc' : '#fff'; ?>">
+                                <td style="padding: 1rem 0.8rem; text-align: left; border-bottom: 1px solid #eee; font-size: 16px;"><?php echo htmlspecialchars($estudiante['cedula']); ?></td>
+                                <td style="padding: 1rem 0.8rem; text-align: left; border-bottom: 1px solid #eee; font-size: 16px;"><?php echo htmlspecialchars($estudiante['nombre_completo']); ?></td>
+                                <td style="padding: 1rem 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #28a745; font-weight: bold; font-size: 16px;"><?php echo $estudiante['asistencias']; ?></td>
+                                <td style="padding: 1rem 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #dc3545; font-weight: bold; font-size: 16px;"><?php echo $estudiante['faltas']; ?></td>
+                                <td style="padding: 1rem 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #ffc107; font-weight: bold; font-size: 16px;"><?php echo $estudiante['retardos']; ?></td>
+                                <td style="padding: 1rem 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #17a2b8; font-weight: bold; font-size: 16px;"><?php echo $estudiante['justificados']; ?></td>
+                                <td style="padding: 1rem 0.8rem; text-align: center; border-bottom: 1px solid #eee; font-weight: bold; font-size: 16px;"><?php echo $estudiante['total_clases']; ?></td>
+                                <td style="padding: 1rem 0.8rem; text-align: center; border-bottom: 1px solid #eee; font-weight: bold; font-size: 16px;">
+                                    <?php 
+                                    if ($estudiante['total_clases'] > 0) {
+                                        $porcentaje = round(($estudiante['asistencias'] * 100) / $estudiante['total_clases'], 1);
+                                        $color = ($porcentaje >= 80) ? '#28a745' : (($porcentaje >= 60) ? '#ffc107' : '#dc3545');
+                                        echo "<span style='color: {$color};'>{$porcentaje}%</span>";
+                                    } else {
+                                        echo "0%";
+                                    }
+                                    ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                    </table>
+                </div>
+                
+                <!-- Estadísticas generales -->
+                <?php
+                $total_estudiantes = count($resumen_estudiantes);
+                $total_asistencias = array_sum(array_column($resumen_estudiantes, 'asistencias'));
+                $total_faltas = array_sum(array_column($resumen_estudiantes, 'faltas'));
+                $total_retardos = array_sum(array_column($resumen_estudiantes, 'retardos'));
+                $total_justificados = array_sum(array_column($resumen_estudiantes, 'justificados'));
+                $total_clases = array_sum(array_column($resumen_estudiantes, 'total_clases'));
+                $promedio_asistencia = ($total_clases > 0) ? round(($total_asistencias * 100) / $total_clases, 1) : 0;
+                ?>
+                
+                <div style="background: #e3f2fd; padding: 2rem; border-radius: 12px; margin-top: 2rem; text-align: center;">
+                    <h3 style="margin: 0 0 1.5rem 0; color: #1976d2; font-size: 1.5rem;">Estadísticas Generales del Grupo</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                        <div>
+                            <strong>Total Estudiantes:</strong><br>
+                            <span style="font-size: 1.2rem; color: #1976d2;"><?php echo $total_estudiantes; ?></span>
+                        </div>
+                        <div>
+                            <strong>Total Asistencias:</strong><br>
+                            <span style="font-size: 1.2rem; color: #28a745;"><?php echo $total_asistencias; ?></span>
+                        </div>
+                        <div>
+                            <strong>Total Faltas:</strong><br>
+                            <span style="font-size: 1.2rem; color: #dc3545;"><?php echo $total_faltas; ?></span>
+                        </div>
+                        <div>
+                            <strong>Total Retardos:</strong><br>
+                            <span style="font-size: 1.2rem; color: #ffc107;"><?php echo $total_retardos; ?></span>
+                        </div>
+                        <div>
+                            <strong>Total Justificados:</strong><br>
+                            <span style="font-size: 1.2rem; color: #17a2b8;"><?php echo $total_justificados; ?></span>
+                        </div>
+                        <div>
+                            <strong>Promedio Asistencia:</strong><br>
+                            <span style="font-size: 1.2rem; color: <?php echo ($promedio_asistencia >= 80) ? '#28a745' : (($promedio_asistencia >= 60) ? '#ffc107' : '#dc3545'); ?>"><?php echo $promedio_asistencia; ?>%</span>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+            </div>
+        </div>
     </div>
 <?php else: ?>
     <!-- CALENDARIO -->
@@ -950,7 +1169,7 @@ document.addEventListener('DOMContentLoaded', function() {
     selects.forEach(select => {
         select.addEventListener('change', function() {
             // Remover clases anteriores
-            this.classList.remove('asistio', 'falto', 'tarde', 'justificado');
+            this.classList.remove('asistió', 'faltó', 'tarde', 'justificado');
             // Agregar clase según el valor seleccionado
             this.classList.add(this.value);
         });
@@ -1022,8 +1241,41 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Funcionalidad para las pestañas estilo Chrome (función global)
+function showChromeTab(tabName) {
+    // Ocultar todos los contenidos de pestañas
+    const tabContents = document.querySelectorAll('.chrome-tab-content');
+    tabContents.forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Remover clase active de todas las pestañas
+    const tabs = document.querySelectorAll('.chrome-tab');
+    tabs.forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Mostrar el contenido de la pestaña seleccionada
+    const selectedContent = document.getElementById('tab-' + tabName);
+    if (selectedContent) {
+        selectedContent.classList.add('active');
+    }
+    
+    // Activar la pestaña seleccionada
+    const selectedTab = document.querySelector('[onclick="showChromeTab(\'' + tabName + '\')"]');
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+    }
+}
+
 
 </script>
+<?php
+// Cerrar la conexión de base de datos al final
+if (isset($mysqli)) {
+    $mysqli->close();
+}
+?>
 </body>
 </html> 
 </html> 

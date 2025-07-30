@@ -214,6 +214,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asistencia'])) {
         .tab-content.active {
             display: block;
         }
+        
+        /* Estilos para las barras de búsqueda */
+        .search-container {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .search-wrapper {
+            position: relative;
+            max-width: 400px;
+            margin: 0 auto 1rem auto;
+        }
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 16px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 2px solid #e1e5e9;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #0073aa;
+            box-shadow: 0 0 0 3px rgba(0, 115, 170, 0.1);
+        }
+        .search-input::placeholder {
+            color: #999;
+        }
+        .search-results-info {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 1rem;
+        }
+        .no-results {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        /* Responsive para búsqueda */
+        @media (max-width: 768px) {
+            .search-wrapper {
+                max-width: 100%;
+            }
+            .search-input {
+                font-size: 16px; /* Evita zoom en iOS */
+            }
+        }
     </style>
 </head>
 <body>
@@ -253,8 +313,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asistencia'])) {
                 <strong>ERROR:</strong> No se encontraron estudiantes con la consulta anterior.
             </div>
         <?php else: ?>
+            <!-- Barra de búsqueda para estudiantes -->
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchEstudiantes" class="search-input" placeholder="Buscar estudiante por nombre..." autocomplete="off">
+                </div>
+                <div id="searchResultsInfo" class="search-results-info"></div>
+            </div>
+
             <form method="post">
-                <table>
+                <table id="tablaEstudiantes">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -265,7 +334,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asistencia'])) {
                     </thead>
                     <tbody>
                         <?php foreach ($estudiantes as $index => $est): ?>
-                            <tr>
+                            <tr class="estudiante-row" data-nombre="<?php echo esc_attr(strtolower($est->first_name . ' ' . $est->last_name)); ?>">
                                 <td><?php echo $index + 1; ?></td>
                                 <td><?php echo esc_html($est->first_name . ' ' . $est->last_name); ?></td>
                                 <td><?php echo esc_html($est->email); ?></td>
@@ -342,7 +411,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asistencia'])) {
                     Los datos aparecerán aquí una vez que comiences a registrar asistencias.
                 </div>
             <?php else: ?>
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
+                <!-- Barra de búsqueda para resumen -->
+                <div class="search-container">
+                    <div class="search-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchResumen" class="search-input" placeholder="Buscar por nombre o cédula..." autocomplete="off">
+                    </div>
+                    <div id="searchResumenInfo" class="search-results-info"></div>
+                </div>
+
+                <table id="tablaResumen" style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
                     <thead>
                         <tr>
                             <th style="padding: 0.8rem; text-align: left; border-bottom: 1px solid #eee; background: #f6f8fa; font-weight: bold; color: #333;">Cédula</th>
@@ -357,7 +435,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asistencia'])) {
                     </thead>
                     <tbody>
                         <?php foreach ($resumen_estudiantes as $estudiante): ?>
-                            <tr style="background: <?php echo ($estudiante->total_clases > 0) ? '#f9fbfc' : '#fff'; ?>">
+                            <tr class="resumen-row" data-nombre="<?php echo esc_attr(strtolower($estudiante->nombre_completo)); ?>" data-cedula="<?php echo esc_attr($estudiante->cedula); ?>" style="background: <?php echo ($estudiante->total_clases > 0) ? '#f9fbfc' : '#fff'; ?>">
                                 <td style="padding: 0.8rem; text-align: left; border-bottom: 1px solid #eee;"><?php echo esc_html($estudiante->cedula); ?></td>
                                 <td style="padding: 0.8rem; text-align: left; border-bottom: 1px solid #eee;"><?php echo esc_html($estudiante->nombre_completo); ?></td>
                                 <td style="padding: 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #28a745; font-weight: bold;"><?php echo $estudiante->asistencias; ?></td>
@@ -445,6 +523,129 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asistencia'])) {
             // Activar el botón de la pestaña seleccionada
             event.target.classList.add('active');
         }
+
+        // Funcionalidad de búsqueda para estudiantes en la pestaña de asistencia
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchEstudiantes = document.getElementById('searchEstudiantes');
+            const searchResultsInfo = document.getElementById('searchResultsInfo');
+            const estudianteRows = document.querySelectorAll('.estudiante-row');
+            
+            if (searchEstudiantes) {
+                searchEstudiantes.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase().trim();
+                    let visibleCount = 0;
+                    
+                    estudianteRows.forEach(row => {
+                        const nombre = row.getAttribute('data-nombre');
+                        if (nombre.includes(searchTerm)) {
+                            row.style.display = '';
+                            visibleCount++;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                    
+                    // Actualizar información de resultados
+                    if (searchTerm === '') {
+                        searchResultsInfo.textContent = '';
+                    } else {
+                        searchResultsInfo.textContent = `Mostrando ${visibleCount} de ${estudianteRows.length} estudiantes`;
+                    }
+                });
+            }
+
+            // Funcionalidad de búsqueda para resumen
+            const searchResumen = document.getElementById('searchResumen');
+            const searchResumenInfo = document.getElementById('searchResumenInfo');
+            const resumenRows = document.querySelectorAll('.resumen-row');
+            
+            if (searchResumen) {
+                searchResumen.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase().trim();
+                    let visibleCount = 0;
+                    
+                    resumenRows.forEach(row => {
+                        const nombre = row.getAttribute('data-nombre');
+                        const cedula = row.getAttribute('data-cedula');
+                        if (nombre.includes(searchTerm) || cedula.includes(searchTerm)) {
+                            row.style.display = '';
+                            visibleCount++;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                    
+                    // Actualizar información de resultados
+                    if (searchTerm === '') {
+                        searchResumenInfo.textContent = '';
+                    } else {
+                        searchResumenInfo.textContent = `Mostrando ${visibleCount} de ${resumenRows.length} estudiantes`;
+                    }
+                });
+            }
+
+            // Aplicar colores a los selects de asistencia
+            const selects = document.querySelectorAll('.asistencia-form select');
+            selects.forEach(select => {
+                select.addEventListener('change', function() {
+                    this.classList.remove('asistió', 'faltó', 'tarde', 'justificado');
+                    this.classList.add(this.value);
+                    
+                    // Aplicar estilos inline para asegurar que se mantengan
+                    setTimeout(() => {
+                        this.style.removeProperty('background-color');
+                        this.style.removeProperty('color');
+                        this.style.removeProperty('border-color');
+                        
+                        if (this.value === 'asistio') {
+                            this.style.backgroundColor = '#d4edda';
+                            this.style.color = '#155724';
+                            this.style.borderColor = '#c3e6cb';
+                        } else if (this.value === 'falto') {
+                            this.style.backgroundColor = '#f8d7da';
+                            this.style.color = '#721c24';
+                            this.style.borderColor = '#f5c6cb';
+                        } else if (this.value === 'tarde') {
+                            this.style.backgroundColor = '#fff3cd';
+                            this.style.color = '#856404';
+                            this.style.borderColor = '#ffeaa7';
+                        } else if (this.value === 'justificado') {
+                            this.style.backgroundColor = '#d1ecf1';
+                            this.style.color = '#0c5460';
+                            this.style.borderColor = '#bee5eb';
+                        }
+                    }, 10);
+                });
+                
+                // Aplicar color inicial si ya tiene un valor seleccionado
+                if (select.value) {
+                    select.classList.add(select.value);
+                    setTimeout(() => {
+                        select.style.removeProperty('background-color');
+                        select.style.removeProperty('color');
+                        select.style.removeProperty('border-color');
+                        
+                        if (select.value === 'asistio') {
+                            select.style.backgroundColor = '#d4edda';
+                            select.style.color = '#155724';
+                            select.style.borderColor = '#c3e6cb';
+                        } else if (select.value === 'falto') {
+                            select.style.backgroundColor = '#f8d7da';
+                            select.style.color = '#721c24';
+                            select.style.borderColor = '#f5c6cb';
+                        } else if (select.value === 'tarde') {
+                            select.style.backgroundColor = '#fff3cd';
+                            select.style.color = '#856404';
+                            select.style.borderColor = '#ffeaa7';
+                        } else if (select.value === 'justificado') {
+                            select.style.backgroundColor = '#d1ecf1';
+                            select.style.color = '#0c5460';
+                            select.style.borderColor = '#bee5eb';
+                        }
+                    }, 10);
+                }
+            });
+        });
     </script>
 </body>
 </html> 

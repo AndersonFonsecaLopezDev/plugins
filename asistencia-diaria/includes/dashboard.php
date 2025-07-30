@@ -425,45 +425,50 @@ if ($grupo_id) {
             border-radius: 8px;
             border: 1px solid #ccc;
             font-size: 16px;
+            transition: all 0.2s ease;
         }
         .asistencia-form select option[value="asistió"] {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: #d4edda !important;
+            color: #155724 !important;
         }
         .asistencia-form select option[value="faltó"] {
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color: #f8d7da !important;
+            color: #721c24 !important;
         }
         .asistencia-form select option[value="tarde"] {
-            background-color: #fff3cd;
-            color: #856404;
+            background-color: #fff3cd !important;
+            color: #856404 !important;
         }
         .asistencia-form select option[value="justificado"] {
-            background-color: #d1ecf1;
-            color: #0c5460;
+            background-color: #d1ecf1 !important;
+            color: #0c5460 !important;
         }
         .asistencia-form select option:checked {
             font-weight: bold;
         }
         .asistencia-form select.asistió {
-            background-color: #d4edda;
-            color: #155724;
-            border-color: #c3e6cb;
+            background-color: #d4edda !important;
+            color: #155724 !important;
+            border-color: #c3e6cb !important;
+            background-image: none !important;
         }
         .asistencia-form select.faltó {
-            background-color: #f8d7da;
-            color: #721c24;
-            border-color: #f5c6cb;
+            background-color: #f8d7da !important;
+            color: #721c24 !important;
+            border-color: #f5c6cb !important;
+            background-image: none !important;
         }
         .asistencia-form select.tarde {
-            background-color: #fff3cd;
-            color: #856404;
-            border-color: #ffeaa7;
+            background-color: #fff3cd !important;
+            color: #856404 !important;
+            border-color: #ffeaa7 !important;
+            background-image: none !important;
         }
         .asistencia-form select.justificado {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border-color: #bee5eb;
+            background-color: #d1ecf1 !important;
+            color: #0c5460 !important;
+            border-color: #bee5eb !important;
+            background-image: none !important;
         }
         .asistencia-form button {
             margin-top: 1.5rem;
@@ -517,6 +522,26 @@ if ($grupo_id) {
         
         /* Tablets (768px - 1024px) */
         @media (max-width: 1024px) {
+            .search-container {
+                margin: 1.5rem auto 1rem auto;
+                padding: 1rem 1.5rem;
+            }
+            
+            .search-wrapper {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .search-filters {
+                margin-left: 0;
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .filter-select {
+                flex: 1;
+                margin: 0 0.5rem;
+            }
             .dashboard-wrapper {
                 padding: 1.5rem 0.5rem;
                 margin: 0 0.5rem;
@@ -576,22 +601,141 @@ if ($grupo_id) {
                 font-size: 1.1rem;
             }
             
-            .asistencia-form {
-                margin: 1.5rem 1rem;
+                    .asistencia-form {
+            margin: 1.5rem 1rem;
+            padding: 1.5rem;
+        }
+        
+        .asistencia-form table {
+            font-size: 0.9rem;
+        }
+        
+        .asistencia-form th, .asistencia-form td {
+            padding: 0.5rem 0.3rem;
+        }
+        
+        /* Estilos para las barras de búsqueda en pestañas de asistencia */
+        .asistencia-search-container {
+            margin-bottom: 2rem;
+            position: relative;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .asistencia-search-wrapper {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .asistencia-search-icon {
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            font-size: 20px;
+            z-index: 2;
+        }
+        .asistencia-search-input {
+            width: 100%;
+            padding: 20px 25px 20px 60px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            color: #333;
+            min-height: 60px;
+        }
+        .asistencia-search-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+        .asistencia-search-input::placeholder {
+            color: #999;
+            font-weight: 300;
+        }
+        .asistencia-search-results-info {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            margin-top: 1.5rem;
+            font-weight: 500;
+        }
+        
+        /* Animación de entrada */
+        .asistencia-search-container {
+            animation: slideInUp 0.6s ease-out;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Responsive para búsqueda de asistencia */
+        @media (max-width: 1024px) {
+            .asistencia-search-wrapper {
+                max-width: 90%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .asistencia-search-container {
                 padding: 1.5rem;
+                margin: 1rem;
             }
-            
-            .asistencia-form table {
-                font-size: 0.9rem;
+            .asistencia-search-wrapper {
+                max-width: 100%;
             }
-            
-            .asistencia-form th, .asistencia-form td {
-                padding: 0.5rem 0.3rem;
+            .asistencia-search-input {
+                font-size: 18px;
+                padding: 18px 20px 18px 55px;
+                min-height: 55px;
             }
+            .asistencia-search-icon {
+                font-size: 18px;
+                left: 20px;
+            }
+        }
         }
         
         /* Mobile Large (481px - 767px) */
         @media (max-width: 767px) {
+            .search-container {
+                margin: 1rem auto 0.5rem auto;
+                padding: 0.8rem 1rem;
+                border-radius: 12px;
+            }
+            
+            .search-wrapper {
+                gap: 0.8rem;
+            }
+            
+            .search-input {
+                font-size: 0.9rem;
+            }
+            
+            .search-filters {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .filter-select {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
             .dashboard-wrapper {
                 padding: 1rem 0.25rem;
                 margin: 0 0.25rem;
@@ -702,6 +846,28 @@ if ($grupo_id) {
         
         /* Mobile Small (320px - 480px) */
         @media (max-width: 480px) {
+            .search-container {
+                margin: 0.8rem auto 0.4rem auto;
+                padding: 0.6rem 0.8rem;
+                border-radius: 8px;
+            }
+            
+            .search-wrapper {
+                gap: 0.6rem;
+            }
+            
+            .search-input {
+                font-size: 0.8rem;
+            }
+            
+            .search-filters {
+                gap: 0.4rem;
+            }
+            
+            .filter-select {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.6rem;
+            }
             .dashboard-wrapper {
                 padding: 0.5rem 0.1rem;
                 margin: 0 0.1rem;
@@ -919,6 +1085,228 @@ if ($grupo_id) {
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             overflow: hidden;
         }
+
+        /* Estilos para el buscador moderno */
+        .search-container {
+            max-width: 1000px;
+            margin: 2rem auto 1rem auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(3,76,140,0.08);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .search-wrapper {
+            display: flex;
+            align-items: center;
+            background: #f6f8fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            flex-grow: 1;
+            position: relative;
+        }
+
+        .search-icon {
+            font-size: 1.5rem;
+            color: #666;
+            margin-right: 0.5rem;
+        }
+
+        .search-input {
+            border: none;
+            background: transparent;
+            padding: 0.5rem 0.5rem 0.5rem 0;
+            font-size: 1rem;
+            width: 100%;
+            outline: none;
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 1rem;
+            margin-left: 1rem;
+        }
+
+        .filter-select {
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 0.9rem;
+            color: #333;
+            background: #f6f8fa;
+            cursor: pointer;
+            outline: none;
+        }
+        
+        .clear-search-btn {
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background: #f6f8fa;
+            color: #666;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .clear-search-btn:hover {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%; /* Ajustar la posición debajo del buscador */
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            max-height: 300px; /* Altura máxima para el scroll */
+            overflow-y: auto;
+            display: none; /* Ocultar por defecto */
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+            color: #333;
+        }
+
+        .search-result-item:hover {
+            background: #f0f0f0;
+        }
+
+        .search-result-item.no-results {
+            padding: 0.8rem 1rem;
+            text-align: center;
+            color: #666;
+        }
+        
+        .search-result-header {
+            padding: 0.8rem 1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: bold;
+            color: #333;
+            font-size: 0.9rem;
+        }
+        
+        /* Estilos adicionales para asegurar que los colores de los selects se mantengan en todas las versiones */
+        .asistencia-form select.asistió,
+        .asistencia-form select.faltó,
+        .asistencia-form select.tarde,
+        .asistencia-form select.justificado {
+            transition: all 0.3s ease !important;
+        }
+        
+        /* Estilos más específicos para forzar los colores */
+        .asistencia-form select[class*="asistió"] {
+            background-color: #d4edda !important;
+            color: #155724 !important;
+            border-color: #c3e6cb !important;
+        }
+        
+        .asistencia-form select[class*="faltó"] {
+            background-color: #f8d7da !important;
+            color: #721c24 !important;
+            border-color: #f5c6cb !important;
+        }
+        
+        .asistencia-form select[class*="tarde"] {
+            background-color: #fff3cd !important;
+            color: #856404 !important;
+            border-color: #ffeaa7 !important;
+        }
+        
+        .asistencia-form select[class*="justificado"] {
+            background-color: #d1ecf1 !important;
+            color: #0c5460 !important;
+            border-color: #bee5eb !important;
+        }
+        
+        /* Asegurar que los colores se mantengan en versiones responsive */
+        @media (max-width: 1024px) {
+            .asistencia-form select.asistió {
+                background-color: #d4edda !important;
+                color: #155724 !important;
+                border-color: #c3e6cb !important;
+            }
+            .asistencia-form select.faltó {
+                background-color: #f8d7da !important;
+                color: #721c24 !important;
+                border-color: #f5c6cb !important;
+            }
+            .asistencia-form select.tarde {
+                background-color: #fff3cd !important;
+                color: #856404 !important;
+                border-color: #ffeaa7 !important;
+            }
+            .asistencia-form select.justificado {
+                background-color: #d1ecf1 !important;
+                color: #0c5460 !important;
+                border-color: #bee5eb !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .asistencia-form select.asistió {
+                background-color: #d4edda !important;
+                color: #155724 !important;
+                border-color: #c3e6cb !important;
+            }
+            .asistencia-form select.faltó {
+                background-color: #f8d7da !important;
+                color: #721c24 !important;
+                border-color: #f5c6cb !important;
+            }
+            .asistencia-form select.tarde {
+                background-color: #fff3cd !important;
+                color: #856404 !important;
+                border-color: #ffeaa7 !important;
+            }
+            .asistencia-form select.justificado {
+                background-color: #d1ecf1 !important;
+                color: #0c5460 !important;
+                border-color: #bee5eb !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .asistencia-form select.asistió {
+                background-color: #d4edda !important;
+                color: #155724 !important;
+                border-color: #c3e6cb !important;
+            }
+            .asistencia-form select.faltó {
+                background-color: #f8d7da !important;
+                color: #721c24 !important;
+                border-color: #f5c6cb !important;
+            }
+            .asistencia-form select.tarde {
+                background-color: #fff3cd !important;
+                color: #856404 !important;
+                border-color: #ffeaa7 !important;
+            }
+            .asistencia-form select.justificado {
+                background-color: #d1ecf1 !important;
+                color: #0c5460 !important;
+                border-color: #bee5eb !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -943,8 +1331,17 @@ if ($grupo_id) {
             
             <!-- PESTAÑA: TOMA DE ASISTENCIA -->
             <div id="tab-asistencia" class="chrome-tab-content active">
+                <!-- Barra de búsqueda para estudiantes -->
+                <div class="asistencia-search-container">
+                    <div class="asistencia-search-wrapper">
+                        <span class="asistencia-search-icon">🔍</span>
+                        <input type="text" id="searchEstudiantesAsistencia" class="asistencia-search-input" placeholder="🔎 Buscar por nombre o cédula..." autocomplete="off">
+                    </div>
+                    <div id="searchEstudiantesAsistenciaInfo" class="asistencia-search-results-info"></div>
+                </div>
+
                 <form method="post">
-                    <table>
+                    <table id="tablaEstudiantesAsistencia">
                         <thead>
                             <tr>
                                 <th>Estudiante</th>
@@ -955,7 +1352,7 @@ if ($grupo_id) {
                         </thead>
                         <tbody>
                             <?php foreach ($estudiantes as $est): ?>
-                                <tr>
+                                <tr class="estudiante-asistencia-row" data-nombre="<?php echo esc_attr(strtolower($est['first_name'] . ' ' . $est['last_name'])); ?>" data-cedula="<?php echo esc_attr($est['national_id']); ?>">
                                     <td><?php echo htmlspecialchars($est['first_name'] . ' ' . $est['last_name']); ?></td>
                                     <td><?php echo htmlspecialchars($est['national_id']); ?></td>
                                     <td><?php echo htmlspecialchars($est['email']); ?></td>
@@ -1013,14 +1410,23 @@ if ($grupo_id) {
             $resumen_query->close();
             ?>
             
-            <?php if (empty($resumen_estudiantes)): ?>
+                        <?php if (empty($resumen_estudiantes)): ?>
                 <div style="text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 12px; color: #6c757d; font-size: 18px;">
                     <strong style="font-size: 20px;">No hay registros de asistencia para este grupo todavía.</strong><br><br>
                     Los datos aparecerán aquí una vez que comiences a registrar asistencias.
                 </div>
             <?php else: ?>
+                <!-- Barra de búsqueda para resumen -->
+                <div class="asistencia-search-container">
+                    <div class="asistencia-search-wrapper">
+                        <span class="asistencia-search-icon">🔍</span>
+                        <input type="text" id="searchResumenAsistencia" class="asistencia-search-input" placeholder="🔎 Buscar por nombre o cédula..." autocomplete="off">
+                    </div>
+                    <div id="searchResumenAsistenciaInfo" class="asistencia-search-results-info"></div>
+                </div>
+
                 <div style="overflow-x: auto; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <table style="width: 100%; min-width: 1200px; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 16px;">
+                    <table id="tablaResumenAsistencia" style="width: 100%; min-width: 1200px; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 16px;">
                     <thead>
                         <tr>
                             <th style="padding: 1rem 0.8rem; text-align: left; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 120px;">Cédula</th>
@@ -1035,7 +1441,7 @@ if ($grupo_id) {
                     </thead>
                     <tbody>
                         <?php foreach ($resumen_estudiantes as $estudiante): ?>
-                            <tr style="background: <?php echo ($estudiante['total_clases'] > 0) ? '#f9fbfc' : '#fff'; ?>">
+                            <tr class="resumen-asistencia-row" data-nombre="<?php echo esc_attr(strtolower($estudiante['nombre_completo'])); ?>" data-cedula="<?php echo esc_attr($estudiante['cedula']); ?>" style="background: <?php echo ($estudiante['total_clases'] > 0) ? '#f9fbfc' : '#fff'; ?>">
                                 <td style="padding: 1rem 0.8rem; text-align: left; border-bottom: 1px solid #eee; font-size: 16px;"><?php echo htmlspecialchars($estudiante['cedula']); ?></td>
                                 <td style="padding: 1rem 0.8rem; text-align: left; border-bottom: 1px solid #eee; font-size: 16px;"><?php echo htmlspecialchars($estudiante['nombre_completo']); ?></td>
                                 <td style="padding: 1rem 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #28a745; font-weight: bold; font-size: 16px;"><?php echo $estudiante['asistencias']; ?></td>
@@ -1057,7 +1463,7 @@ if ($grupo_id) {
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
-                    </table>
+                </table>
                 </div>
                 
                 <!-- Estadísticas generales -->
@@ -1108,6 +1514,29 @@ if ($grupo_id) {
     <!-- CALENDARIO -->
     <div class="calendar-title">Agenda semanal de clases</div>
     <div class="calendar-month"><?php echo $mes_actual . ' ' . $anio_actual; ?></div>
+    
+    <!-- BUSCADOR MODERNO -->
+    <div class="search-container">
+        <div class="search-wrapper">
+            <div class="search-icon">🔍</div>
+            <input type="text" id="searchInput" placeholder="Buscar por curso, grupo, profesor..." class="search-input">
+            <div class="search-filters">
+                <select id="filterDay" class="filter-select">
+                    <option value="">Todos los días</option>
+                    <option value="lunes">Lunes</option>
+                    <option value="martes">Martes</option>
+                    <option value="miércoles">Miércoles</option>
+                    <option value="jueves">Jueves</option>
+                    <option value="viernes">Viernes</option>
+                    <option value="sábado">Sábado</option>
+                    <option value="domingo">Domingo</option>
+                </select>
+                <button type="button" id="clearSearch" class="clear-search-btn" title="Limpiar búsqueda">✕</button>
+            </div>
+        </div>
+        <div class="search-results" id="searchResults"></div>
+    </div>
+    
     <div class="dashboard-wrapper">
         <div class="calendar-scroll">
             <div class="calendar-grid">
@@ -1164,19 +1593,159 @@ if ($grupo_id) {
 <?php endif; ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Datos de las clases para el buscador
+    const clasesData = <?php echo json_encode($clases); ?>;
+    
+    // Funcionalidad del buscador
+    const searchInput = document.getElementById('searchInput');
+    const filterDay = document.getElementById('filterDay');
+    const searchResults = document.getElementById('searchResults');
+    
+    function performSearch() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedDay = filterDay.value;
+        
+        let filteredClases = clasesData;
+        
+        // Filtrar por término de búsqueda
+        if (searchTerm) {
+            filteredClases = filteredClases.filter(clase => 
+                clase.course_name.toLowerCase().includes(searchTerm) ||
+                clase.group_code.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        // Filtrar por día
+        if (selectedDay) {
+            filteredClases = filteredClases.filter(clase => 
+                clase.schedule_day === selectedDay
+            );
+        }
+        
+        // Mostrar resultados
+        displaySearchResults(filteredClases);
+    }
+    
+    function displaySearchResults(clases) {
+        if (clases.length === 0) {
+            searchResults.innerHTML = '<div class="search-result-item no-results">No se encontraron clases que coincidan con tu búsqueda</div>';
+        } else {
+            const resultsHeader = `<div class="search-result-header">Se encontraron ${clases.length} clase${clases.length > 1 ? 's' : ''}</div>`;
+            const resultsList = clases.map(clase => `
+                <div class="search-result-item" onclick="window.location.href='admin.php?page=asistencia-diaria&grupo_id=${clase.grupo_id}'">
+                    <strong>${clase.course_name}</strong><br>
+                    <small>Grupo: ${clase.group_code} | ${clase.schedule_day.charAt(0).toUpperCase() + clase.schedule_day.slice(1)} ${clase.start_time} - ${clase.end_time}</small>
+                </div>
+            `).join('');
+            searchResults.innerHTML = resultsHeader + resultsList;
+        }
+        
+        if (searchInput.value || filterDay.value) {
+            searchResults.classList.add('active');
+            highlightSearchResults(clases);
+        } else {
+            searchResults.classList.remove('active');
+            removeHighlights();
+        }
+    }
+    
+    function highlightSearchResults(clases) {
+        // Remover highlights anteriores
+        removeHighlights();
+        
+        // Resaltar las clases encontradas
+        clases.forEach(clase => {
+            const eventos = document.querySelectorAll('.calendar-event');
+            eventos.forEach(evento => {
+                const dataInfo = evento.getAttribute('data-info');
+                if (dataInfo) {
+                    const info = JSON.parse(dataInfo);
+                    if (info.grupo === clase.group_code && info.curso === clase.course_name) {
+                        evento.style.boxShadow = '0 0 0 3px #ffd700, 0 4px 12px rgba(255, 215, 0, 0.3)';
+                        evento.style.transform = 'scale(1.02)';
+                        evento.style.zIndex = '15';
+                    }
+                }
+            });
+        });
+    }
+    
+    function removeHighlights() {
+        const eventos = document.querySelectorAll('.calendar-event');
+        eventos.forEach(evento => {
+            evento.style.boxShadow = '';
+            evento.style.transform = '';
+            evento.style.zIndex = '';
+        });
+    }
+    
+    // Event listeners para el buscador
+    searchInput.addEventListener('input', performSearch);
+    filterDay.addEventListener('change', performSearch);
+    
+    // Botón de limpiar búsqueda
+    const clearSearchBtn = document.getElementById('clearSearch');
+    clearSearchBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        filterDay.value = '';
+        searchResults.classList.remove('active');
+        removeHighlights();
+    });
+    
+    // Ocultar resultados al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !filterDay.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.classList.remove('active');
+        }
+    });
+    
     // Funcionalidad para el formulario de asistencia
     const selects = document.querySelectorAll('.asistencia-form select');
     selects.forEach(select => {
-        select.addEventListener('change', function() {
-            // Remover clases anteriores
+        // Función para aplicar la clase de color
+        function applyColorClass() {
+            // Remover todas las clases de color
             this.classList.remove('asistió', 'faltó', 'tarde', 'justificado');
-            // Agregar clase según el valor seleccionado
-            this.classList.add(this.value);
-        });
+            // Agregar la clase correspondiente al valor seleccionado
+            if (this.value) {
+                this.classList.add(this.value);
+                // Forzar la aplicación de estilos
+                this.style.backgroundColor = '';
+                this.style.color = '';
+                this.style.borderColor = '';
+                // Aplicar estilos directamente si es necesario
+                setTimeout(() => {
+                    if (this.value === 'asistió') {
+                        this.style.backgroundColor = '#d4edda';
+                        this.style.color = '#155724';
+                        this.style.borderColor = '#c3e6cb';
+                    } else if (this.value === 'faltó') {
+                        this.style.backgroundColor = '#f8d7da';
+                        this.style.color = '#721c24';
+                        this.style.borderColor = '#f5c6cb';
+                    } else if (this.value === 'tarde') {
+                        this.style.backgroundColor = '#fff3cd';
+                        this.style.color = '#856404';
+                        this.style.borderColor = '#ffeaa7';
+                    } else if (this.value === 'justificado') {
+                        this.style.backgroundColor = '#d1ecf1';
+                        this.style.color = '#0c5460';
+                        this.style.borderColor = '#bee5eb';
+                    }
+                }, 10);
+            }
+        }
+        
         // Aplicar color inicial si ya hay un valor seleccionado
         if (select.value) {
             select.classList.add(select.value);
         }
+        
+        // Event listener para cambios
+        select.addEventListener('change', applyColorClass);
+        
+        // También aplicar cuando se carga la página
+        applyColorClass.call(select);
     });
     
     // Funcionalidad para el tooltip de eventos
@@ -1268,6 +1837,69 @@ function showChromeTab(tabName) {
     }
 }
 
+// Funcionalidad de búsqueda para las pestañas de asistencia
+document.addEventListener('DOMContentLoaded', function() {
+    // Búsqueda en la pestaña "Toma de Asistencia"
+    const searchEstudiantesAsistencia = document.getElementById('searchEstudiantesAsistencia');
+    const searchEstudiantesAsistenciaInfo = document.getElementById('searchEstudiantesAsistenciaInfo');
+    const estudianteAsistenciaRows = document.querySelectorAll('.estudiante-asistencia-row');
+    
+    if (searchEstudiantesAsistencia) {
+        searchEstudiantesAsistencia.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+            
+            estudianteAsistenciaRows.forEach(row => {
+                const nombre = row.getAttribute('data-nombre');
+                const cedula = row.getAttribute('data-cedula');
+                if (nombre.includes(searchTerm) || cedula.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Actualizar información de resultados
+            if (searchTerm === '') {
+                searchEstudiantesAsistenciaInfo.textContent = '';
+            } else {
+                searchEstudiantesAsistenciaInfo.textContent = `✨ Encontrados ${visibleCount} de ${estudianteAsistenciaRows.length} estudiantes`;
+            }
+        });
+    }
+
+    // Búsqueda en la pestaña "Resumen de Asistencias"
+    const searchResumenAsistencia = document.getElementById('searchResumenAsistencia');
+    const searchResumenAsistenciaInfo = document.getElementById('searchResumenAsistenciaInfo');
+    const resumenAsistenciaRows = document.querySelectorAll('.resumen-asistencia-row');
+    
+    if (searchResumenAsistencia) {
+        searchResumenAsistencia.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+            
+            resumenAsistenciaRows.forEach(row => {
+                const nombre = row.getAttribute('data-nombre');
+                const cedula = row.getAttribute('data-cedula');
+                if (nombre.includes(searchTerm) || cedula.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Actualizar información de resultados
+            if (searchTerm === '') {
+                searchResumenAsistenciaInfo.textContent = '';
+            } else {
+                searchResumenAsistenciaInfo.textContent = `✨ Encontrados ${visibleCount} de ${resumenAsistenciaRows.length} estudiantes`;
+            }
+        });
+    }
+});
+
 
 </script>
 <?php
@@ -1277,5 +1909,4 @@ if (isset($mysqli)) {
 }
 ?>
 </body>
-</html> 
 </html> 

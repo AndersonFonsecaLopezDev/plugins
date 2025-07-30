@@ -168,7 +168,7 @@ if ($grupo_id) {
                             </tbody>
                         </table>
                     </div>
-                    <button type="submit">Guardar asistencia</button>
+                    <button type="submit">Guardar</button>
                 </form>
             </div>
             

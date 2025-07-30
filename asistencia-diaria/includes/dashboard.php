@@ -215,6 +215,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function displaySearchResults(clases) {
+        console.log('Mostrando resultados:', clases.length); // Debug
+        console.log('Elemento searchResults:', searchResults); // Debug
+        console.log('Clases active antes:', searchResults.classList.contains('active')); // Debug
+        
         if (clases.length === 0) {
             searchResults.innerHTML = '<div class="search-result-item no-results">No se encontraron clases que coincidan con tu búsqueda</div>';
         } else {
@@ -230,9 +234,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (searchInput.value || filterDay.value) {
             searchResults.classList.add('active');
+            console.log('Agregando clase active'); // Debug
+            console.log('Clases active después:', searchResults.classList.contains('active')); // Debug
+            console.log('Display del elemento:', window.getComputedStyle(searchResults).display); // Debug
+            console.log('Opacity del elemento:', window.getComputedStyle(searchResults).opacity); // Debug
             highlightSearchResults(clases);
         } else {
             searchResults.classList.remove('active');
+            console.log('Removiendo clase active'); // Debug
             removeHighlights();
         }
     }

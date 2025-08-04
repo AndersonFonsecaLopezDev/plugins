@@ -97,6 +97,16 @@ jQuery(document).ready(function ($) {
             .draw();
     });
 
+    // Agregar resaltado de fila seleccionada con opción de deseleccionar
+    $('#principalTable tbody').on('click', 'tr', function () {
+        if ($(this).hasClass('selected-row')) {
+            $(this).removeClass('selected-row');
+        } else {
+            $('#principalTable tbody tr').removeClass('selected-row');
+            $(this).addClass('selected-row');
+        }
+    });
+
     // Handle form submission event 
     $('#cvForm').on('submit', function (e) {
 

@@ -46,9 +46,7 @@
         backdrop-filter: blur(10px);
     }
     
-    .calendar-scroll {
-    }
-    
+
     .calendar-grid {
         display: grid;
         grid-template-columns: 90px repeat(7, 1fr);
@@ -108,7 +106,7 @@
     }
     
     .calendar-header-cell .dia {
-        font-size: 1em;
+        font-size: 0.5em;
         letter-spacing: 1px;
     }
     
@@ -145,8 +143,8 @@
         position: absolute;
         left: 10px; right: 10px;
         top: 10px;
-        min-height: 60px;
-        max-height: 120px;
+        min-height: 50px;
+        max-height: 100px;
         background: var(--bg-cell);
         color: var(--text-main);
         border-radius: 12px;
@@ -177,10 +175,10 @@
     /* Estilos para eventos superpuestos en columna */
     .calendar-event.superpuesto {
         width: calc(100% - 20px);
-        min-height: 30px;
-        max-height: 50px;
+        min-height: 60px;
+        max-height: 90px;
         padding: 4px 8px;
-        font-size: 0.8rem;
+        font-size: 0.5rem;
         z-index: 10;
         margin-bottom: 2px;
         position: absolute;
@@ -577,7 +575,7 @@
     }
     
     .tab-container {
-        margin-top: 3rem;
+        margin-top: 1rem;
         background: #fff;
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -586,42 +584,36 @@
 
     /* Estilos para el buscador moderno */
     .search-container {
-        max-width: 1000px;
-        margin: 2rem auto 1rem auto;
-        background: var(--bg-cell);
-        border-radius: 20px;
-        box-shadow: var(--shadow-lg);
-        padding: 2rem 2.5rem;
+        max-width: 50%;
+        margin: 1.5rem auto 1.5rem auto;
         display: flex;
         align-items: center;
-        gap: 1.5rem;
+        gap: 1.2rem;
         position: relative;
-        border: 1px solid var(--border-color);
-        backdrop-filter: blur(10px);
-        transition: all 0.3s ease;
         overflow: visible;
         z-index: 10000;
-    }
-    
-    .search-container:hover {
-        box-shadow: var(--shadow-lg), 0 0 0 1px var(--accent-color);
-        transform: translateY(-1px);
     }
 
     .search-wrapper {
         display: flex;
         align-items: center;
-        background: var(--bg-light);
+        background: var(--bg-cell);
         border: 2px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1rem 1.5rem;
+        border-radius: 20px;
+        padding: 1.8rem 2.2rem;
         flex-grow: 1;
         position: relative;
-        max-width: 800px;
+        max-width: 900px;
         transition: all 0.3s ease;
-        backdrop-filter: blur(5px);
+        backdrop-filter: blur(10px);
         overflow: visible;
         z-index: 10001;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .search-wrapper:hover {
+        box-shadow: var(--shadow-lg), 0 0 0 1px var(--accent-color);
+        transform: translateY(-1px);
     }
     
     .search-wrapper:focus-within {
@@ -631,7 +623,7 @@
     }
 
     .search-icon {
-        font-size: 1.8rem;
+        font-size: 1rem;
         color: var(--text-muted);
         margin-right: 1rem;
         transition: all 0.3s ease;
@@ -646,7 +638,7 @@
         border: none;
         background: transparent;
         padding: 0.8rem 0.5rem 0.8rem 0;
-        font-size: 1.1rem;
+        font-size: 0.8rem;
         font-weight: 500;
         width: 100%;
         outline: none;
@@ -662,15 +654,14 @@
 
     .search-filters {
         display: flex;
-        gap: 1rem;
-        margin-left: 1rem;
+        gap: 0.8rem;
+        margin-left: 0.8rem;
     }
 
     .filter-select {
-        padding: 0.8rem 1.2rem;
         border-radius: 10px;
         border: 2px solid var(--border-color);
-        font-size: 0.95rem;
+        font-size: 0.5rem;
         font-weight: 500;
         color: var(--text-main);
         background: var(--bg-light);
@@ -723,7 +714,7 @@
         border-radius: 16px;
         box-shadow: var(--shadow-lg);
         z-index: 9999;
-        max-height: 300px;
+        max-height: 200px;
         overflow-y: auto;
         display: none;
         backdrop-filter: blur(10px);
@@ -750,7 +741,7 @@
         border-radius: 16px;
         box-shadow: var(--shadow-lg);
         z-index: 9999;
-        max-height: 300px;
+        max-height: 200px;
         overflow-y: auto;
         display: none;
         backdrop-filter: blur(10px);
@@ -763,7 +754,7 @@
         padding: 1rem 1.5rem;
         cursor: pointer;
         border-bottom: 1px solid var(--border-color);
-        font-size: 0.95rem;
+        font-size: 0.8rem;
         font-weight: 500;
         color: var(--text-main);
         transition: all 0.2s ease;
@@ -788,7 +779,7 @@
         border-bottom: 2px solid var(--border-color);
         font-weight: 600;
         color: var(--text-main);
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -1407,6 +1398,372 @@
         .calendar-event.superpuesto {
             min-height: 22px;
             max-height: 40px;
+        }
+    }
+    
+    /* ESTILOS PARA EL HISTÓRICO DE ASISTENCIAS */
+    .historico-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+    
+    .historico-subtitle {
+        color: var(--text-muted);
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 1rem;
+    }
+    
+    .estudiante-search-container {
+        max-width: 800px;
+        margin: 0 auto 2rem auto;
+        position: relative;
+    }
+    
+    .estudiante-search-wrapper {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        background: var(--bg-cell);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+    }
+    
+    .estudiante-search-wrapper:hover {
+        border-color: var(--accent-color);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .estudiante-search-wrapper:focus-within {
+        border-color: var(--accent-color);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .estudiante-search-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 1rem;
+        background: transparent;
+        color: var(--text-main);
+    }
+    
+    .estudiante-search-input::placeholder {
+        color: var(--text-light);
+    }
+    
+    .estudiante-search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--bg-cell);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: var(--shadow-lg);
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+    
+    .estudiante-search-results.active {
+        display: block;
+    }
+    
+    .estudiante-result {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    
+    .estudiante-result:hover {
+        background: var(--bg-hover);
+    }
+    
+    .estudiante-result:last-child {
+        border-bottom: none;
+    }
+    
+    .estudiante-result-nombre {
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 0.25rem;
+    }
+    
+    .estudiante-result-info {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+    
+    .no-results {
+        padding: 1rem;
+        text-align: center;
+        color: var(--text-muted);
+        font-style: italic;
+    }
+    
+    .historico-results {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .estudiante-info {
+        background: var(--bg-light);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        text-align: center;
+        border: 1px solid var(--border-color);
+    }
+    
+    .estudiante-info h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--text-main);
+        font-size: 1.5rem;
+    }
+    
+    .estudiante-info p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 1rem;
+    }
+    
+    .historico-table-container {
+        background: var(--bg-cell);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+    }
+    
+    .historico-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1rem;
+    }
+    
+    .historico-table th {
+        background: var(--bg-light);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--text-main);
+        border-bottom: 2px solid var(--border-color);
+    }
+    
+    .historico-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+    }
+    
+    .historico-table tr:hover {
+        background: var(--bg-hover);
+    }
+    
+    .estado-select {
+        padding: 0.5rem 0.75rem;
+        border: 2px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: var(--bg-cell);
+        color: var(--text-main);
+    }
+    
+    .estado-select.asistió {
+        background-color: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+    }
+    
+    .estado-select.faltó {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-color: #f5c6cb;
+    }
+    
+    .estado-select.tarde {
+        background-color: #fff3cd;
+        color: #856404;
+        border-color: #ffeaa7;
+    }
+    
+    .estado-select.justificado {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border-color: #bee5eb;
+    }
+    
+    .estado-select:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .btn-guardar {
+        padding: 0.5rem 1rem;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-guardar:hover {
+        background: var(--primary-color);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    /* Responsive para el histórico */
+    @media (max-width: 768px) {
+        .estudiante-search-wrapper {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .historico-table {
+            font-size: 0.9rem;
+        }
+        
+        .historico-table th,
+        .historico-table td {
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .estado-select {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.6rem;
+        }
+        
+        .btn-guardar {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .historico-title {
+            font-size: 1.3rem;
+        }
+        
+        .historico-subtitle {
+            font-size: 0.9rem;
+        }
+        
+        .estudiante-search-wrapper {
+            padding: 0.75rem 1rem;
+        }
+        
+        .estudiante-search-input {
+            font-size: 0.9rem;
+        }
+        
+        .historico-table {
+            font-size: 0.8rem;
+        }
+        
+        .historico-table th,
+        .historico-table td {
+            padding: 0.5rem 0.25rem;
+        }
+        
+        .estudiante-info {
+            padding: 1rem;
+        }
+        
+        .estudiante-info h3 {
+            font-size: 1.3rem;
+        }
+        
+        .estudiante-info p {
+            font-size: 0.9rem;
+        }
+    }
+
+    /* ===== AJUSTES PARA ESCRITORIO Y LAPTOP ===== */
+    @media (max-width: 1400px) {
+        .dashboard-wrapper {
+            max-width: 98vw;
+            padding: 1.5rem 0.7rem;
+            border-radius: 16px;
+        }
+        .calendar-grid {
+            min-width: 900px;
+            grid-template-columns: 70px repeat(7, 1fr);
+            grid-template-rows: 50px repeat(12, 90px);
+        }
+        .calendar-header-cell {
+            font-size: 0.95rem;
+            height: 50px;
+            padding: 0.5rem 0.2rem;
+        }
+        .calendar-hour {
+            font-size: 0.85rem;
+            padding: 4px 6px 0 0;
+        }
+        .calendar-event {
+            padding: 8px 10px;
+            font-size: 0.95rem;
+            min-height: 40px;
+            max-height: 80px;
+        }
+        .chrome-tabs {
+            border-radius: 10px 10px 0 0;
+        }
+        .chrome-tab {
+            padding: 12px 18px;
+            font-size: 1rem;
+            min-width: 120px;
+            border-radius: 10px 10px 0 0;
+        }
+        .chrome-tab-content {
+            padding: 20px;
+            min-height: 350px;
+            border-radius: 0 0 10px 10px;
+        }
+        .asistencia-form {
+            max-width: 700px;
+            padding: 1.5rem 1rem 1rem 1rem;
+            border-radius: 12px;
+        }
+        .asistencia-form th, .asistencia-form td {
+            padding: 0.7rem 0.5rem;
+            font-size: 15px;
+        }
+        .asistencia-form select {
+            padding: 0.4rem 0.7rem;
+            font-size: 15px;
+        }
+        .asistencia-form button {
+            padding: 0.7rem 1.2rem;
+            font-size: 1rem;
+            border-radius: 8px;
+        }
+        .asistencia-titulo {
+            font-size: 1.3rem;
+        }
+        .asistencia-search-container, .asistencia-search-wrapper {
+            max-width: 600px;
+            padding: 1rem 1rem;
+            border-radius: 10px;
+        }
+        .asistencia-search-input {
+            font-size: 1rem;
+            padding: 0.7rem 0.5rem 0.7rem 0;
         }
     }
 </style> 

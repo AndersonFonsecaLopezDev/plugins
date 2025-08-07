@@ -306,7 +306,7 @@ if ($grupo_id) {
             
             <!-- PESTAÑA: HISTÓRICO DE ASISTENCIAS -->
             <div id="tab-historico" class="chrome-tab-content">
-                <h2 style="color: #333; text-align: center; margin-bottom: 2.5rem; font-size: 2.3rem; font-weight: 700;">📅 Histórico de Asistencias</h2>
+                <h3 style="color: #333; text-align: center; margin-bottom: 2.5rem; font-size: 2rem; font-weight: 700;">📅 Histórico de Asistencias</h3>
                 <?php
                 // Filtro de búsqueda
                 $filtro_nombre = $_GET['filtro_nombre'] ?? '';
@@ -356,7 +356,6 @@ if ($grupo_id) {
                                     <tr class="historico-estudiante-row" data-nombre="<?php echo esc_attr(strtolower($est['nombre_completo'])); ?>" data-cedula="<?php echo esc_attr($est['cedula']); ?>">
                                         <td style="padding: 1.2rem 1rem; text-align: left; border-bottom: 1px solid #bbdefb; font-size: 17px; background: #fff;"> <?php echo htmlspecialchars($est['cedula']); ?> </td>
                                         <td style="padding: 1.2rem 1rem; text-align: left; border-bottom: 1px solid #bbdefb; font-size: 17px; background: #fff;"> <?php echo htmlspecialchars($est['nombre_completo']); ?> </td>
-                                        <td style="padding: 1.2rem 1rem; text-align: left; border-bottom: 1px solid #bbdefb; font-size: 17px; background: #fff;"> <?php echo htmlspecialchars($est['email']); ?> </td>
                                         <td style="padding: 1.2rem 1rem; text-align: center; border-bottom: 1px solid #bbdefb; font-size: 17px; background: #fff;">
                                             <form method="get" style="display:inline;">
                                                 <input type="hidden" name="page" value="asistencia-diaria">

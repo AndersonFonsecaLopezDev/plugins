@@ -11,95 +11,120 @@ $grupo_id = isset($_GET['grupo_id']) ? intval($_GET['grupo_id']) : null;
 $mensaje = '';
 
 if ($grupo_id) {
-    // Obtener info del grupo y curso
-    $stmt = $mysqli->prepare(
-        "SELECT cg.*, c.course_name FROM wp_aess_course_groups cg
-        JOIN wp_aess_courses c ON cg.course_id = c.id
-        WHERE cg.id = ?"
+
+    global $wpdb;
+    $grupo = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT cg.*, c.course_name FROM {$wpdb->prefix}aess_course_groups cg
+            JOIN {$wpdb->prefix}aess_courses c ON cg.course_id = c.id
+            WHERE cg.id = %d",
+            $grupo_id
+        ),
+        ARRAY_A
     );
-    if (!$stmt) {
-        die('Error en prepare (grupo): ' . $mysqli->error);
-    }
-    $stmt->bind_param('i', $grupo_id);
-    $stmt->execute();
-    $grupo = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
     if (!$grupo) die('Grupo no encontrado.');
 
     // Obtener estudiantes inscritos en el grupo
-    $stmt = $mysqli->prepare(
-        "SELECT u.id, u.first_name, u.last_name, u.email, u.national_id
-        FROM wp_aess_enrollments e
-        JOIN wp_aess_users u ON e.user_id = u.id
-        WHERE e.group_id = ? AND e.status = 'activo'"
+
+    $estudiantes = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT u.id, u.first_name, u.last_name, u.email, u.national_id
+            FROM {$wpdb->prefix}aess_enrollments e
+            JOIN {$wpdb->prefix}aess_users u ON e.user_id = u.id
+            WHERE e.group_id = %d AND e.status = 'activo'",
+            $grupo_id
+        ),
+        ARRAY_A
     );
-    if (!$stmt) {
-        die('Error en prepare (estudiantes): ' . $mysqli->error);
-    }
-    $stmt->bind_param('i', $grupo_id);
-    $stmt->execute();
-    $estudiantes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
 
     // Obtener asistencias ya registradas para hoy
     $fecha_hoy = $hoy->format('Y-m-d');
-    $stmt = $mysqli->prepare(
-        "SELECT user_id, status FROM wp_aess_attendance
-        WHERE group_id = ? AND attendance_date = ?"
-    );
-    if (!$stmt) {
-        die('Error en prepare (asistencias): ' . $mysqli->error);
-    }
-    $stmt->bind_param('is', $grupo_id, $fecha_hoy);
-    $stmt->execute();
     $asistencias = [];
-    $res = $stmt->get_result();
-    while ($row = $res->fetch_assoc()) {
+    $asistencias_rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT user_id, status FROM {$wpdb->prefix}aess_attendance WHERE group_id = %d AND attendance_date = %s",
+            $grupo_id, $fecha_hoy
+        ),
+        ARRAY_A
+    );
+    foreach ($asistencias_rows as $row) {
         $asistencias[$row['user_id']] = $row['status'];
     }
-    $stmt->close();
 
     // Procesar formulario
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asistencia'])) {
         foreach ($_POST['asistencia'] as $user_id => $status) {
             $user_id = intval($user_id);
-            $status = $mysqli->real_escape_string($status);
+            $status = sanitize_text_field($status);
             if (isset($asistencias[$user_id])) {
                 // Actualizar
-                $stmt = $mysqli->prepare("UPDATE wp_aess_attendance SET status = ? WHERE user_id = ? AND group_id = ? AND attendance_date = ?");
-                $stmt->bind_param('siis', $status, $user_id, $grupo_id, $fecha_hoy);
-                $stmt->execute();
-                $stmt->close();
+                $wpdb->update(
+                    $wpdb->prefix . 'aess_attendance',
+                    [ 'status' => $status ],
+                    [
+                        'user_id' => $user_id,
+                        'group_id' => $grupo_id,
+                        'attendance_date' => $fecha_hoy
+                    ]
+                );
             } else {
                 // Insertar
-                $stmt = $mysqli->prepare("INSERT INTO wp_aess_attendance (user_id, group_id, course_id, attendance_date, status, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
-                $stmt->bind_param('iiiss', $user_id, $grupo['id'], $grupo['course_id'], $fecha_hoy, $status);
-                $stmt->execute();
-                $stmt->close();
+                $wpdb->insert(
+                    $wpdb->prefix . 'aess_attendance',
+                    [
+                        'user_id' => $user_id,
+                        'group_id' => $grupo['id'],
+                        'course_id' => $grupo['course_id'],
+                        'attendance_date' => $fecha_hoy,
+                        'status' => $status,
+                        'created_at' => current_time('mysql', 1)
+                    ]
+                );
             }
         }
         $mensaje = '¡Asistencia guardada correctamente!';
         // Recargar asistencias
-        $stmt = $mysqli->prepare(
-            "SELECT user_id, status FROM wp_aess_attendance
-            WHERE group_id = ? AND attendance_date = ?"
-        );
-        if (!$stmt) {
-            die('Error en prepare (asistencias): ' . $mysqli->error);
-        }
-        $stmt->bind_param('is', $grupo_id, $fecha_hoy);
-        $stmt->execute();
         $asistencias = [];
-        $res = $stmt->get_result();
-        while ($row = $res->fetch_assoc()) {
+        $asistencias_rows = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT user_id, status FROM {$wpdb->prefix}aess_attendance WHERE group_id = %d AND attendance_date = %s",
+                $grupo_id, $fecha_hoy
+            ),
+            ARRAY_A
+        );
+        foreach ($asistencias_rows as $row) {
             $asistencias[$row['user_id']] = $row['status'];
         }
-        $stmt->close();
     }
 }
 ?>
 
 <?php if ($grupo_id && $grupo): ?>
+    <script>
+    // Hacer la función global y disponible antes del HTML
+    function showChromeTab(tabName) {
+        // Ocultar todos los contenidos de pestañas
+        const tabContents = document.querySelectorAll('.chrome-tab-content');
+        tabContents.forEach(content => {
+            content.classList.remove('active');
+        });
+        // Remover clase active de todas las pestañas
+        const tabs = document.querySelectorAll('.chrome-tab');
+        tabs.forEach(tab => {
+            tab.classList.remove('active');
+        });
+        // Mostrar el contenido de la pestaña seleccionada
+        const selectedContent = document.getElementById('tab-' + tabName);
+        if (selectedContent) {
+            selectedContent.classList.add('active');
+        }
+        // Activar la pestaña seleccionada
+        const selectedTab = document.querySelector('[onclick="showChromeTab(\'' + tabName + '\')"]');
+        if (selectedTab) {
+            selectedTab.classList.add('active');
+        }
+    }
+    </script>
     <div class="asistencia-form">
         <a href="admin.php?page=asistencia-diaria" class="volver-btn">&larr; Volver al calendario</a>
         <div class="asistencia-titulo">Asistencia - <?php echo htmlspecialchars($grupo['course_name']); ?> (<?php echo htmlspecialchars($grupo['group_code']); ?>)</div>
@@ -181,29 +206,29 @@ if ($grupo_id) {
                 <h2 style="color: #333; text-align: center; margin-bottom: 2rem; font-size: 2rem; font-weight: 600;">📊 Resumen de Asistencias</h2>
             
             <?php
-            // Consulta para obtener el resumen de asistencias por estudiante
-            $resumen_query = $mysqli->prepare(
-                "SELECT 
-                    u.id AS user_id,
-                    u.national_id AS cedula,
-                    CONCAT(u.first_name, ' ', u.last_name) AS nombre_completo,
-                    COUNT(CASE WHEN a.status = 'asistió' THEN 1 END) AS asistencias,
-                    COUNT(CASE WHEN a.status = 'faltó' THEN 1 END) AS faltas,
-                    COUNT(CASE WHEN a.status = 'justificado' THEN 1 END) AS justificados,
-                    COUNT(CASE WHEN a.status = 'tarde' THEN 1 END) AS retardos,
-                    COUNT(a.id) AS total_clases
-                FROM wp_aess_enrollments e
-                JOIN wp_aess_users u ON u.id = e.user_id
-                LEFT JOIN wp_aess_attendance a 
-                    ON a.user_id = u.id AND a.group_id = e.group_id
-                WHERE e.group_id = ? AND e.status = 'activo'
-                GROUP BY u.id
-                ORDER BY nombre_completo"
+            // Consulta para obtener el resumen de asistencias por estudiante usando $wpdb
+            $resumen_estudiantes = $wpdb->get_results(
+                $wpdb->prepare(
+                    "SELECT 
+                        u.id AS user_id,
+                        u.national_id AS cedula,
+                        CONCAT(u.first_name, ' ', u.last_name) AS nombre_completo,
+                        COUNT(CASE WHEN a.status = 'asistió' THEN 1 END) AS asistencias,
+                        COUNT(CASE WHEN a.status = 'faltó' THEN 1 END) AS faltas,
+                        COUNT(CASE WHEN a.status = 'justificado' THEN 1 END) AS justificados,
+                        COUNT(CASE WHEN a.status = 'tarde' THEN 1 END) AS retardos,
+                        COUNT(a.id) AS total_clases
+                    FROM {$wpdb->prefix}aess_enrollments e
+                    JOIN {$wpdb->prefix}aess_users u ON u.id = e.user_id
+                    LEFT JOIN {$wpdb->prefix}aess_attendance a 
+                        ON a.user_id = u.id AND a.group_id = e.group_id
+                    WHERE e.group_id = %d AND e.status = 'activo'
+                    GROUP BY u.id
+                    ORDER BY nombre_completo",
+                    $grupo_id
+                ),
+                ARRAY_A
             );
-            $resumen_query->bind_param('i', $grupo_id);
-            $resumen_query->execute();
-            $resumen_estudiantes = $resumen_query->get_result()->fetch_all(MYSQLI_ASSOC);
-            $resumen_query->close();
             ?>
             
                         <?php if (empty($resumen_estudiantes)): ?>
@@ -311,16 +336,17 @@ if ($grupo_id) {
                 // Filtro de búsqueda
                 $filtro_nombre = $_GET['filtro_nombre'] ?? '';
                 $estudiante_expandido = $_GET['expandir_estudiante'] ?? '';
-                // Obtener estudiantes del grupo
-                $query_estudiantes = $mysqli->prepare(
-                    "SELECT u.id, u.national_id AS cedula, CONCAT(u.first_name, ' ', u.last_name) AS nombre_completo, u.email
-                                                       FROM wp_aess_enrollments e 
-                    JOIN wp_aess_users u ON u.id = e.user_id
-                    WHERE e.group_id = ? AND e.status = 'activo'");
-                $query_estudiantes->bind_param('i', $grupo_id);
-                $query_estudiantes->execute();
-                $estudiantes = $query_estudiantes->get_result()->fetch_all(MYSQLI_ASSOC);
-                $query_estudiantes->close();
+                // Obtener estudiantes del grupo usando $wpdb
+                $estudiantes = $wpdb->get_results(
+                    $wpdb->prepare(
+                        "SELECT u.id, u.national_id AS cedula, CONCAT(u.first_name, ' ', u.last_name) AS nombre_completo, u.email
+                        FROM {$wpdb->prefix}aess_enrollments e
+                        JOIN {$wpdb->prefix}aess_users u ON u.id = e.user_id
+                        WHERE e.group_id = %d AND e.status = 'activo'",
+                        $grupo_id
+                    ),
+                    ARRAY_A
+                );
                 // Filtrar por nombre/cédula si aplica
                 if ($filtro_nombre !== '') {
                     $estudiantes = array_filter($estudiantes, function($est) use ($filtro_nombre) {
@@ -372,11 +398,13 @@ if ($grupo_id) {
                                             <td colspan="4" style="background: #e3f2fd; padding: 2.5rem 2rem; border-radius: 0 0 16px 16px;">
                                                 <?php
                                                 // Obtener histórico de asistencias de este estudiante
-                                                $stmt_historico = $mysqli->prepare("SELECT id, attendance_date, status FROM wp_aess_attendance WHERE user_id = ? AND group_id = ? ORDER BY attendance_date DESC");
-                                                $stmt_historico->bind_param('ii', $est['id'], $grupo_id);
-                                                $stmt_historico->execute();
-                                                $asistencias = $stmt_historico->get_result()->fetch_all(MYSQLI_ASSOC);
-                                                $stmt_historico->close();
+                                                $asistencias = $wpdb->get_results(
+                                                    $wpdb->prepare(
+                                                        "SELECT id, attendance_date, status FROM {$wpdb->prefix}aess_attendance WHERE user_id = %d AND group_id = %d ORDER BY attendance_date DESC",
+                                                        $est['id'], $grupo_id
+                                                    ),
+                                                    ARRAY_A
+                                                );
                                                 if (empty($asistencias)) {
                                                     echo '<div style="text-align:center; color:#888;">No hay registros de asistencia para este estudiante.</div>';
                                                 } else {

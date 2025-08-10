@@ -4,8 +4,8 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 // dashboard-refactored.php - Dashboard de asistencia diaria (vista semanal tipo Google Calendar)
 
-require_once plugin_dir_path(__FILE__) . 'db-connection.php';
-$mysqli = aess_get_custom_db_connection();
+
+global $wpdb;
 
 // Definir constante para permitir acceso a archivos modulares
 define('ASISTENCIA_DASHBOARD', true);
@@ -22,18 +22,13 @@ for ($h = 7; $h <= 18; $h++) {
 }
 
 // Obtener todas las clases de la semana
-$stmt = $mysqli->prepare(
+
+$clases = $wpdb->get_results(
     "SELECT cg.id as grupo_id, c.course_name, cg.group_code, cg.schedule_day, cg.start_time, cg.end_time
-    FROM wp_aess_course_groups cg
-    JOIN wp_aess_courses c ON cg.course_id = c.id"
+    FROM {$wpdb->prefix}aess_course_groups cg
+    JOIN {$wpdb->prefix}aess_courses c ON cg.course_id = c.id",
+    ARRAY_A
 );
-if (!$stmt) {
-    die('Error en prepare: ' . $mysqli->error);
-}
-$stmt->execute();
-$result = $stmt->get_result();
-$clases = $result->fetch_all(MYSQLI_ASSOC);
-$stmt->close();
 
 // Organizar clases por día y hora para detectar superposiciones
 $clases_por_dia_hora = [];

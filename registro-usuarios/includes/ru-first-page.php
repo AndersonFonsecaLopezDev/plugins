@@ -10,79 +10,59 @@ $ciudades = ru_get_ciudades_colombia();
 // Función para guardar datos en la base de datos
 function guardar_usuario_en_bd($datos)
 {
-  require_once __DIR__ . '/db-connection.php';
-
+  global $wpdb;
   try {
-    $conn = aess_get_custom_db_connection();
+    // Obtener los valores del formulario
+    $first_name = trim($datos['first_name'] ?? '');
+    $middle_name = trim($datos['middle_name'] ?? '');
+    $last_name = trim($datos['last_name'] ?? '');
+    $second_last_name = trim($datos['second_last_name'] ?? '');
+    $national_id = trim($datos['national_id'] ?? '');
+    $gender = trim($datos['gender'] ?? '');
+    $birth_date = trim($datos['birthdate'] ?? '');
+    $departamento = trim($datos['departamento'] ?? '');
+    $city = trim($datos['city'] ?? '');
+    $phone_number = trim($datos['phone_number'] ?? '');
+    $email = trim($datos['email'] ?? '');
+    $address = trim($datos['address'] ?? '');
+    $user_role = 'estudiante'; // Valor por defecto
+    $contrasena = trim($datos['password'] ?? '');
+    $contrasena = hash_password($contrasena);
+    $codigo_activacion = strtoupper(bin2hex(random_bytes(3)));
 
-    // Preparar la consulta SQL con todos los campos de la tabla
-    $sql = "INSERT INTO wp_aess_users (
-            first_name, middle_name, last_name, second_last_name, 
-            national_id, gender, birth_date, departamento, city, 
-            phone_number, email, address, user_role, contrasena, 
-            codigo_activacion
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-    $stmt = $conn->prepare($sql);
-
-    if ($stmt) {
-      // Obtener los valores del formulario
-      $first_name = trim($datos['first_name'] ?? '');
-      $middle_name = trim($datos['middle_name'] ?? '');
-      $last_name = trim($datos['last_name'] ?? '');
-      $second_last_name = trim($datos['second_last_name'] ?? '');
-      $national_id = trim($datos['national_id'] ?? '');
-      $gender = trim($datos['gender'] ?? '');
-      $birth_date = trim($datos['birthdate'] ?? '');
-      $departamento = trim($datos['departamento'] ?? '');
-      $city = trim($datos['city'] ?? '');
-      $phone_number = trim($datos['phone_number'] ?? '');
-      $email = trim($datos['email'] ?? '');
-      $address = trim($datos['address'] ?? '');
-      $user_role = 'estudiante'; // Valor por defecto
-      $contrasena = trim($datos['password'] ?? '');
-      // Hashear la contraseña antes de guardar
-      $contrasena = hash_password($contrasena);
-      // Generar código de activación automáticamente
-      $codigo_activacion = strtoupper(bin2hex(random_bytes(3))); // Ejemplo: 6 caracteres hexadecimales
-
-      $stmt->bind_param(
-        "sssssssssssssss",
-        $first_name,
-        $middle_name,
-        $last_name,
-        $second_last_name,
-        $national_id,
-        $gender,
-        $birth_date,
-        $departamento,
-        $city,
-        $phone_number,
-        $email,
-        $address,
-        $user_role,
-        $contrasena,
-        $codigo_activacion
-      );
-
-      if ($stmt->execute()) {
-        // Enviar correo con el código de activación
-        include_once __DIR__ . '/ru-mail.php';
-        $asunto = 'Código de activación de tu cuenta';
-        $mensaje_html = '<p>Hola ' . htmlspecialchars($first_name) . ',</p>' .
-                        '<p>Tu código de activación es: <b>' . $codigo_activacion . '</b></p>' .
-                        '<p>Por favor, ingrésalo en la página de registro para activar tu cuenta.</p>';
-        enviar_correo($email, $asunto, $mensaje_html, $first_name);
-        $resultado = ['success' => true, 'message' => 'Usuario registrado exitosamente', 'codigo_activacion' => $codigo_activacion, 'email' => $email];
-      } else {
-        $resultado = ['success' => false, 'error' => $stmt->error];
-      }
-      $stmt->close();
+    $table = $wpdb->prefix . 'aess_users';
+    $data = [
+      'first_name' => $first_name,
+      'middle_name' => $middle_name,
+      'last_name' => $last_name,
+      'second_last_name' => $second_last_name,
+      'national_id' => $national_id,
+      'gender' => $gender,
+      'birth_date' => $birth_date,
+      'departamento' => $departamento,
+      'city' => $city,
+      'phone_number' => $phone_number,
+      'email' => $email,
+      'address' => $address,
+      'user_role' => $user_role,
+      'contrasena' => $contrasena,
+      'codigo_activacion' => $codigo_activacion
+    ];
+    $format = [
+      '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'
+    ];
+    $inserted = $wpdb->insert($table, $data, $format);
+    if ($inserted) {
+      include_once __DIR__ . '/ru-mail.php';
+      $asunto = 'Código de activación de tu cuenta';
+      $mensaje_html = '<p>Hola ' . htmlspecialchars($first_name) . ',</p>' .
+                      '<p>Tu código de activación es: <b>' . $codigo_activacion . '</b></p>' .
+                      '<p>Por favor, ingrésalo en la página de registro para activar tu cuenta.</p>';
+      enviar_correo($email, $asunto, $mensaje_html, $first_name);
+      $resultado = ['success' => true, 'message' => 'Usuario registrado exitosamente', 'codigo_activacion' => $codigo_activacion, 'email' => $email];
     } else {
-      $resultado = ['success' => false, 'error' => 'Error al preparar la consulta.'];
+      $resultado = ['success' => false, 'error' => $wpdb->last_error];
     }
-    $conn->close();
-
     return $resultado;
   } catch (Exception $e) {
     return ['success' => false, 'error' => $e->getMessage()];
@@ -139,6 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           session_start();
           $_SESSION['codigo_activacion'] = $resultado['codigo_activacion'];
           $_SESSION['email_registro'] = $resultado['email'];
+          $avanzar_paso_3 = true;
         } else {
           $mensaje = 'Error al registrar: ' . $resultado['error'];
           $tipo_mensaje = 'error';
@@ -158,6 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         session_start();
         $_SESSION['codigo_activacion'] = $resultado['codigo_activacion'];
         $_SESSION['email_registro'] = $resultado['email'];
+        $avanzar_paso_3 = true;
       } else {
         $mensaje = 'Error al registrar: ' . $resultado['error'];
         $tipo_mensaje = 'error';
@@ -174,31 +156,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // --- NUEVA LÓGICA DE ACTIVACIÓN ---
 if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && isset($_POST['email_activacion'])) {
-  require_once __DIR__ . '/db-connection.php';
-  $conn = aess_get_custom_db_connection();
+  global $wpdb;
   $email = trim($_POST['email_activacion']);
   $codigo = trim($_POST['codigo_activacion']);
   $mensaje_activacion = '';
   $tipo_mensaje_activacion = '';
   $forzar_paso_4 = false;
 
-  $sql = "SELECT codigo_activacion, fecha_activacion FROM wp_aess_users WHERE email = ?";
-  $stmt = $conn->prepare($sql);
-  $stmt->bind_param("s", $email);
-  $stmt->execute();
-  $result = $stmt->get_result();
-  if ($row = $result->fetch_assoc()) {
+  $table = $wpdb->prefix . 'aess_users';
+  $row = $wpdb->get_row($wpdb->prepare("SELECT codigo_activacion, fecha_activacion FROM $table WHERE email = %s", $email), ARRAY_A);
+  if ($row) {
     if ($row['fecha_activacion']) {
       $mensaje_activacion = 'La cuenta ya está activada.';
       $tipo_mensaje_activacion = 'info';
     } elseif ($row['codigo_activacion'] === $codigo) {
-      // Activar cuenta
       $fecha = date('Y-m-d H:i:s');
-      $sql2 = "UPDATE wp_aess_users SET fecha_activacion = ? WHERE email = ?";
-      $stmt2 = $conn->prepare($sql2);
-      $stmt2->bind_param("ss", $fecha, $email);
-      $stmt2->execute();
-      $stmt2->close();
+      $wpdb->update($table, ['fecha_activacion' => $fecha], ['email' => $email], ['%s'], ['%s']);
       $mensaje_activacion = '¡Cuenta activada correctamente!';
       $tipo_mensaje_activacion = 'success';
     } else {
@@ -211,8 +184,6 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
     $tipo_mensaje_activacion = 'error';
     $forzar_paso_4 = true;
   }
-  $stmt->close();
-  $conn->close();
 }
 ?>
 <!DOCTYPE html>
@@ -229,206 +200,16 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
   <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
 
 
-  <style>
-    :root {
-      
-      --primary-color: #034C8C;
-      --secondary-color: #D9C077;
-    }
-
-    .step-section {
-      display: none;
-    }
-
-    .step-section.active {
-      display: block;
-    }
-
-    .btn-primary {
-      background-color: var(--primary-color);
-      border-color: var(--primary-color);
-      font-size: 16px;
-      font-weight: 500;
-      padding: 12px 24px;
-      min-width: 120px;
-    }
-
-    .btn-secondary {
-      background-color: var(--secondary-color);
-      border-color: var(--secondary-color);
-      color: black;
-      font-size: 16px;
-      font-weight: 500;
-      padding: 12px 24px;
-      min-width: 120px;
-    }
-
-    .form-title {
-      color: var(--primary-color);
-    }
-
-    .form-container {
-      max-width: 600px;
-      margin: auto;
-      padding: 2rem;
-      background-color: #f8f9fa;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      /* Prevent progress bar overflow */
-    }
-
-    .toggle-password {
-      cursor: pointer;
-    }
-
-    /* Progress bar */
-    .progress-steps {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      position: relative;
-      padding: 0 20px;
-      /* Add padding to prevent overflow */
-    }
-
-    .progress-steps::before {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background-color: #e0e0e0;
-      /* línea gris clara base */
-      z-index: 0;
-      transform: translateY(-50%);
-      /* centrado vertical */
-      width: 100%;
-    }
-
-
-    .step {
-      position: relative;
-      text-align: center;
-      flex: 1;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      max-width: 80px;
-      /* Limit step width */
-    }
-
-    .step-circle {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background-color: #ccc;
-      margin: 0 auto;
-      line-height: 40px;
-      color: white;
-      font-weight: bold;
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      min-width: 40px;
-      min-height: 40px;
-    }
-
-    .step.active .step-circle {
-      background-color: var(--secondary-color);
-      color: black;
-    }
-
-    .step-label {
-      margin-top: 0.5rem;
-      font-weight: bold;
-      font-size: 12px;
-      /* Smaller font size */
-      text-align: center;
-      width: 100%;
-      line-height: 1.2;
-    }
-
-    .progress-line {
-      position: absolute;
-      top: 50%;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background-color: var(--secondary-color);
-      z-index: 0;
-      transform: translateY(-50%);
-      width: 0%;
-      transition: width 0.4s ease;
-    }
-
-    .alert {
-      margin-bottom: 1rem;
-    }
-
-    /* Make select elements same width as other inputs */
-    .form-control {
-      width: 100%;
-    }
-
-    select.form-control,
-    .form-control[type="select"] {
-      width: 100% !important;
-      min-width: 0;
-      box-sizing: border-box;
-    }
-
-    select,
-    select.form-control,
-    select.form-select {
-      width: 100% !important;
-      display: block !important;
-    }
-
-    /* Button container for consistent sizing */
-    .btn-container {
-      display: flex;
-      justify-content: space-between;
-      gap: 15px;
-      margin-top: 2rem;
-    }
-
-    .btn-container .btn {
-      flex: 1;
-      max-width: 200px;
-    }
-
-    .btn-single {
-      width: 100%;
-      margin-top: 1rem;
-    }
-
-    .invalid-feedback {
-      display: block;
-      color: #dc3545;
-      font-size: 0.875rem;
-      margin-top: 0.25rem;
-    }
-
-    .is-invalid {
-      border-color: #dc3545;
-      box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-    }
-  </style>
+  <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__); ?>ru-first-page.css">
 </head>
 
 <body class="bg-light">
 
 <?php if (isset($tipo_mensaje_activacion) && $tipo_mensaje_activacion === 'success'): ?>
-  <div class="alert alert-success text-center mt-5">
+  <div class="alert alert-success text-center mt-5" id="final-success">
     <h2>¡Cuenta activada correctamente!</h2>
-    <p>Ya puedes iniciar sesión.</p>
+    <p>Tu registro ha finalizado con éxito. Puedes cerrar esta ventana o ir a la página de inicio de sesión cuando esté disponible.</p>
+    <button class="btn btn-primary mt-3" onclick="window.location.reload()">Volver al inicio</button>
   </div>
 <?php else: ?>
   <?php if ($mensaje): ?>
@@ -441,6 +222,21 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
       });
     </script>
   <?php endif; ?>
+  <?php if (isset($avanzar_paso_3) && $avanzar_paso_3): ?>
+    <script>document.addEventListener('DOMContentLoaded',function(){goToStep(3);});</script>
+  <?php endif; ?>
+  <script>
+    // Si la cuenta fue activada correctamente, limpiar el formulario y ocultar los pasos
+    document.addEventListener('DOMContentLoaded', function() {
+      var finalSuccess = document.getElementById('final-success');
+      if (finalSuccess) {
+        var form = document.getElementById('registerForm');
+        if (form) form.style.display = 'none';
+        var steps = document.querySelector('.progress-steps');
+        if (steps) steps.style.display = 'none';
+      }
+    });
+  </script>
 
   <!-- Título principal antes de la barra de progreso -->
   <h1 class="text-center mb-4" style="color: var(--primary-color); font-weight: bold;">Registro</h1>
@@ -564,7 +360,7 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
 
       <div class="mb-3">
         <label for="city" class="form-label">Ciudad de residencia *</label>
-        <select class="form-select" id="city" name="city" required disabled>
+  <select class="form-select" id="city" name="city" required>
           <option value="">Primero selecciona un departamento</option>
         </select>
       </div>
@@ -617,243 +413,13 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
 <?php endif; ?>
   </div>
 
+  <!-- Scripts y datos JS se cargan vía wp_enqueue_script y wp_localize_script en el plugin principal. -->
   <script>
-    function showToast(type, title, message) {
-      iziToast[type]({
-        title: title,
-        message: message,
-        position: 'topRight',
-        timeout: 4000
-      });
-    }
-
-    function togglePassword(id) {
-      const input = document.getElementById(id);
-      input.type = input.type === 'password' ? 'text' : 'password';
-    }
-
-    function updateProgress(stepNumber) {
-      const steps = document.querySelectorAll('.step');
-      steps.forEach((step, index) => {
-        step.classList.remove('active');
-        if (index + 1 <= stepNumber) {
-          step.classList.add('active');
-        }
-      });
-
-      // Actualizar línea de progreso
-      const totalSteps = steps.length;
-      const percent = ((stepNumber - 1) / (totalSteps - 1)) * 100;
-      const line = document.querySelector('.progress-line');
-      if (line) {
-        line.style.width = `${percent}%`;
-      }
-    }
-
-    function validarEdad(fechaNacimiento) {
-      if (!fechaNacimiento) return;
-      
-      const fechaNac = new Date(fechaNacimiento);
-      const fechaActual = new Date();
-      const edad = fechaActual.getFullYear() - fechaNac.getFullYear();
-      const mesActual = fechaActual.getMonth();
-      const mesNac = fechaNac.getMonth();
-      
-      // Ajustar edad si aún no ha cumplido años este año
-      if (mesActual < mesNac || (mesActual === mesNac && fechaActual.getDate() < fechaNac.getDate())) {
-        edad--;
-      }
-      
-      const input = document.getElementById('birthdate');
-      const errorDiv = document.getElementById('edad-error');
-      
-      if (edad < 18) {
-        input.classList.add('is-invalid');
-        errorDiv.style.display = 'block';
-        showToast('error', 'Error', 'Debes ser mayor de edad (18 años o más) para registrarte.');
-        return false;
-      } else {
-        input.classList.remove('is-invalid');
-        errorDiv.style.display = 'none';
-        return true;
-      }
-    }
-
-    function validateStep1() {
-      const email = document.getElementById('email').value;
-      const pass = document.getElementById('password').value;
-      const repeat = document.getElementById('repeatPassword').value;
-      const terms = document.getElementById('termsCheck').checked;
-
-      // Validar email
-      if (!email) {
-        showToast('error', 'Error', 'Debes ingresar un correo electrónico.');
-        return;
-      }
-
-      // Validar formato de email
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        showToast('error', 'Error', 'Correo inválido');
-        return;
-      }
-
-      // Validar contraseña
-      if (!pass) {
-        showToast('error', 'Error', 'Debes ingresar una contraseña.');
-        return;
-      }
-
-      // Validar longitud de contraseña
-      if (pass.length < 6) {
-        showToast('error', 'Error', 'La contraseña debe tener al menos 6 caracteres.');
-        return;
-      }
-
-      // Validar que se repita la contraseña
-      if (!repeat) {
-        showToast('error', 'Error', 'Debes repetir la contraseña.');
-        return;
-      }
-
-      // Validar que las contraseñas coincidan
-      if (pass !== repeat) {
-        showToast('error', 'Error', 'Las contraseñas no coinciden. Por favor, verifica que ambas contraseñas sean idénticas.');
-        return;
-      }
-
-      // Validar términos y condiciones
-      if (!terms) {
-        showToast('error', 'Error', 'Debes aceptar los términos y condiciones para continuar.');
-        return;
-      }
-
-      // Si todo está bien, continuar directamente sin mostrar mensaje de éxito
-      document.getElementById('userEmail').textContent = email;
-      goToStep(2);
-    }
-
-    // Solo dejar la función goToStep que gestiona required y visibilidad
-    // (ya está al final del archivo, no repetir)
-
-    // Validar el formulario antes de enviar
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-      // Habilitar todos los campos antes de enviar
-      document.querySelectorAll('#registerForm input').forEach(input => input.disabled = false);
-
-      // Validar edad si estamos en el paso 2 (datos personales)
-      const birthdate = document.getElementById('birthdate');
-      if (birthdate && birthdate.value) {
-        if (!validarEdad(birthdate.value)) {
-          e.preventDefault();
-          return;
-        }
-      }
-
-      const codigo = document.getElementById('codigo_activacion2');
-      if (codigo && !codigo.value) {
-        e.preventDefault();
-        showToast('error', 'Error', 'Debes ingresar el código de activación.');
-        return;
-      }
-
-      // Si todo está bien, el formulario se enviará normalmente
-      console.log('Enviando formulario...');
-    });
-
-
-    // Eliminar inicialización que deshabilita inputs
-  </script>
-  <script>
-    // Script para ciudades por departamento
-    var ciudadesPorDepartamento = <?php echo json_encode($ciudades); ?>;
     document.addEventListener('DOMContentLoaded', function() {
-      var departamentoSelect = document.getElementById('departamento');
-      var ciudadSelect = document.getElementById('city');
-      departamentoSelect.addEventListener('change', function() {
-        var dep = this.value;
-        var ciudades = ciudadesPorDepartamento[dep] || [];
-        ciudadSelect.innerHTML = '';
-        if (ciudades.length > 0) {
-          ciudadSelect.disabled = false;
-          ciudades.forEach(function(ciudad) {
-            var option = document.createElement('option');
-            option.value = ciudad;
-            option.textContent = ciudad;
-            ciudadSelect.appendChild(option);
-          });
-        } else {
-          ciudadSelect.disabled = true;
-          var option = document.createElement('option');
-          option.value = '';
-          option.textContent = 'Primero selecciona un departamento';
-          ciudadSelect.appendChild(option);
-        }
-      });
-      // Si hay un departamento seleccionado al cargar, disparar el evento
-      if(departamentoSelect.value) {
-        departamentoSelect.dispatchEvent(new Event('change'));
+      if (typeof ruData !== 'undefined' && ruData.ciudadesPorDepartamento) {
+        ruInitCiudades(ruData.ciudadesPorDepartamento);
       }
     });
-  </script>
-  <script>
-    // Mostrar pasos 3 y 4 solo si el registro fue exitoso
-    <?php if ($mostrar_paso_verificacion): ?>
-      document.addEventListener('DOMContentLoaded', function() {
-        goToStep(3);
-      });
-    <?php endif; ?>
-
-    // Si el código de activación es incorrecto, forzar el paso 4
-    <?php if (isset($forzar_paso_4) && $forzar_paso_4): ?>
-      document.addEventListener('DOMContentLoaded', function() {
-        goToStep(4);
-      });
-    <?php endif; ?>
-
-    // La validación ahora es en el backend, solo mostrar el mensaje si existe
-    <?php if (isset($mensaje_activacion) && $mensaje_activacion): ?>
-      document.addEventListener('DOMContentLoaded', function() {
-        iziToast.<?php echo $tipo_mensaje_activacion === 'success' ? 'success' : ($tipo_mensaje_activacion === 'info' ? 'info' : 'error'); ?>({
-          title: '<?php echo ucfirst($tipo_mensaje_activacion); ?>',
-          message: '<?php echo addslashes($mensaje_activacion); ?>',
-          position: 'topRight',
-          timeout: 5000
-        });
-      });
-    <?php endif; ?>
-  </script>
-  <script>
-    // Marca los campos originalmente requeridos
-    document.addEventListener('DOMContentLoaded', function() {
-      document.querySelectorAll('input[required], select[required], textarea[required]').forEach(input => {
-        input.setAttribute('data-original-required', 'true');
-      });
-    });
-
-    // Modifica goToStep para manejar required dinámicamente
-    function goToStep(stepNumber) {
-      // Oculta todos los pasos y quita required de sus campos
-      document.querySelectorAll('.step-section').forEach((sec) => {
-        sec.classList.remove('active');
-        sec.style.display = 'none';
-        sec.querySelectorAll('input, select, textarea').forEach(input => {
-          input.required = false;
-        });
-      });
-
-      // Muestra el paso actual y pone required solo a los campos de este paso
-      const currentStep = document.getElementById('step' + stepNumber);
-      currentStep.classList.add('active');
-      currentStep.style.display = 'block';
-      currentStep.querySelectorAll('input, select, textarea').forEach(input => {
-        if (input.hasAttribute('data-original-required')) {
-          input.required = true;
-        }
-      });
-
-      updateProgress(stepNumber);
-    }
   </script>
 </body>
 

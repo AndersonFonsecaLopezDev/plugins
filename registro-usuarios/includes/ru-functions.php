@@ -56,3 +56,64 @@ function validar_codigo_activacion($email, $codigo_ingresado, $conn) {
 
 // Registrar el shortcode
 add_shortcode('registro-usuarios', 'mostrar_registro_usuarios');
+
+// Encolar scripts y estilos solo cuando el shortcode esté presente
+function ru_enqueue_front_scripts() {
+    if (is_admin()) return; // No cargar en admin
+    global $post;
+    if (!is_a($post, 'WP_Post')) return;
+    if (has_shortcode($post->post_content, 'registro-usuarios')) {
+        wp_enqueue_style(
+            'ru-first-page-css',
+            plugin_dir_url(__FILE__) . 'ru-first-page.css',
+            [],
+            '1.0'
+        );
+        wp_enqueue_script(
+            'ru-first-page-js',
+            plugin_dir_url(__FILE__) . 'ru-first-page.js',
+            ['jquery'],
+            '1.0',
+            true
+        );
+        $ciudades = function_exists('ru_get_ciudades_colombia') ? ru_get_ciudades_colombia() : [];
+        $js_data = [
+            'ciudadesPorDepartamento' => $ciudades,
+            'mostrarPasoVerificacion' => isset($_SESSION['codigo_activacion']) && isset($_SESSION['email_registro']),
+            'forzarPaso4' => isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && isset($_POST['email_activacion']) && isset($forzar_paso_4) && $forzar_paso_4,
+            'mensajeActivacion' => isset($mensaje_activacion) ? $mensaje_activacion : '',
+            'tipoMensajeActivacion' => isset($tipo_mensaje_activacion) ? $tipo_mensaje_activacion : '',
+        ];
+        wp_localize_script('ru-first-page-js', 'ruData', $js_data);
+    }
+}
+add_action('wp_enqueue_scripts', 'ru_enqueue_front_scripts');
+
+// Encolar scripts y estilos en el admin SOLO para la página de este plugin
+function ru_enqueue_admin_scripts($hook) {
+    // Solo para la página admin del plugin
+    if ($hook !== 'toplevel_page_registro-usuarios') return;
+    wp_enqueue_style(
+        'ru-first-page-css',
+        plugin_dir_url(__FILE__) . 'ru-first-page.css',
+        [],
+        '1.0'
+    );
+    wp_enqueue_script(
+        'ru-first-page-js',
+        plugin_dir_url(__FILE__) . 'ru-first-page.js',
+        ['jquery'],
+        '1.0',
+        true
+    );
+    $ciudades = function_exists('ru_get_ciudades_colombia') ? ru_get_ciudades_colombia() : [];
+    $js_data = [
+        'ciudadesPorDepartamento' => $ciudades,
+        'mostrarPasoVerificacion' => false,
+        'forzarPaso4' => false,
+        'mensajeActivacion' => '',
+        'tipoMensajeActivacion' => '',
+    ];
+    wp_localize_script('ru-first-page-js', 'ruData', $js_data);
+}
+add_action('admin_enqueue_scripts', 'ru_enqueue_admin_scripts');

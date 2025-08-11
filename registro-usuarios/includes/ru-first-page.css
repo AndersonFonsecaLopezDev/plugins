@@ -1,0 +1,188 @@
+:root {
+  --primary-color: #034C8C;
+  --secondary-color: #D9C077;
+}
+
+.step-section {
+  display: none;
+}
+
+.step-section.active {
+  display: block;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  font-size: 16px;
+  font-weight: 500;
+  padding: 12px 24px;
+  min-width: 120px;
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: black;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 12px 24px;
+  min-width: 120px;
+}
+
+.form-title {
+  color: var(--primary-color);
+}
+
+.form-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  /* Prevent progress bar overflow */
+}
+
+.toggle-password {
+  cursor: pointer;
+}
+
+/* Progress bar */
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  position: relative;
+  padding: 0 20px;
+  /* Add padding to prevent overflow */
+}
+
+.progress-steps::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #e0e0e0;
+  /* línea gris clara base */
+  z-index: 0;
+  transform: translateY(-50%);
+  /* centrado vertical */
+  width: 100%;
+}
+
+.step {
+  position: relative;
+  text-align: center;
+  flex: 1;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 80px;
+  /* Limit step width */
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #ccc;
+  margin: 0 auto;
+  line-height: 40px;
+  color: white;
+  font-weight: bold;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.step.active .step-circle {
+  background-color: var(--secondary-color);
+  color: black;
+}
+
+.step-label {
+  margin-top: 0.5rem;
+  font-weight: bold;
+  font-size: 12px;
+  /* Smaller font size */
+  text-align: center;
+  width: 100%;
+  line-height: 1.2;
+}
+
+.progress-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: var(--secondary-color);
+  z-index: 0;
+  transform: translateY(-50%);
+  width: 0%;
+  transition: width 0.4s ease;
+}
+
+.alert {
+  margin-bottom: 1rem;
+}
+
+/* Make select elements same width as other inputs */
+.form-control {
+  width: 100%;
+}
+
+select.form-control,
+.form-control[type="select"] {
+  width: 100% !important;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+select,
+select.form-control,
+select.form-select {
+  width: 100% !important;
+  display: block !important;
+}
+
+/* Button container for consistent sizing */
+.btn-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 2rem;
+}
+
+.btn-container .btn {
+  flex: 1;
+  max-width: 200px;
+}
+
+.btn-single {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.invalid-feedback {
+  display: block;
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.is-invalid {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}

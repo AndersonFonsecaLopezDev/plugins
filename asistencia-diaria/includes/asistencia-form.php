@@ -1,17 +1,15 @@
+
 <?php
 // asistencia-form.php - Formulario de asistencia y resumen para el dashboard
-
 // Verificar si se está accediendo desde el dashboard
 if (!defined('ASISTENCIA_DASHBOARD')) {
     die('Acceso directo no permitido');
 }
 
-// Obtener información del grupo y estudiantes
 $grupo_id = isset($_GET['grupo_id']) ? intval($_GET['grupo_id']) : null;
 $mensaje = '';
 
 if ($grupo_id) {
-
     global $wpdb;
     $grupo = $wpdb->get_row(
         $wpdb->prepare(
@@ -23,40 +21,33 @@ if ($grupo_id) {
         ARRAY_A
     );
     if (!$grupo) die('Grupo no encontrado.');
-
     // Obtener estudiantes inscritos en el grupo
-
-    $estudiantes = $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT u.id, u.first_name, u.last_name, u.email, u.national_id
-            FROM {$wpdb->prefix}aess_enrollments e
-            JOIN {$wpdb->prefix}aess_users u ON e.user_id = u.id
-            WHERE e.group_id = %d AND e.status = 'activo'",
-            $grupo_id
-        ),
-        ARRAY_A
-    );
-
-    // Obtener asistencias ya registradas para hoy
-    $fecha_hoy = $hoy->format('Y-m-d');
-    $asistencias = [];
-    $asistencias_rows = $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT user_id, status FROM {$wpdb->prefix}aess_attendance WHERE group_id = %d AND attendance_date = %s",
-            $grupo_id, $fecha_hoy
-        ),
-        ARRAY_A
-    );
-    foreach ($asistencias_rows as $row) {
-        $asistencias[$row['user_id']] = $row['status'];
+    $estudiantes = [];
+    if ($grupo_id) {
+        $estudiantes = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT u.id, u.first_name, u.last_name, u.email, u.national_id
+                FROM {$wpdb->prefix}aess_enrollments e
+                JOIN {$wpdb->prefix}aess_users u ON e.user_id = u.id
+                WHERE e.group_id = %d AND e.status = 'activo'",
+                $grupo_id
+            ),
+            ARRAY_A
+        );
     }
 
-    // Procesar formulario
+    // Procesar formulario de asistencia diaria
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asistencia'])) {
+        $fecha_hoy = date('Y-m-d');
         foreach ($_POST['asistencia'] as $user_id => $status) {
             $user_id = intval($user_id);
             $status = sanitize_text_field($status);
-            if (isset($asistencias[$user_id])) {
+            // Verifica si ya existe asistencia para hoy
+            $existe = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM {$wpdb->prefix}aess_attendance WHERE user_id = %d AND group_id = %d AND attendance_date = %s",
+                $user_id, $grupo_id, $fecha_hoy
+            ));
+            if ($existe) {
                 // Actualizar
                 $wpdb->update(
                     $wpdb->prefix . 'aess_attendance',
@@ -73,7 +64,7 @@ if ($grupo_id) {
                     $wpdb->prefix . 'aess_attendance',
                     [
                         'user_id' => $user_id,
-                        'group_id' => $grupo['id'],
+                        'group_id' => $grupo_id,
                         'course_id' => $grupo['course_id'],
                         'attendance_date' => $fecha_hoy,
                         'status' => $status,
@@ -83,56 +74,14 @@ if ($grupo_id) {
             }
         }
         $mensaje = '¡Asistencia guardada correctamente!';
-        // Recargar asistencias
-        $asistencias = [];
-        $asistencias_rows = $wpdb->get_results(
-            $wpdb->prepare(
-                "SELECT user_id, status FROM {$wpdb->prefix}aess_attendance WHERE group_id = %d AND attendance_date = %s",
-                $grupo_id, $fecha_hoy
-            ),
-            ARRAY_A
-        );
-        foreach ($asistencias_rows as $row) {
-            $asistencias[$row['user_id']] = $row['status'];
-        }
     }
-}
-?>
-
-<?php if ($grupo_id && $grupo): ?>
-    <script>
-    // Hacer la función global y disponible antes del HTML
-    function showChromeTab(tabName) {
-        // Ocultar todos los contenidos de pestañas
-        const tabContents = document.querySelectorAll('.chrome-tab-content');
-        tabContents.forEach(content => {
-            content.classList.remove('active');
-        });
-        // Remover clase active de todas las pestañas
-        const tabs = document.querySelectorAll('.chrome-tab');
-        tabs.forEach(tab => {
-            tab.classList.remove('active');
-        });
-        // Mostrar el contenido de la pestaña seleccionada
-        const selectedContent = document.getElementById('tab-' + tabName);
-        if (selectedContent) {
-            selectedContent.classList.add('active');
-        }
-        // Activar la pestaña seleccionada
-        const selectedTab = document.querySelector('[onclick="showChromeTab(\'' + tabName + '\')"]');
-        if (selectedTab) {
-            selectedTab.classList.add('active');
-        }
-    }
-    </script>
+    ?>
     <div class="asistencia-form">
         <a href="admin.php?page=asistencia-diaria" class="volver-btn">&larr; Volver al calendario</a>
         <div class="asistencia-titulo">Asistencia - <?php echo htmlspecialchars($grupo['course_name']); ?> (<?php echo htmlspecialchars($grupo['group_code']); ?>)</div>
         <?php if ($mensaje): ?>
             <div class="mensaje"><?php echo htmlspecialchars($mensaje); ?></div>
         <?php endif; ?>
-        
-        <!-- SISTEMA DE PESTAÑAS ESTILO GOOGLE CHROME -->
         <div class="tab-container">
             <div class="chrome-tabs">
                 <div class="chrome-tab active" onclick="showChromeTab('asistencia')">
@@ -141,24 +90,19 @@ if ($grupo_id) {
                 <div class="chrome-tab" onclick="showChromeTab('resumen')">
                     📊 Resumen de Asistencias
                 </div>
-
                 <div class="chrome-tab" onclick="showChromeTab('historico')">
                     📅 Histórico de Asistencias
                 </div>
             </div>
-            
             <!-- PESTAÑA: TOMA DE ASISTENCIA -->
             <div id="tab-asistencia" class="chrome-tab-content active">
-                <h2 style="color: #333; text-align: center; margin-bottom: 2rem; font-size: 2rem; font-weight: 600;">📝 Asistencia Diaria</h2>
-                
                 <!-- Barra de búsqueda para estudiantes -->
-                                        <div class="asistencia-search-container">
-                            <div class="asistencia-search-wrapper">
-                                <input type="text" id="searchEstudiantesAsistencia" class="asistencia-search-input" placeholder="🔎 Buscar por nombre o cédula..." autocomplete="off">
-                            </div>
-                            <div id="searchEstudiantesAsistenciaInfo" class="asistencia-search-results-info"></div>
-                        </div>
-
+                <div class="asistencia-search-container">
+                    <div class="asistencia-search-wrapper">
+                        <input type="text" id="searchEstudiantesAsistencia" class="asistencia-search-input" placeholder="🔎 Buscar por nombre o cédula..." autocomplete="off">
+                    </div>
+                    <div id="searchEstudiantesAsistenciaInfo" class="asistencia-search-results-info"></div>
+                </div>
                 <form method="post">
                     <div style="overflow-y: auto; max-height: 400px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                         <table id="tablaEstudiantesAsistencia" style="width: 100%; border-collapse: collapse;">
@@ -200,298 +144,37 @@ if ($grupo_id) {
                     <button type="submit">Guardar</button>
                 </form>
             </div>
-            
             <!-- PESTAÑA: RESUMEN DE ASISTENCIAS -->
-            <div id="tab-resumen" class="chrome-tab-content">
-                <h2 style="color: #333; text-align: center; margin-bottom: 2rem; font-size: 2rem; font-weight: 600;">📊 Resumen de Asistencias</h2>
-            
-            <?php
-            // Consulta para obtener el resumen de asistencias por estudiante usando $wpdb
-            $resumen_estudiantes = $wpdb->get_results(
-                $wpdb->prepare(
-                    "SELECT 
-                        u.id AS user_id,
-                        u.national_id AS cedula,
-                        CONCAT(u.first_name, ' ', u.last_name) AS nombre_completo,
-                        COUNT(CASE WHEN a.status = 'asistió' THEN 1 END) AS asistencias,
-                        COUNT(CASE WHEN a.status = 'faltó' THEN 1 END) AS faltas,
-                        COUNT(CASE WHEN a.status = 'justificado' THEN 1 END) AS justificados,
-                        COUNT(CASE WHEN a.status = 'tarde' THEN 1 END) AS retardos,
-                        COUNT(a.id) AS total_clases
-                    FROM {$wpdb->prefix}aess_enrollments e
-                    JOIN {$wpdb->prefix}aess_users u ON u.id = e.user_id
-                    LEFT JOIN {$wpdb->prefix}aess_attendance a 
-                        ON a.user_id = u.id AND a.group_id = e.group_id
-                    WHERE e.group_id = %d AND e.status = 'activo'
-                    GROUP BY u.id
-                    ORDER BY nombre_completo",
-                    $grupo_id
-                ),
-                ARRAY_A
-            );
-            ?>
-            
-                        <?php if (empty($resumen_estudiantes)): ?>
-                <div style="text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 12px; color: #6c757d; font-size: 18px;">
-                    <strong style="font-size: 20px;">No hay registros de asistencia para este grupo todavía.</strong><br><br>
-                    Los datos aparecerán aquí una vez que comiences a registrar asistencias.
-                </div>
-            <?php else: ?>
-                                        <!-- Barra de búsqueda para resumen -->
-                        <div class="asistencia-search-container">
-                            <div class="asistencia-search-wrapper">
-                                <input type="text" id="searchResumenAsistencia" class="asistencia-search-input" placeholder="🔎 Buscar por nombre o cédula..." autocomplete="off">
-                            </div>
-                            <div id="searchResumenAsistenciaInfo" class="asistencia-search-results-info"></div>
-                        </div>
-
-                <div style="overflow-y: auto; max-height: 400px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <table id="tablaResumenAsistencia" style="width: 100%; min-width: 1200px; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 16px;">
-                    <thead style="position: sticky; top: 0; background: #f6f8fa; z-index: 10;">
-                        <tr>
-                            <th style="padding: 1rem 0.8rem; text-align: left; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 120px;">Cédula</th>
-                            <th style="padding: 1rem 0.8rem; text-align: left; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 200px;">Nombre Completo</th>
-                            <th style="padding: 1rem 0.8rem; text-align: center; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 100px;">Asistencias</th>
-                            <th style="padding: 1rem 0.8rem; text-align: center; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 100px;">Faltas</th>
-                            <th style="padding: 1rem 0.8rem; text-align: center; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 100px;">Retardos</th>
-                            <th style="padding: 1rem 0.8rem; text-align: center; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 100px;">Justificados</th>
-                            <th style="padding: 1rem 0.8rem; text-align: center; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 100px;">Total Clases</th>
-                            <th style="padding: 1rem 0.8rem; text-align: center; border-bottom: 2px solid #eee; background: #f6f8fa; font-weight: bold; color: #333; font-size: 16px; min-width: 120px;">% Asistencia</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($resumen_estudiantes as $estudiante): ?>
-                            <tr class="resumen-asistencia-row" data-nombre="<?php echo esc_attr(strtolower($estudiante['nombre_completo'])); ?>" data-cedula="<?php echo esc_attr($estudiante['cedula']); ?>" style="background: <?php echo ($estudiante['total_clases'] > 0) ? '#f9fbfc' : '#fff'; ?>">
-                                <td style="padding: 1rem 0.8rem; text-align: left; border-bottom: 1px solid #eee; font-size: 16px;"><?php echo htmlspecialchars($estudiante['cedula']); ?></td>
-                                <td style="padding: 1rem 0.8rem; text-align: left; border-bottom: 1px solid #eee; font-size: 16px;"><?php echo htmlspecialchars($estudiante['nombre_completo']); ?></td>
-                                <td style="padding: 1rem 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #28a745; font-weight: bold; font-size: 16px;"><?php echo $estudiante['asistencias']; ?></td>
-                                <td style="padding: 1rem 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #dc3545; font-weight: bold; font-size: 16px;"><?php echo $estudiante['faltas']; ?></td>
-                                <td style="padding: 1rem 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #ffc107; font-weight: bold; font-size: 16px;"><?php echo $estudiante['retardos']; ?></td>
-                                <td style="padding: 1rem 0.8rem; text-align: center; border-bottom: 1px solid #eee; color: #17a2b8; font-weight: bold; font-size: 16px;"><?php echo $estudiante['justificados']; ?></td>
-                                <td style="padding: 1rem 0.8rem; text-align: center; border-bottom: 1px solid #eee; font-weight: bold; font-size: 16px;"><?php echo $estudiante['total_clases']; ?></td>
-                                <td style="padding: 1rem 0.8rem; text-align: center; border-bottom: 1px solid #eee; font-weight: bold; font-size: 16px;">
-                                    <?php 
-                                    if ($estudiante['total_clases'] > 0) {
-                                        $porcentaje = round(($estudiante['asistencias'] * 100) / $estudiante['total_clases'], 1);
-                                        $color = ($porcentaje >= 80) ? '#28a745' : (($porcentaje >= 60) ? '#ffc107' : '#dc3545');
-                                        echo "<span style='color: {$color};'>{$porcentaje}%</span>";
-                                    } else {
-                                        echo "0%";
-                                    }
-                                    ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-                </div>
-                
-                <!-- Estadísticas generales -->
-                <?php
-                $total_estudiantes = count($resumen_estudiantes);
-                $total_asistencias = array_sum(array_column($resumen_estudiantes, 'asistencias'));
-                $total_faltas = array_sum(array_column($resumen_estudiantes, 'faltas'));
-                $total_retardos = array_sum(array_column($resumen_estudiantes, 'retardos'));
-                $total_justificados = array_sum(array_column($resumen_estudiantes, 'justificados'));
-                $total_clases = array_sum(array_column($resumen_estudiantes, 'total_clases'));
-                $promedio_asistencia = ($total_clases > 0) ? round(($total_asistencias * 100) / $total_clases, 1) : 0;
-                ?>
-                
-                <div style="background: #e3f2fd; padding: 2rem; border-radius: 12px; margin-top: 2rem; text-align: center;">
-                    <h3 style="margin: 0 0 1.5rem 0; color: #1976d2; font-size: 1.5rem;">Estadísticas Generales del Grupo</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-                        <div>
-                            <strong>Total Estudiantes:</strong><br>
-                            <span style="font-size: 1.2rem; color: #1976d2;"><?php echo $total_estudiantes; ?></span>
-                        </div>
-                        <div>
-                            <strong>Total Asistencias:</strong><br>
-                            <span style="font-size: 1.2rem; color: #28a745;"><?php echo $total_asistencias; ?></span>
-                        </div>
-                        <div>
-                            <strong>Total Faltas:</strong><br>
-                            <span style="font-size: 1.2rem; color: #dc3545;"><?php echo $total_faltas; ?></span>
-                        </div>
-                        <div>
-                            <strong>Total Retardos:</strong><br>
-                            <span style="font-size: 1.2rem; color: #ffc107;"><?php echo $total_retardos; ?></span>
-                        </div>
-                        <div>
-                            <strong>Total Justificados:</strong><br>
-                            <span style="font-size: 1.2rem; color: #17a2b8;"><?php echo $total_justificados; ?></span>
-                        </div>
-                        <div>
-                            <strong>Promedio Asistencia:</strong><br>
-                            <span style="font-size: 1.2rem; color: <?php echo ($promedio_asistencia >= 80) ? '#28a745' : (($promedio_asistencia >= 60) ? '#ffc107' : '#dc3545'); ?>"><?php echo $promedio_asistencia; ?>%</span>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-            </div>
-            
+            <?php include __DIR__ . '/asistencia-resumen.php'; ?>
             <!-- PESTAÑA: HISTÓRICO DE ASISTENCIAS -->
-            <div id="tab-historico" class="chrome-tab-content">
-                <h3 style="color: #333; text-align: center; margin-bottom: 2.5rem; font-size: 2rem; font-weight: 700;">📅 Histórico de Asistencias</h3>
-                <?php
-                // Filtro de búsqueda
-                $filtro_nombre = $_GET['filtro_nombre'] ?? '';
-                $estudiante_expandido = $_GET['expandir_estudiante'] ?? '';
-                // Obtener estudiantes del grupo usando $wpdb
-                $estudiantes = $wpdb->get_results(
-                    $wpdb->prepare(
-                        "SELECT u.id, u.national_id AS cedula, CONCAT(u.first_name, ' ', u.last_name) AS nombre_completo, u.email
-                        FROM {$wpdb->prefix}aess_enrollments e
-                        JOIN {$wpdb->prefix}aess_users u ON u.id = e.user_id
-                        WHERE e.group_id = %d AND e.status = 'activo'",
-                        $grupo_id
-                    ),
-                    ARRAY_A
-                );
-                // Filtrar por nombre/cédula si aplica
-                if ($filtro_nombre !== '') {
-                    $estudiantes = array_filter($estudiantes, function($est) use ($filtro_nombre) {
-                        $busqueda = mb_strtolower($filtro_nombre);
-                        return strpos(mb_strtolower($est['nombre_completo']), $busqueda) !== false || strpos(mb_strtolower($est['cedula']), $busqueda) !== false;
-                    });
-                }
-                ?>
-                <form method="get" style="margin-bottom: 2.5rem;">
-                    <input type="hidden" name="page" value="asistencia-diaria">
-                    <input type="hidden" name="tab" value="historico">
-                    <input type="hidden" name="grupo_id" value="<?php echo $grupo_id; ?>">
-                    <div class="asistencia-search-container" style="margin-bottom: 1.5rem;">
-                        <div class="asistencia-search-wrapper" style="max-width: 500px; margin: 0 auto;">
-                            <input type="text" name="filtro_nombre" class="asistencia-search-input" placeholder="🔎 Buscar por nombre o cédula..." value="<?php echo htmlspecialchars($filtro_nombre); ?>" autocomplete="off" style="padding: 1.2rem 1.5rem; font-size: 1.1rem; border-radius: 10px; width: 100%; border: 1px solid #bdbdbd;">
-                            <button type="submit" style="padding: 1rem 2rem; background: #034C8C; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; margin-left: 1rem; font-size: 1.1rem;">🔍 Buscar</button>
-                        </div>
-                    </div>
-                </form>
-                <div style="overflow-x: auto; max-width: 100%;">
-                    <div style="overflow-y: auto; max-height: 600px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background: #f4f8fb; padding: 2.5rem 2rem; margin-bottom: 2rem; min-width: 950px;">
-                        <table id="tablaHistoricoEstudiantes" style="width: 100%; border-collapse: collapse; font-size: 17px;">
-                            <thead style="position: sticky; top: 0; background: #e3f2fd; z-index: 10;">
-                                <tr>
-                                    <th style="padding: 1.3rem 1rem; text-align: left; border-bottom: 2px solid #90caf9; font-weight: bold; color: #333;">Cédula</th>
-                                    <th style="padding: 1.3rem 1rem; text-align: left; border-bottom: 2px solid #90caf9; font-weight: bold; color: #333;">Nombre Completo</th>
-                                    <th style="padding: 1.3rem 1rem; text-align: left; border-bottom: 2px solid #90caf9; font-weight: bold; color: #333;">Correo</th>
-                                    <th style="padding: 1.3rem 1rem; text-align: center; border-bottom: 2px solid #90caf9; font-weight: bold; color: #333;">Ver Histórico</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                <?php foreach ($estudiantes as $est): ?>
-                                    <tr class="historico-estudiante-row" data-nombre="<?php echo esc_attr(strtolower($est['nombre_completo'])); ?>" data-cedula="<?php echo esc_attr($est['cedula']); ?>">
-                                        <td style="padding: 1.2rem 1rem; text-align: left; border-bottom: 1px solid #bbdefb; font-size: 17px; background: #fff;"> <?php echo htmlspecialchars($est['cedula']); ?> </td>
-                                        <td style="padding: 1.2rem 1rem; text-align: left; border-bottom: 1px solid #bbdefb; font-size: 17px; background: #fff;"> <?php echo htmlspecialchars($est['nombre_completo']); ?> </td>
-                                        <td style="padding: 1.2rem 1rem; text-align: center; border-bottom: 1px solid #bbdefb; font-size: 17px; background: #fff;">
-                                            <form method="get" style="display:inline;">
-                                                <input type="hidden" name="page" value="asistencia-diaria">
-                                                            <input type="hidden" name="tab" value="historico">
-                                                <input type="hidden" name="grupo_id" value="<?php echo $grupo_id; ?>">
-                                                <input type="hidden" name="filtro_nombre" value="<?php echo htmlspecialchars($filtro_nombre); ?>">
-                                                <input type="hidden" name="expandir_estudiante" value="<?php echo $est['id']; ?>">
-                                                <button type="submit" style="padding: 0.7rem 1.5rem; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 600;">📅 Ver Histórico</button>
-                                                        </form>
-                                                    </td>
-                                    </tr>
-                                    <?php if ($estudiante_expandido == $est['id']): ?>
-                                        <tr>
-                                            <td colspan="4" style="background: #e3f2fd; padding: 2.5rem 2rem; border-radius: 0 0 16px 16px;">
-                                                <?php
-                                                // Obtener histórico de asistencias de este estudiante
-                                                $asistencias = $wpdb->get_results(
-                                                    $wpdb->prepare(
-                                                        "SELECT id, attendance_date, status FROM {$wpdb->prefix}aess_attendance WHERE user_id = %d AND group_id = %d ORDER BY attendance_date DESC",
-                                                        $est['id'], $grupo_id
-                                                    ),
-                                                    ARRAY_A
-                                                );
-                                                if (empty($asistencias)) {
-                                                    echo '<div style="text-align:center; color:#888;">No hay registros de asistencia para este estudiante.</div>';
-                                                } else {
-                                                    echo '<form method="post">';
-                                                    echo '<input type="hidden" name="page" value="asistencia-diaria">';
-                                                    echo '<input type="hidden" name="tab" value="historico">';
-                                                    echo '<input type="hidden" name="grupo_id" value="' . $grupo_id . '">';
-                                                    echo '<input type="hidden" name="filtro_nombre" value="' . htmlspecialchars($filtro_nombre) . '">';
-                                                    echo '<input type="hidden" name="expandir_estudiante" value="' . $est['id'] . '">';
-                                                    echo '<table style="width:100%; border-collapse:collapse; font-size: 16px;">';
-                                                    echo '<thead><tr><th style="padding: 1rem 0.8rem;">Fecha</th><th style="padding: 1rem 0.8rem;">Estado</th><th style="padding: 1rem 0.8rem;">Guardar</th></tr></thead><tbody>';
-                                                    foreach ($asistencias as $asistencia) {
-                                                        echo '<tr>';
-                                                        echo '<td style="padding: 0.8rem 0.8rem;">' . date('d/m/Y', strtotime($asistencia['attendance_date'])) . '</td>';
-                                                        echo '<td style="padding: 0.8rem 0.8rem;">';
-                                                        echo '<select name="nuevo_estado[' . $asistencia['id'] . ']" style="padding: 0.5rem 1rem; border-radius: 8px; font-size: 1rem;">';
-                                                        $opciones = ['asistió'=>'Asistió','faltó'=>'Faltó','tarde'=>'Tarde','justificado'=>'Justificado'];
-                                                        foreach ($opciones as $key=>$label) {
-                                                            $selected = ($asistencia['status'] === $key) ? 'selected' : '';
-                                                            echo '<option value="' . $key . '" ' . $selected . '>' . $label . '</option>';
-                                                        }
-                                                        echo '</select>';
-                                                        echo '</td>';
-                                                        echo '<td style="padding: 0.8rem 0.8rem;"><button type="submit" name="guardar_estado" value="' . $asistencia['id'] . '" style="background:#1976d2;color:#fff;border:none;padding:0.5rem 1.2rem;border-radius:6px;font-size:1rem;">💾 Guardar</button></td>';
-                                                        echo '</tr>';
-                                                    }
-                                                    echo '</tbody></table>';
-                                                    echo '</form>';
-                                                }
-                                                ?>
-                                                    </td>
-                                                </tr>
-                                    <?php endif; ?>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                            </div>
-                        </div>
-                <?php
-                // Procesar actualización de estado
-                if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_estado']) && isset($_POST['nuevo_estado'])) {
-                    $asistencia_id = intval($_POST['guardar_estado']);
-                    $nuevo_estado = $_POST['nuevo_estado'][$asistencia_id] ?? '';
-                    if (in_array($nuevo_estado, ['asistió','faltó','tarde','justificado'])) {
-                        $stmt_update = $mysqli->prepare("UPDATE wp_aess_attendance SET status = ? WHERE id = ?");
-                        $stmt_update->bind_param('si', $nuevo_estado, $asistencia_id);
-                        $stmt_update->execute();
-                        $stmt_update->close();
-                        // Redirigir para evitar reenvío
-                        $redir_url = 'admin.php?page=asistencia-diaria&tab=historico&grupo_id=' . $grupo_id . '&filtro_nombre=' . urlencode($filtro_nombre) . '&expandir_estudiante=' . $estudiante_expandido;
-                        echo "<script>window.location.href='$redir_url';</script>";
-                        exit;
-                    }
-                }
-                ?>
-            </div>
+            <?php include __DIR__ . '/asistencia-historico.php'; ?>
         </div>
     </div>
-
     <script>
-    // Funcionalidad para las pestañas estilo Chrome (función global)
+    // Función global para pestañas estilo Chrome
     function showChromeTab(tabName) {
         // Ocultar todos los contenidos de pestañas
         const tabContents = document.querySelectorAll('.chrome-tab-content');
         tabContents.forEach(content => {
             content.classList.remove('active');
         });
-        
         // Remover clase active de todas las pestañas
         const tabs = document.querySelectorAll('.chrome-tab');
         tabs.forEach(tab => {
             tab.classList.remove('active');
         });
-        
         // Mostrar el contenido de la pestaña seleccionada
         const selectedContent = document.getElementById('tab-' + tabName);
         if (selectedContent) {
             selectedContent.classList.add('active');
         }
-        
         // Activar la pestaña seleccionada
         const selectedTab = document.querySelector('[onclick="showChromeTab(\'' + tabName + '\')"]');
         if (selectedTab) {
             selectedTab.classList.add('active');
         }
     }
-    
+
     // Activar pestaña específica al cargar la página si hay parámetro tab en la URL
     document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -507,12 +190,10 @@ if ($grupo_id) {
         const searchEstudiantesAsistencia = document.getElementById('searchEstudiantesAsistencia');
         const searchEstudiantesAsistenciaInfo = document.getElementById('searchEstudiantesAsistenciaInfo');
         const estudianteAsistenciaRows = document.querySelectorAll('.estudiante-asistencia-row');
-        
         if (searchEstudiantesAsistencia) {
             searchEstudiantesAsistencia.addEventListener('input', function() {
                 const searchTerm = this.value.toLowerCase().trim();
                 let visibleCount = 0;
-                
                 estudianteAsistenciaRows.forEach(row => {
                     const nombre = row.getAttribute('data-nombre');
                     const cedula = row.getAttribute('data-cedula');
@@ -523,8 +204,6 @@ if ($grupo_id) {
                         row.style.display = 'none';
                     }
                 });
-                
-                // Actualizar información de resultados
                 if (searchTerm === '') {
                     searchEstudiantesAsistenciaInfo.textContent = '';
                 } else {
@@ -532,17 +211,14 @@ if ($grupo_id) {
                 }
             });
         }
-
         // Búsqueda en la pestaña "Resumen de Asistencias"
         const searchResumenAsistencia = document.getElementById('searchResumenAsistencia');
         const searchResumenAsistenciaInfo = document.getElementById('searchResumenAsistenciaInfo');
         const resumenAsistenciaRows = document.querySelectorAll('.resumen-asistencia-row');
-        
         if (searchResumenAsistencia) {
             searchResumenAsistencia.addEventListener('input', function() {
                 const searchTerm = this.value.toLowerCase().trim();
                 let visibleCount = 0;
-                
                 resumenAsistenciaRows.forEach(row => {
                     const nombre = row.getAttribute('data-nombre');
                     const cedula = row.getAttribute('data-cedula');
@@ -553,8 +229,6 @@ if ($grupo_id) {
                         row.style.display = 'none';
                     }
                 });
-                
-                // Actualizar información de resultados
                 if (searchTerm === '') {
                     searchResumenAsistenciaInfo.textContent = '';
                 } else {
@@ -562,22 +236,16 @@ if ($grupo_id) {
                 }
             });
         }
-
         // Funcionalidad para el formulario de asistencia
         const selects = document.querySelectorAll('.asistencia-form select');
         selects.forEach(select => {
-            // Función para aplicar la clase de color
             function applyColorClass() {
-                // Remover todas las clases de color
                 this.classList.remove('asistió', 'faltó', 'tarde', 'justificado');
-                // Agregar la clase correspondiente al valor seleccionado
                 if (this.value) {
                     this.classList.add(this.value);
-                    // Forzar la aplicación de estilos
                     this.style.backgroundColor = '';
                     this.style.color = '';
                     this.style.borderColor = '';
-                    // Aplicar estilos directamente si es necesario
                     setTimeout(() => {
                         if (this.value === 'asistió') {
                             this.style.backgroundColor = '#d4edda';
@@ -599,21 +267,13 @@ if ($grupo_id) {
                     }, 10);
                 }
             }
-            
-            // Aplicar color inicial si ya hay un valor seleccionado
             if (select.value) {
                 select.classList.add(select.value);
             }
-            
-            // Event listener para cambios
             select.addEventListener('change', applyColorClass);
-            
-            // También aplicar cuando se carga la página
             applyColorClass.call(select);
         });
-
-        // FUNCIONALIDAD PARA EL HISTÓRICO DE ASISTENCIAS (PHP)
-        // El histórico ahora funciona completamente en PHP, sin necesidad de JavaScript
     });
     </script>
-<?php endif; ?> 
+    <?php
+}

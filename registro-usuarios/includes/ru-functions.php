@@ -12,11 +12,23 @@ function ru_Add_My_Admin_Link(){
         'dashicons-admin-users', // Icono del menú
         1
     );  
+    add_submenu_page(
+        'registro-usuarios',               // SLUG del menú padre
+        'Ajustes',         // Título de la página
+        'Ajustes',         // Texto en el menú
+        'manage_options',                  // Capacidad requerida
+        'registro-usuarios-ajustes',       // SLUG del submenú
+        'ru_render_ajustes_registro'   // Función callback que imprime la página del submenú
+    );
 }
 
 
+function ru_render_ajustes_registro() {
+    include_once plugin_dir_path(__FILE__) . 'ru-menu-ajustes.php';
+}
+
 function ru_render_admin_page() {
-  include_once plugin_dir_path(__FILE__) . 'ru-first-page.php';
+  include_once plugin_dir_path(__FILE__) . 'ru-admin-page.php';
 }
 
 
@@ -90,30 +102,26 @@ function ru_enqueue_front_scripts() {
 add_action('wp_enqueue_scripts', 'ru_enqueue_front_scripts');
 
 // Encolar scripts y estilos en el admin SOLO para la página de este plugin
-function ru_enqueue_admin_scripts($hook) {
-    // Solo para la página admin del plugin
+
+// Encolar scripts y estilos para DataTables y Bootstrap SOLO en la página admin del plugin
+add_action('admin_enqueue_scripts', function($hook) {
     if ($hook !== 'toplevel_page_registro-usuarios') return;
-    wp_enqueue_style(
-        'ru-first-page-css',
-        plugin_dir_url(__FILE__) . 'ru-first-page.css',
-        [],
-        '1.0'
-    );
-    wp_enqueue_script(
-        'ru-first-page-js',
-        plugin_dir_url(__FILE__) . 'ru-first-page.js',
-        ['jquery'],
-        '1.0',
-        true
-    );
-    $ciudades = function_exists('ru_get_ciudades_colombia') ? ru_get_ciudades_colombia() : [];
-    $js_data = [
-        'ciudadesPorDepartamento' => $ciudades,
-        'mostrarPasoVerificacion' => false,
-        'forzarPaso4' => false,
-        'mensajeActivacion' => '',
-        'tipoMensajeActivacion' => '',
-    ];
-    wp_localize_script('ru-first-page-js', 'ruData', $js_data);
-}
-add_action('admin_enqueue_scripts', 'ru_enqueue_admin_scripts');
+    // Usar jQuery de WordPress
+    wp_enqueue_style('ru_bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css');
+    wp_enqueue_style('ru_datatables', 'https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css');
+    wp_enqueue_script('ru_datatables', 'https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js', ['jquery']);
+    wp_enqueue_script('ru_datatables_bs', 'https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js', ['ru_datatables']);
+    wp_enqueue_script('ru_admin_page', plugins_url('../admin/js/ru-admin-page.js', __FILE__), ['ru_datatables_bs'], false, true);
+    wp_localize_script('ru_admin_page', 'ru_ajax', [
+        'url' => admin_url('admin-ajax.php'),
+        'security' => wp_create_nonce('ru_seg')
+    ]);
+});
+
+// Endpoint AJAX para devolver usuarios
+add_action('wp_ajax_get_all_users', function() {
+    check_ajax_referer('ru_seg', 'nonce');
+    global $wpdb;
+    $usuarios = $wpdb->get_results("SELECT last_name, second_last_name, first_name, middle_name, national_id FROM {$wpdb->prefix}aess_users", ARRAY_A);
+    wp_send_json($usuarios);
+});

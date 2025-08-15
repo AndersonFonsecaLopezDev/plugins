@@ -297,7 +297,7 @@
         }
         .calendar-event {
             padding: 8px 10px;
-            font-size: 0.95rem;
+            font-size: 0.8rem;
             min-height: 40px;
             max-height: 80px;
         }

@@ -53,20 +53,14 @@ $meses_disponibles = [
         📅 Histórico de Asistencias
     </h3>
 
-    <!-- Buscador de estudiantes -->
-    <form method="get" style="text-align:center;margin-bottom:2rem;">
-        <input type="hidden" name="page" value="asistencia-diaria">
-        <input type="hidden" name="tab" value="historico">
-        <input type="hidden" name="grupo_id" value="<?php echo $grupo_id; ?>">
 
-        <input type="text" name="filtro_nombre" placeholder="🔎 Buscar por nombre o cédula..."
-               value="<?php echo htmlspecialchars($filtro_nombre); ?>"
-               style="padding:0.6rem 1rem;border-radius:6px;border:1px solid #ccc;">
-
-        <button type="submit" style="padding:0.6rem 1rem;background:#034C8C;color:white;border:none;border-radius:6px;cursor:pointer;">
-            🔍 Buscar
-        </button>
-    </form>
+    <!-- Buscador de estudiantes (igual al de resumen) -->
+    <div class="asistencia-search-container">
+        <div class="asistencia-search-wrapper">
+            <input type="text" id="searchHistoricoAsistencia" class="asistencia-search-input" placeholder="🔎 Buscar por nombre o cédula..." autocomplete="off" value="<?php echo htmlspecialchars($filtro_nombre); ?>">
+        </div>
+        <div id="searchHistoricoAsistenciaInfo" class="asistencia-search-results-info"></div>
+    </div>
 
     <!-- Tabla de estudiantes -->
     <div style="overflow-x:auto;">
@@ -79,8 +73,9 @@ $meses_disponibles = [
                 </tr>
             </thead>
             <tbody>
+
                 <?php foreach ($estudiantes as $est): ?>
-                    <tr>
+                    <tr class="historico-asistencia-row" data-nombre="<?php echo esc_attr(strtolower($est['nombre_completo'])); ?>" data-cedula="<?php echo esc_attr($est['cedula']); ?>">
                         <td style="padding:0.6rem;border-bottom:1px solid #bbdefb;"><?php echo htmlspecialchars($est['cedula']); ?></td>
                         <td style="padding:0.6rem;border-bottom:1px solid #bbdefb;"><?php echo htmlspecialchars($est['nombre_completo']); ?></td>
                         <td style="padding:0.6rem;border-bottom:1px solid #bbdefb;">
@@ -207,4 +202,32 @@ $meses_disponibles = [
         }
     }
     ?>
+
+<script>
+// Buscador en tiempo real para histórico (igual al de resumen)
+document.addEventListener('DOMContentLoaded', function() {
+    var input = document.getElementById('searchHistoricoAsistencia');
+    var info = document.getElementById('searchHistoricoAsistenciaInfo');
+    var rows = document.querySelectorAll('.historico-asistencia-row');
+    input.addEventListener('input', function() {
+        var val = input.value.trim().toLowerCase();
+        var count = 0;
+        rows.forEach(function(row) {
+            var nombre = row.getAttribute('data-nombre');
+            var cedula = row.getAttribute('data-cedula');
+            if (val === '' || nombre.includes(val) || cedula.includes(val)) {
+                row.style.display = '';
+                count++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        if (val !== '') {
+            info.textContent = count + ' resultado' + (count === 1 ? '' : 's') + ' encontrados.';
+        } else {
+            info.textContent = '';
+        }
+    });
+});
+</script>
 </div>

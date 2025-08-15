@@ -10,6 +10,7 @@ function enviar_correo($para, $asunto, $mensaje_html, $nombre_para = '') {
     try {
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';
+        $mail->CharSet = 'UTF-8';
         $mail->SMTPAuth   = true;
         $mail->Username   = 'camilocuencadev@gmail.com'; // Cambia esto
         $mail->Password   = 'fuqr ewex qtps zcmn'; // Cambia esto

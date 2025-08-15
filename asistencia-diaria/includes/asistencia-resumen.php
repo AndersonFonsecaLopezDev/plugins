@@ -4,6 +4,10 @@ if (!defined('ASISTENCIA_DASHBOARD')) {
     die('Acceso directo no permitido');
 }
 
+// Incluir estilos para resumen y buscador
+include_once __DIR__ . '../../css/search-styles.php';
+include_once __DIR__ . '../../css/tabs-styles.php';
+
 // Variables necesarias desde asistencia-form.php:
 // $grupo_id, $wpdb
 ?>

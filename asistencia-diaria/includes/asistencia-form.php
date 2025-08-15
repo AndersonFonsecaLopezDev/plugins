@@ -1,10 +1,17 @@
 
+
 <?php
 // asistencia-form.php - Formulario de asistencia y resumen para el dashboard
 // Verificar si se está accediendo desde el dashboard
 if (!defined('ASISTENCIA_DASHBOARD')) {
     die('Acceso directo no permitido');
 }
+
+// Incluir estilos divididos
+
+include_once __DIR__ . '../../css/asistencia-form-styles.php';
+include_once __DIR__ . '../../css/search-styles.php';
+include_once __DIR__ . '../../css/tabs-styles.php';
 
 $grupo_id = isset($_GET['grupo_id']) ? intval($_GET['grupo_id']) : null;
 $mensaje = '';

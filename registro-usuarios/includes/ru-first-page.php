@@ -52,17 +52,43 @@ function guardar_usuario_en_bd($datos)
       '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'
     ];
     $inserted = $wpdb->insert($table, $data, $format);
-    if ($inserted) {
-      include_once __DIR__ . '/ru-mail.php';
-      $asunto = 'Código de activación de tu cuenta';
-      $mensaje_html = '<p>Hola ' . htmlspecialchars($first_name) . ',</p>' .
-                      '<p>Tu código de activación es: <b>' . $codigo_activacion . '</b></p>' .
-                      '<p>Por favor, ingrésalo en la página de registro para activar tu cuenta.</p>';
-      enviar_correo($email, $asunto, $mensaje_html, $first_name);
-      $resultado = ['success' => true, 'message' => 'Usuario registrado exitosamente', 'codigo_activacion' => $codigo_activacion, 'email' => $email];
-    } else {
-      $resultado = ['success' => false, 'error' => $wpdb->last_error];
-    }
+  if ($inserted) {
+    include_once __DIR__ . '/ru-mail.php';
+   $asunto = "=?UTF-8?B?" . base64_encode("Código de activación de tu cuenta") . "?=";
+    $mensaje_html = '
+    <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+      <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="background-color: #4CAF50; color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: bold;">
+          Código de Activación
+        </div>
+        <div style="padding: 20px; color: #333; line-height: 1.5;">
+          <p>Hola <strong>' . htmlspecialchars($first_name) . '</strong>,</p>
+          <p>Gracias por registrarte. Tu código de activación es:</p>
+          <p style="text-align: center; font-size: 24px; font-weight: bold; background: #f0f0f0; padding: 10px; border-radius: 6px; color: #4CAF50;">
+            ' . htmlspecialchars($codigo_activacion) . '
+          </p>
+          <p>Por favor, ingrésalo en la página de registro para activar tu cuenta.</p>
+        </div>
+        <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #777;">
+          Este mensaje fue enviado automáticamente, por favor no respondas.
+        </div>
+      </div>
+    </div>';
+
+    enviar_correo($email, $asunto, $mensaje_html, $first_name);
+
+    $resultado = [
+      'success' => true,
+      'message' => 'Usuario registrado exitosamente',
+      'codigo_activacion' => $codigo_activacion,
+      'email' => $email
+    ];
+  } else {
+    $resultado = [
+      'success' => false,
+      'error' => $wpdb->last_error
+    ];
+  }
     return $resultado;
   } catch (Exception $e) {
     return ['success' => false, 'error' => $e->getMessage()];

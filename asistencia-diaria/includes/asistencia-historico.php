@@ -3,6 +3,11 @@ if (!defined('ASISTENCIA_DASHBOARD')) {
     die('Acceso directo no permitido');
 }
 
+// Incluir estilos para histórico
+include_once __DIR__ . '../../css/historico-styles.php';
+include_once __DIR__ . '../../css/search-styles.php';
+include_once __DIR__ . '../../css/tabs-styles.php';
+
 $filtro_nombre = $_GET['filtro_nombre'] ?? '';
 $estudiante_expandido = $_GET['expandir_estudiante'] ?? '';
 $filtro_anio   = $_GET['filtro_anio'] ?? '';

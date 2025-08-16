@@ -162,32 +162,32 @@ add_action('wp_ajax_ru_import_users_csv', function() {
     global $wpdb;
     while (($row = fgetcsv($handle, 0, ';')) !== false) {
         $data = array_combine($header, $row);
-        // Validar email y cédula únicos
-        $email = trim($data['email'] ?? '');
-        $national_id = trim($data['national_id'] ?? '');
+        // Validar correo y cédula únicos (ahora en español)
+        $email = trim($data['correo'] ?? '');
+        $national_id = trim($data['cedula'] ?? '');
         if (!$email || !$national_id) continue;
         $exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}aess_users WHERE email = %s OR national_id = %s", $email, $national_id));
         if ($exists) {
             $duplicated++;
             continue;
         }
-        // Preparar datos
+        // Preparar datos usando encabezados en español
         $raw_password = trim($data['contrasena'] ?? '');
         $hashed_password = $raw_password ? (function_exists('hash_password') ? hash_password($raw_password) : $raw_password) : '';
         $user_data = [
-            'first_name' => trim($data['first_name'] ?? ''),
-            'middle_name' => trim($data['middle_name'] ?? ''),
-            'last_name' => trim($data['last_name'] ?? ''),
-            'second_last_name' => trim($data['second_last_name'] ?? ''),
+            'first_name' => trim($data['nombre'] ?? ''),
+            'middle_name' => trim($data['segundo_nombre'] ?? ''),
+            'last_name' => trim($data['apellido'] ?? ''),
+            'second_last_name' => trim($data['segundo_apellido'] ?? ''),
             'national_id' => $national_id,
-            'gender' => trim($data['gender'] ?? ''),
-            'birth_date' => trim($data['birth_date'] ?? ''),
+            'gender' => trim($data['genero'] ?? ''),
+            'birth_date' => trim($data['fecha_nacimiento'] ?? ''),
             'departamento' => trim($data['departamento'] ?? ''),
-            'city' => trim($data['city'] ?? ''),
-            'phone_number' => trim($data['phone_number'] ?? ''),
+            'city' => trim($data['ciudad'] ?? ''),
+            'phone_number' => trim($data['telefono'] ?? ''),
             'email' => $email,
-            'address' => trim($data['address'] ?? ''),
-            'user_role' => trim($data['user_role'] ?? 'estudiante'),
+            'address' => trim($data['direccion'] ?? ''),
+            'user_role' => trim($data['rol'] ?? 'estudiante'),
             'contrasena' => $hashed_password,
             'codigo_activacion' => trim($data['codigo_activacion'] ?? '')
         ];

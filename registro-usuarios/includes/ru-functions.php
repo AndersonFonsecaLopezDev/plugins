@@ -105,17 +105,26 @@ add_action('wp_enqueue_scripts', 'ru_enqueue_front_scripts');
 
 // Encolar scripts y estilos para DataTables y Bootstrap SOLO en la página admin del plugin
 add_action('admin_enqueue_scripts', function($hook) {
-    if ($hook !== 'toplevel_page_registro-usuarios') return;
-    // Usar jQuery de WordPress
-    wp_enqueue_style('ru_bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css');
-    wp_enqueue_style('ru_datatables', 'https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css');
-    wp_enqueue_script('ru_datatables', 'https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js', ['jquery']);
-    wp_enqueue_script('ru_datatables_bs', 'https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js', ['ru_datatables']);
-    wp_enqueue_script('ru_admin_page', plugins_url('../admin/js/ru-admin-page.js', __FILE__), ['ru_datatables_bs'], false, true);
-    wp_localize_script('ru_admin_page', 'ru_ajax', [
-        'url' => admin_url('admin-ajax.php'),
-        'security' => wp_create_nonce('ru_seg')
-    ]);
+    // Página principal
+    if ($hook === 'toplevel_page_registro-usuarios') {
+        wp_enqueue_style('ru_bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css');
+        wp_enqueue_style('ru_datatables', 'https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css');
+        wp_enqueue_script('ru_datatables', 'https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js', ['jquery']);
+        wp_enqueue_script('ru_datatables_bs', 'https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js', ['ru_datatables']);
+        wp_enqueue_script('ru_admin_page', plugins_url('../admin/js/ru-admin-page.js', __FILE__), ['ru_datatables_bs'], false, true);
+        wp_localize_script('ru_admin_page', 'ru_ajax', [
+            'url' => admin_url('admin-ajax.php'),
+            'security' => wp_create_nonce('ru_seg')
+        ]);
+    }
+    // Submenú ajustes
+    if ($hook === 'registro-usuarios_page_registro-usuarios-ajustes') {
+        wp_enqueue_script('ru_menu_ajustes', plugins_url('../admin/js/ru-menu-ajustes.js', __FILE__), ['jquery'], false, true);
+        wp_localize_script('ru_menu_ajustes', 'ru_ajax', [
+            'url' => admin_url('admin-ajax.php'),
+            'security' => wp_create_nonce('ru_seg')
+        ]);
+    }
 });
 
 // Endpoint AJAX para devolver usuarios
@@ -124,4 +133,78 @@ add_action('wp_ajax_get_all_users', function() {
     global $wpdb;
     $usuarios = $wpdb->get_results("SELECT last_name, second_last_name, first_name, middle_name, national_id FROM {$wpdb->prefix}aess_users", ARRAY_A);
     wp_send_json($usuarios);
+});
+
+// Endpoint AJAX para importar usuarios desde CSV
+add_action('wp_ajax_ru_import_users_csv', function() {
+
+     // Asegurar que la función hash_password esté disponible
+    if (!function_exists('hash_password')) {
+        include_once plugin_dir_path(__FILE__) . 'ru-password.php';
+    }
+    
+    check_ajax_referer('ru_seg', 'nonce');
+    if (!isset($_FILES['file'])) {
+        wp_send_json_error(['message' => 'No se recibió ningún archivo.']);
+    }
+    $file = $_FILES['file']['tmp_name'];
+    if (!file_exists($file)) {
+        wp_send_json_error(['message' => 'Archivo no encontrado.']);
+    }
+    $handle = fopen($file, 'r');
+    if (!$handle) {
+        wp_send_json_error(['message' => 'No se pudo abrir el archivo.']);
+    }
+    $header = fgetcsv($handle, 0, ';');
+    $inserted = 0;
+    $duplicated = 0;
+    $errors = [];
+    global $wpdb;
+    while (($row = fgetcsv($handle, 0, ';')) !== false) {
+        $data = array_combine($header, $row);
+        // Validar email y cédula únicos
+        $email = trim($data['email'] ?? '');
+        $national_id = trim($data['national_id'] ?? '');
+        if (!$email || !$national_id) continue;
+        $exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}aess_users WHERE email = %s OR national_id = %s", $email, $national_id));
+        if ($exists) {
+            $duplicated++;
+            continue;
+        }
+        // Preparar datos
+        $raw_password = trim($data['contrasena'] ?? '');
+        $hashed_password = $raw_password ? (function_exists('hash_password') ? hash_password($raw_password) : $raw_password) : '';
+        $user_data = [
+            'first_name' => trim($data['first_name'] ?? ''),
+            'middle_name' => trim($data['middle_name'] ?? ''),
+            'last_name' => trim($data['last_name'] ?? ''),
+            'second_last_name' => trim($data['second_last_name'] ?? ''),
+            'national_id' => $national_id,
+            'gender' => trim($data['gender'] ?? ''),
+            'birth_date' => trim($data['birth_date'] ?? ''),
+            'departamento' => trim($data['departamento'] ?? ''),
+            'city' => trim($data['city'] ?? ''),
+            'phone_number' => trim($data['phone_number'] ?? ''),
+            'email' => $email,
+            'address' => trim($data['address'] ?? ''),
+            'user_role' => trim($data['user_role'] ?? 'estudiante'),
+            'contrasena' => $hashed_password,
+            'codigo_activacion' => trim($data['codigo_activacion'] ?? '')
+        ];
+        $format = [
+            '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'
+        ];
+        $result = $wpdb->insert($wpdb->prefix . 'aess_users', $user_data, $format);
+        if ($result) {
+            $inserted++;
+        } else {
+            $errors[] = $wpdb->last_error;
+        }
+    }
+    fclose($handle);
+    wp_send_json_success([
+        'inserted' => $inserted,
+        'duplicated' => $duplicated,
+        'errors' => $errors
+    ]);
 });

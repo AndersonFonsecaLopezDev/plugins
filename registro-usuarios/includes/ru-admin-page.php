@@ -30,7 +30,7 @@ add_action('wp_ajax_get_all_users', function() {
   ';
   ?>
   <p>Listado de usuarios registrados</p>
-  <table class="table table-striped wp-list-table widefat" id="principalTable">
+  <table class="wp-list-table widefat fixed striped pages  table-hover w-100" id="principalTable">
     <thead>
       <th>APELLIDO1</th>
       <th>APELLIDO2</th>
@@ -39,7 +39,6 @@ add_action('wp_ajax_get_all_users', function() {
       <th>CEDULA</th>
     </thead>
     <tbody id="principalBodyTable" class="the-list">
-      <!-- Los datos se cargarán por AJAX -->
     </tbody>
     <tfoot>
       <th>APELLIDO1</th>

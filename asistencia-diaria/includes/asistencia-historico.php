@@ -154,8 +154,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 html += '<thead><tr><th>Fecha</th><th>Estado</th><th>Guardar</th></tr></thead><tbody>';
                 var opciones = {'asistió':'Asistió','faltó':'Faltó','tarde':'Tarde','justificado':'Justificado'};
                 asistenciasFiltradas.forEach(function(a){
+                    // Formatear fecha como dd/mm/yyyy sin desfase de zona horaria
+                    var partes = a.attendance_date.split('-');
+                    var fechaCol = partes.length === 3 ? (partes[2] + '/' + partes[1] + '/' + partes[0]) : a.attendance_date;
                     html += `<tr>
-                        <td>${new Date(a.attendance_date).toLocaleDateString()}</td>
+                        <td>${fechaCol}</td>
                         <td>
                             <select class="selectEstadoAsistencia" data-id="${a.id}" data-estado-original="${a.status}" style="padding:0.4rem;border-radius:6px;">
                                 ${Object.keys(opciones).map(function(key){

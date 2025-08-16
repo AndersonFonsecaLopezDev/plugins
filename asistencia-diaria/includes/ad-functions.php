@@ -1,7 +1,7 @@
 
 
 <?php
-// Guardar estado de asistencia por AJAX
+// Endpoint AJAX: guarda el estado de una asistencia individual
 add_action('wp_ajax_ad_guardar_estado_asistencia', function() {
   global $wpdb;
   $asistencia_id = intval($_POST['asistencia_id'] ?? 0);
@@ -40,13 +40,13 @@ function ad_Add_My_Admin_Link()
 
 
 
-// Esta función se ejecuta cuando se carga la página del admin
+// Renderiza la página principal del plugin en el admin
 function ad_render_admin_page() {
   include plugin_dir_path(__FILE__) . 'dashboard.php';
 }
 
 function cargar_bootstrap_en_admin($hook) {
-    // Verifica que sea tu página de plugin
+  // Solo carga Bootstrap en la página principal del plugin
     if ($hook !== 'toplevel_page_asistencia-diaria') {
         return;
     }
@@ -65,7 +65,7 @@ function cargar_bootstrap_en_admin($hook) {
     );
 }
 add_action('admin_enqueue_scripts', 'cargar_bootstrap_en_admin');
- // Endpoint AJAX para histórico de asistencias
+// Endpoint AJAX: obtiene estudiantes filtrados para el histórico
 add_action('wp_ajax_ad_get_estudiantes_historico', function() {
   global $wpdb;
   $grupo_id = intval($_POST['grupo_id'] ?? 0);
@@ -80,7 +80,7 @@ add_action('wp_ajax_ad_get_estudiantes_historico', function() {
     ),
     ARRAY_A
   );
-  // Filtrar por nombre/cédula
+  // Aplica filtro por nombre o cédula si se proporciona
   if ($filtro_nombre !== '') {
     $estudiantes = array_values(array_filter($estudiantes, function($est) use ($filtro_nombre) {
       $busqueda = mb_strtolower($filtro_nombre);
@@ -112,7 +112,7 @@ add_action('wp_ajax_ad_get_asistencias_estudiante', function() {
   wp_send_json_success(['asistencias' => $asistencias]);
 });
 
-// Guardar estado de asistencia en lote por AJAX
+// Endpoint AJAX: guarda en lote los estados modificados de asistencias
 add_action('wp_ajax_ad_guardar_estado_asistencia_lote', function() {
   global $wpdb;
   $cambios = isset($_POST['cambios']) ? $_POST['cambios'] : [];

@@ -4,21 +4,21 @@ add_action('admin_menu', 'ru_Add_My_Admin_Link');
 
 function ru_Add_My_Admin_Link(){
     add_menu_page(
-        'Registro usuarios',               // Título de la página
-        'Registro usuarios',               // Texto en el menú
-        'manage_options',                  // Capacidad requerida
-        'registro-usuarios',              // SLUG (clave única)
-        'ru_render_admin_page',           // Función callback que imprime la página
-        'dashicons-admin-users', // Icono del menú
+    'Registro usuarios',               // Título de la página
+    'Registro usuarios',               // Texto en el menú
+    'manage_options',                  // Permiso requerido
+    'registro-usuarios',              // Slug único del menú
+    'ru_render_admin_page',           // Callback para mostrar la página principal
+    'dashicons-admin-users',          // Icono del menú
         1
     );  
     add_submenu_page(
         'registro-usuarios',               // SLUG del menú padre
-        'Ajustes',         // Título de la página
-        'Ajustes',         // Texto en el menú
-        'manage_options',                  // Capacidad requerida
-        'registro-usuarios-ajustes',       // SLUG del submenú
-        'ru_render_ajustes_registro'   // Función callback que imprime la página del submenú
+    'Ajustes',                         // Título de la página de ajustes
+    'Ajustes',                         // Texto en el submenú
+    'manage_options',                  // Permiso requerido
+    'registro-usuarios-ajustes',       // Slug del submenú
+    'ru_render_ajustes_registro'       // Callback para mostrar la página de ajustes
     );
 }
 
@@ -38,7 +38,7 @@ function mostrar_registro_usuarios() {
   return ob_get_clean();
 }
 
-// Genera un código de activación aleatorio de 6 dígitos
+// Genera un código de activación aleatorio para usuarios
 function generar_codigo_activacion($longitud = 6) {
     $caracteres = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $codigo = '';
@@ -48,7 +48,7 @@ function generar_codigo_activacion($longitud = 6) {
     return $codigo;
 }
 
-// Valida si el código ingresado coincide con el guardado en la base de datos para el email dado
+// Valida el código de activación para el email proporcionado
 function validar_codigo_activacion($email, $codigo_ingresado, $conn) {
     $sql = "SELECT codigo_activacion FROM wp_aess_users WHERE email = ?";
     $stmt = $conn->prepare($sql);
@@ -66,12 +66,12 @@ function validar_codigo_activacion($email, $codigo_ingresado, $conn) {
     return false;
 }
 
-// Registrar el shortcode
+// Registrar el shortcode para mostrar el formulario de registro
 add_shortcode('registro-usuarios', 'mostrar_registro_usuarios');
 
-// Encolar scripts y estilos solo cuando el shortcode esté presente
+// Encola scripts y estilos solo si el shortcode está presente en la página
 function ru_enqueue_front_scripts() {
-    if (is_admin()) return; // No cargar en admin
+    if (is_admin()) return; // No cargar en el admin
     global $post;
     if (!is_a($post, 'WP_Post')) return;
     if (has_shortcode($post->post_content, 'registro-usuarios')) {
@@ -101,9 +101,7 @@ function ru_enqueue_front_scripts() {
 }
 add_action('wp_enqueue_scripts', 'ru_enqueue_front_scripts');
 
-// Encolar scripts y estilos en el admin SOLO para la página de este plugin
-
-// Encolar scripts y estilos para DataTables y Bootstrap SOLO en la página admin del plugin
+// Encola scripts y estilos para DataTables y Bootstrap solo en las páginas admin del plugin
 add_action('admin_enqueue_scripts', function($hook) {
     // Página principal
     if ($hook === 'toplevel_page_registro-usuarios') {
@@ -127,7 +125,7 @@ add_action('admin_enqueue_scripts', function($hook) {
     }
 });
 
-// Endpoint AJAX para devolver usuarios
+// Endpoint AJAX: devuelve la lista de usuarios para DataTables
 add_action('wp_ajax_get_all_users', function() {
     check_ajax_referer('ru_seg', 'nonce');
     global $wpdb;
@@ -135,10 +133,10 @@ add_action('wp_ajax_get_all_users', function() {
     wp_send_json($usuarios);
 });
 
-// Endpoint AJAX para importar usuarios desde CSV
+// Endpoint AJAX: importa usuarios desde un archivo CSV
 add_action('wp_ajax_ru_import_users_csv', function() {
 
-     // Asegurar que la función hash_password esté disponible
+    // Asegura que la función hash_password esté disponible
     if (!function_exists('hash_password')) {
         include_once plugin_dir_path(__FILE__) . 'ru-password.php';
     }

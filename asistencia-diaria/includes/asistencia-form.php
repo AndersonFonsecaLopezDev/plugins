@@ -45,6 +45,8 @@ if ($grupo_id) {
 
     // Procesar formulario de asistencia diaria
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['asistencia'])) {
+        // Usar la zona horaria de Colombia
+        date_default_timezone_set('America/Bogota');
         $fecha_hoy = date('Y-m-d');
         foreach ($_POST['asistencia'] as $user_id => $status) {
             $user_id = intval($user_id);
@@ -75,7 +77,7 @@ if ($grupo_id) {
                         'course_id' => $grupo['course_id'],
                         'attendance_date' => $fecha_hoy,
                         'status' => $status,
-                        'created_at' => current_time('mysql', 1)
+                        'created_at' => date('Y-m-d H:i:s')
                     ]
                 );
             }

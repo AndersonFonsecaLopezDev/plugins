@@ -8,11 +8,16 @@ $departamentos = ru_get_departamentos_colombia();
 $ciudades = ru_get_ciudades_colombia();
 
 // Función para guardar datos en la base de datos
+/**
+ * Guarda un usuario en la base de datos y envía el código de activación por correo.
+ * @param array $datos Datos del formulario de registro
+ * @return array Resultado con éxito o error
+ */
 function guardar_usuario_en_bd($datos)
 {
   global $wpdb;
   try {
-    // Obtener los valores del formulario
+    // Extraer y limpiar datos del formulario
     $first_name = trim($datos['first_name'] ?? '');
     $middle_name = trim($datos['middle_name'] ?? '');
     $last_name = trim($datos['last_name'] ?? '');
@@ -25,7 +30,7 @@ function guardar_usuario_en_bd($datos)
     $phone_number = trim($datos['phone_number'] ?? '');
     $email = trim($datos['email'] ?? '');
     $address = trim($datos['address'] ?? '');
-    $user_role = 'estudiante'; // Valor por defecto
+    $user_role = 'estudiante'; // Rol por defecto
     $contrasena = trim($datos['password'] ?? '');
     $contrasena = hash_password($contrasena);
     $codigo_activacion = strtoupper(bin2hex(random_bytes(3)));
@@ -52,90 +57,81 @@ function guardar_usuario_en_bd($datos)
       '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'
     ];
     $inserted = $wpdb->insert($table, $data, $format);
-  if ($inserted) {
-    include_once __DIR__ . '/ru-mail.php';
-   $asunto = "=?UTF-8?B?" . base64_encode("Código de activación de tu cuenta") . "?=";
-    $mensaje_html = '
-    <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-      <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-        <div style="background-color: #4CAF50; color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: bold;">
-          Código de Activación
-        </div>
-        <div style="padding: 20px; color: #333; line-height: 1.5;">
-          <p>Hola <strong>' . htmlspecialchars($first_name) . '</strong>,</p>
-          <p>Gracias por registrarte. Tu código de activación es:</p>
-          <p style="text-align: center; font-size: 24px; font-weight: bold; background: #f0f0f0; padding: 10px; border-radius: 6px; color: #4CAF50;">
-            ' . htmlspecialchars($codigo_activacion) . '
-          </p>
-          <p>Por favor, ingrésalo en la página de registro para activar tu cuenta.</p>
-        </div>
-        <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #777;">
-          Este mensaje fue enviado automáticamente, por favor no respondas.
-        </div>
+    if ($inserted) {
+  include_once __DIR__ . '/ru-mail.php';
+  $asunto = "=?UTF-8?B?" . base64_encode("Código de activación de tu cuenta") . "?=";
+  $mensaje_html = '
+  <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+    <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <!-- Encabezado -->
+      <div style="background-color: #0d4c92; color: #ffffff; padding: 15px; text-align: center; font-size: 20px; font-weight: bold;">
+        Código de Activación
       </div>
-    </div>';
+      <!-- Cuerpo -->
+      <div style="padding: 20px; color: #333; line-height: 1.5;">
+      <p>Hola <strong>' . htmlspecialchars($first_name . ' ' . $last_name) . '</strong>,</p>
+        <p>Gracias por registrarte. Tu código de activación es:</p>
+        <p style="text-align: center; font-size: 24px; font-weight: bold; background: #f0f0f0; padding: 10px; border-radius: 6px; color: #0d4c92;">
+          ' . htmlspecialchars($codigo_activacion) . '
+        </p>
+        <p>Por favor, ingrésalo en la página de registro para activar tu cuenta.</p>
+      </div>
+      <!-- Footer -->
+      <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #777;">
+        <span style="color:#d4af37;">AESS</span> · Este mensaje fue enviado automáticamente, por favor no respondas.
+      </div>
+    </div>
+  </div>';
+  enviar_correo($email, $asunto, $mensaje_html, $first_name);
+  $resultado = [
+    'success' => true,
+    'message' => 'Usuario registrado exitosamente',
+    'codigo_activacion' => $codigo_activacion,
+    'email' => $email
+  ];
+} else {
+  $resultado = [
+    'success' => false,
+    'error' => $wpdb->last_error
+  ];
+}
 
-    enviar_correo($email, $asunto, $mensaje_html, $first_name);
-
-    $resultado = [
-      'success' => true,
-      'message' => 'Usuario registrado exitosamente',
-      'codigo_activacion' => $codigo_activacion,
-      'email' => $email
-    ];
-  } else {
-    $resultado = [
-      'success' => false,
-      'error' => $wpdb->last_error
-    ];
-  }
     return $resultado;
   } catch (Exception $e) {
     return ['success' => false, 'error' => $e->getMessage()];
   }
 }
 
-// Procesar el formulario cuando se envía
+// Procesa el formulario de registro y muestra mensajes según el resultado
 $mensaje = '';
 $tipo_mensaje = '';
 $mostrar_paso_verificacion = false;
 $correo_usuario = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // Debug: Imprimir todos los datos recibidos
-  echo "<script>console.log('=== DEBUG FORM SUBMISSION ===');</script>";
-  echo "<script>console.log('POST data received:', " . json_encode($_POST) . ");</script>";
-  echo "<script>console.log('Total POST fields:', " . count($_POST) . ");</script>";
-
-  // Verificar campos específicos
+  // Validar campos requeridos
   $required_fields = [ 'email', 'password'];
   $missing_fields = [];
-
   foreach ($required_fields as $field) {
     if (!isset($_POST[$field]) || empty(trim($_POST[$field]))) {
       $missing_fields[] = $field;
     }
   }
-
-  echo "<script>console.log('Required fields:', " . json_encode($required_fields) . ");</script>";
-  echo "<script>console.log('Missing fields:', " . json_encode($missing_fields) . ");</script>";
-
-  // Verificar que se recibieron todos los datos necesarios
-  if (isset($_POST['email']) && isset($_POST['password'])) {
+  // Si faltan campos requeridos, mostrar error
+  if (count($missing_fields)) {
+    $mensaje = 'Faltan datos requeridos: ' . implode(', ', $missing_fields);
+    $tipo_mensaje = 'error';
+  } else {
     // Validar edad si se proporcionó fecha de nacimiento
     if (isset($_POST['birthdate']) && !empty($_POST['birthdate'])) {
       $fechaNacimiento = new DateTime($_POST['birthdate']);
       $fechaActual = new DateTime();
       $edad = $fechaActual->diff($fechaNacimiento)->y;
-      
       if ($edad < 18) {
         $mensaje = 'Error: Debes ser mayor de edad (18 años o más) para registrarte.';
         $tipo_mensaje = 'error';
-        echo "<script>console.log('Error: Usuario menor de edad - Edad: " . $edad . " años');</script>";
       } else {
-        echo "<script>console.log('All required fields present - proceeding with registration');</script>";
         $resultado = guardar_usuario_en_bd($_POST);
-
         if ($resultado['success']) {
           $mensaje = 'Usuario registrado exitosamente! Se ha enviado un código de activación a tu correo.';
           $tipo_mensaje = 'success';
@@ -149,13 +145,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
           $mensaje = 'Error al registrar: ' . $resultado['error'];
           $tipo_mensaje = 'error';
-          echo "<script>console.log('Error al guardar usuario: " . addslashes($resultado['error']) . "');</script>";
         }
       }
     } else {
-      echo "<script>console.log('All required fields present - proceeding with registration');</script>";
       $resultado = guardar_usuario_en_bd($_POST);
-
       if ($resultado['success']) {
         $mensaje = 'Usuario registrado exitosamente! Se ha enviado un código de activación a tu correo.';
         $tipo_mensaje = 'success';
@@ -169,14 +162,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       } else {
         $mensaje = 'Error al registrar: ' . $resultado['error'];
         $tipo_mensaje = 'error';
-        echo "<script>console.log('Error al guardar usuario: " . addslashes($resultado['error']) . "');</script>";
       }
     }
-  } else {
-    $mensaje = 'Faltan datos requeridos: ' . implode(', ', $missing_fields);
-    $tipo_mensaje = 'error';
-    echo "<script>console.log('Faltan datos requeridos para el registro: " . implode(', ', $missing_fields) . "');</script>";
-    echo "<script>console.log('Available fields:', " . json_encode(array_keys($_POST)) . ");</script>";
   }
 }
 
@@ -197,7 +184,8 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
       $tipo_mensaje_activacion = 'info';
     } elseif ($row['codigo_activacion'] === $codigo) {
       $fecha = date('Y-m-d H:i:s');
-      $wpdb->update($table, ['fecha_activacion' => $fecha], ['email' => $email], ['%s'], ['%s']);
+      // Actualizar fecha_activacion y email_verificado
+      $wpdb->update($table, ['fecha_activacion' => $fecha, 'email_verificado' => 1], ['email' => $email], ['%s', '%d'], ['%s']);
       $mensaje_activacion = '¡Cuenta activada correctamente!';
       $tipo_mensaje_activacion = 'success';
     } else {

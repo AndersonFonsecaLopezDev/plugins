@@ -1,8 +1,18 @@
 <?php
+// Seguridad: impedir acceso directo
+if (!defined('ABSPATH')) {
+    exit;
+}
 
+// Incluir funciones de hash de contraseñas
+require_once plugin_dir_path(__FILE__) . 'ru-password.php';
+
+/**
+ * Crear menú en admin
+ */
 add_action('admin_menu', 'lu_Add_My_Admin_Link');
 
-function lu_Add_My_Admin_Link(){
+function lu_Add_My_Admin_Link() {
     add_menu_page(
         'Login usuarios',
         'Login usuarios',
@@ -14,18 +24,63 @@ function lu_Add_My_Admin_Link(){
     );
 }
 
-
-function lu_render_admin_page(){
+function lu_render_admin_page() {
     include_once plugin_dir_path(__FILE__) . 'lu-login-page.php';
 }
 
-
+/**
+ * Shortcode [login-usuarios]
+ */
 function mostrar_login_usuarios() {
     ob_start();
     include_once plugin_dir_path(__FILE__) . 'lu-login-page.php';
     return ob_get_clean();
 }
-
-
-// Registrar el shortcode para mostrar el formulario de registro
 add_shortcode('login-usuarios', 'mostrar_login_usuarios');
+
+/**
+ * Procesar login desde el formulario
+ */
+function lu_procesar_login_form() {
+    global $wpdb;
+
+    // Sanitizar datos del formulario
+    $email = sanitize_email($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if (empty($email) || empty($password)) {
+        echo "<script>alert('Debes completar todos los campos');window.history.back();</script>";
+        exit;
+    }
+
+    // Buscar en la tabla personalizada
+    $table = $wpdb->prefix . 'aess_users';
+    $user = $wpdb->get_row(
+        $wpdb->prepare("SELECT * FROM $table WHERE email = %s", $email)
+    );
+
+    if (!$user) {
+        echo "<script>alert('Usuario no encontrado');window.history.back();</script>";
+        exit;
+    }
+
+    // Verificar contraseña
+    if (!verify_password($password, $user->contrasena)) {
+        echo "<script>alert('Contraseña incorrecta');window.history.back();</script>";
+        exit;
+    }
+
+    // Verificar estado si existe
+    if (isset($user->estado) && $user->estado !== 'activo') {
+        echo "<script>alert('Tu cuenta no está activa');window.history.back();</script>";
+        exit;
+    }
+
+    // Si todo bien → login exitoso
+    echo "<script>alert('✅ Login exitoso');window.history.back();</script>";
+    exit;
+}
+
+// Hooks para procesar el action=custom_login
+add_action('admin_post_nopriv_custom_login', 'lu_procesar_login_form');
+add_action('admin_post_custom_login', 'lu_procesar_login_form');

@@ -4,6 +4,13 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+
+// Cargar autoload de Composer para JWT
+require_once plugin_dir_path(__DIR__) . 'vendor/autoload.php';
+
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+ 
 // Incluir funciones de hash de contraseñas
 require_once plugin_dir_path(__FILE__) . 'ru-password.php';
 
@@ -38,6 +45,8 @@ function mostrar_login_usuarios() {
 }
 add_shortcode('login-usuarios', 'mostrar_login_usuarios');
 
+require_once plugin_dir_path(__FILE__) . 'lu-jwt.php';
+ 
 /**
  * Procesar login desde el formulario
  */
@@ -77,7 +86,20 @@ function lu_procesar_login_form() {
     }
 
     // Si todo bien → login exitoso
-    echo "<script>alert('✅ Login exitoso');window.history.back();</script>";
+    $token = LU_JWT::generar_token($user);
+
+    // Guardar en cookie segura
+    setcookie('jwt_token', $token, [
+        'expires'  => time() + 3600,
+        'path'     => '/',
+        'domain'   => COOKIE_DOMAIN,
+        'secure'   => is_ssl(),
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+    
+    // Solo para pruebas → mostrar token
+    echo "<script>alert('✅ Login exitoso. Token generado: $token');window.history.back();</script>";
     exit;
 }
 

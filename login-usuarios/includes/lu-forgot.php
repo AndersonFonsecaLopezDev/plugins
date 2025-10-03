@@ -1,44 +1,119 @@
 <?php
 include_once __DIR__ . '/lu-mail.php';
 
-// Si se envía el formulario del paso 1
+if (!session_id()) {
+    session_start();
+}
+
+global $wpdb;
+
+// Paso 1: Usuario envía su correo
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recovery_email'])) {
     $email = sanitize_email($_POST['recovery_email']);
 
-    // Generar código aleatorio de 6 dígitos
-    $codigo_activacion = rand(100000, 999999);
+    $user = $wpdb->get_row(
+        $wpdb->prepare("SELECT * FROM wp_aess_users WHERE email = %s", $email)
+    );
 
-    // Guardar el código en sesión (puedes usar BD si lo prefieres)
-    if (!session_id()) {
-        session_start();
+    if ($user) {
+        $codigo_activacion = rand(100000, 999999);
+
+        // Guardar código y expiración en BD
+        $wpdb->update(
+            'wp_aess_users',
+            [
+                'reset_code'         => $codigo_activacion,
+                'reset_code_expires' => date("Y-m-d H:i:s", strtotime("+1 hour")),
+            ],
+            ['id' => $user->id],
+            ['%d', '%s'],
+            ['%d']
+        );
+
+        // Guardar en sesión
+        $_SESSION['recovery_email'] = $email;
+
+        // Enviar correo
+        $asunto = "Código de recuperación de tu cuenta";
+        $mensaje_html = '
+        <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+          <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="background-color: #0d4c92; color: #ffffff; padding: 15px; text-align: center; font-size: 20px; font-weight: bold;">
+              Código de Recuperación
+            </div>
+            <div style="padding: 20px; color: #333; line-height: 1.5;">
+              <p>Hola,</p>
+              <p>Has solicitado recuperar tu contraseña. Tu código de verificación es:</p>
+              <p style="text-align: center; font-size: 24px; font-weight: bold; background: #f0f0f0; padding: 10px; border-radius: 6px; color: #0d4c92;">
+                ' . htmlspecialchars($codigo_activacion) . '
+              </p>
+              <p>Este código expira en 1 hora. Ingresa este código en la página para continuar con el proceso.</p>
+            </div>
+            <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #777;">
+              <span style="color:#d4af37;">AESS</span> · Este mensaje fue enviado automáticamente, por favor no respondas.
+            </div>
+          </div>
+        </div>';
+
+        enviar_correo_login($email, $asunto, $mensaje_html);
+
+        $goToStep = 2;
+
+    } else {
+        echo "<p style='color:red;'>El correo no está registrado en nuestra base de datos.</p>";
     }
-    $_SESSION['codigo_activacion'] = $codigo_activacion;
-    $_SESSION['recovery_email'] = $email;
+}
 
-    // Asunto y cuerpo del correo
-    $asunto = "Código de recuperación de tu cuenta";
-    $mensaje_html = '
-    <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-      <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-        <div style="background-color: #0d4c92; color: #ffffff; padding: 15px; text-align: center; font-size: 20px; font-weight: bold;">
-          Código de Recuperación
-        </div>
-        <div style="padding: 20px; color: #333; line-height: 1.5;">
-          <p>Hola,</p>
-          <p>Has solicitado recuperar tu contraseña. Tu código de verificación es:</p>
-          <p style="text-align: center; font-size: 24px; font-weight: bold; background: #f0f0f0; padding: 10px; border-radius: 6px; color: #0d4c92;">
-            ' . htmlspecialchars($codigo_activacion) . '
-          </p>
-          <p>Ingresa este código en la página para continuar con el proceso.</p>
-        </div>
-        <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #777;">
-          <span style="color:#d4af37;">AESS</span> · Este mensaje fue enviado automáticamente, por favor no respondas.
-        </div>
-      </div>
-    </div>';
+// Paso 2: Usuario ingresa el código
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verification_code'])) {
+    $codigo = sanitize_text_field($_POST['verification_code']);
+    $email  = $_SESSION['recovery_email'] ?? '';
 
-    // Enviar correo
-    enviar_correo_login($email, $asunto, $mensaje_html);
+    if ($email) {
+        $user = $wpdb->get_row(
+            $wpdb->prepare("SELECT * FROM wp_aess_users WHERE email = %s", $email)
+        );
+
+        if ($user && $user->reset_code == $codigo && strtotime($user->reset_code_expires) > time()) {
+            $goToStep = 3;
+        } else {
+            echo "<p style='color:red;'>El código es inválido o ha expirado.</p>";
+            $goToStep = 2;
+        }
+    }
+}
+
+// Paso 3: Guardar nueva contraseña
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_password']) && isset($_POST['confirm_password'])) {
+    $email = $_SESSION['recovery_email'] ?? '';
+    $new_password = sanitize_text_field($_POST['new_password']);
+    $confirm_password = sanitize_text_field($_POST['confirm_password']);
+
+    if ($email && $new_password === $confirm_password) {
+        // Encriptar la contraseña antes de guardarla
+        $hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
+
+        $wpdb->update(
+            'wp_aess_users',
+            [
+                'contrasena'         => $hashed_password,
+                'reset_code'         => null,
+                'reset_code_expires' => null,
+            ],
+            ['email' => $email],
+            ['%s', '%s', '%s'],
+            ['%s']
+        );
+
+        echo "<p style='color:green;'>Tu contraseña ha sido cambiada con éxito. Ahora puedes iniciar sesión.</p>";
+
+        // Limpiar sesión
+        unset($_SESSION['recovery_email']);
+        $goToStep = 1;
+    } else {
+        echo "<p style='color:red;'>Las contraseñas no coinciden.</p>";
+        $goToStep = 3;
+    }
 }
 ?>
 
@@ -60,48 +135,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recovery_email'])) {
     </div>
 
     <!-- Paso 1: Ingresar correo -->
-    <form id="step1" class="recovery-step active" method="post">
+    <form id="step1" class="recovery-step <?php echo (!isset($goToStep) || $goToStep == 1) ? 'active' : ''; ?>" method="post">
         <div class="form-group">
             <label for="recovery-email">Correo electrónico</label>
-            <input
-                type="email"
-                id="recovery-email"
-                name="recovery_email"
-                class="input-field"
-                placeholder="tu@email.com"
-                required>
+            <input type="email" id="recovery-email" name="recovery_email" class="input-field" placeholder="tu@email.com" required>
         </div>
         <button type="submit" class="login-button">Enviar código</button>
     </form>
 
     <!-- Paso 2: Ingresar código -->
-    <form id="step2" class="recovery-step">
+    <form id="step2" class="recovery-step <?php echo (isset($goToStep) && $goToStep == 2) ? 'active' : ''; ?>" method="post">
         <div class="form-group">
             <label for="verification-code">Código de verificación</label>
-            <input
-                type="text"
-                id="verification-code"
-                class="input-field"
-                placeholder="Ingresa el código"
-                required>
+            <input type="text" id="verification-code" name="verification_code" class="input-field" placeholder="Ingresa el código" required>
         </div>
-        <button type="button" class="login-button" onclick="goToStep(3)">Verificar</button>
+        <button type="submit" class="login-button">Verificar</button>
     </form>
 
     <!-- Paso 3: Nueva contraseña -->
-    <form id="step3" class="recovery-step" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
-        <input type="hidden" name="action" value="reset_password">
-
+    <form id="step3" class="recovery-step <?php echo (isset($goToStep) && $goToStep == 3) ? 'active' : ''; ?>" method="post">
         <div class="form-group">
             <label for="new-password">Nueva contraseña</label>
             <div class="password-wrapper">
-                <input
-                    type="password"
-                    id="new-password"
-                    name="new_password"
-                    class="input-field"
-                    placeholder="••••••••"
-                    required>
+                <input type="password" id="new-password" name="new_password" class="input-field" placeholder="••••••••" required>
                 <button type="button" class="toggle-password" onclick="togglePass('new-password', this)">
                     <i class="fa-solid fa-eye"></i>
                 </button>
@@ -111,13 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recovery_email'])) {
         <div class="form-group">
             <label for="confirm-password">Repetir contraseña</label>
             <div class="password-wrapper">
-                <input
-                    type="password"
-                    id="confirm-password"
-                    name="confirm_password"
-                    class="input-field"
-                    placeholder="••••••••"
-                    required>
+                <input type="password" id="confirm-password" name="confirm_password" class="input-field" placeholder="••••••••" required>
                 <button type="button" class="toggle-password" onclick="togglePass('confirm-password', this)">
                     <i class="fa-solid fa-eye"></i>
                 </button>
@@ -129,13 +179,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recovery_email'])) {
 </div>
 
 <script>
-// Cambiar de paso manualmente (solo frontend)
-function goToStep(step) {
-    document.querySelectorAll(".recovery-step").forEach(f => f.classList.remove("active"));
-    document.getElementById("step" + step).classList.add("active");
-}
-
-// Mostrar/ocultar contraseña
 function togglePass(fieldId, btn) {
     const input = document.getElementById(fieldId);
     const icon = btn.querySelector("i");
@@ -152,7 +195,6 @@ function togglePass(fieldId, btn) {
 </script>
 
 <style>
-/* Ocultar formularios excepto el activo */
 .recovery-step { display: none; }
 .recovery-step.active { display: block; }
 </style>

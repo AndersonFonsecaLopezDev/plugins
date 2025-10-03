@@ -112,6 +112,15 @@ function lu_procesar_login_form() {
 }
 
 
+// Shortcode para mostrar la página de recuperación de contraseña
+function lu_forgot_password_shortcode() {
+    ob_start();
+    include plugin_dir_path(__FILE__) . 'lu-forgot.php';
+    return ob_get_clean();
+}
+add_shortcode('lu_forgot_password', 'lu_forgot_password_shortcode');
+
+
 
 // Hooks para procesar el action=custom_login
 add_action('admin_post_nopriv_custom_login', 'lu_procesar_login_form');

@@ -52,7 +52,7 @@
             <div class="error-message" id="password-error">La contraseña es requerida</div>
         </div>
 
-        <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+        <a href="<?php echo site_url('/recuperacion-contasena'); ?>" class="forgot-password">¿Olvidaste tu contraseña?</a>
 
         <button type="submit" class="login-button">Iniciar sesión</button>
 

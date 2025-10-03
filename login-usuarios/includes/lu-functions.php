@@ -31,6 +31,11 @@ function lu_Add_My_Admin_Link() {
     );
 }
 
+/**
+ * Renderiza la página de login
+ *
+ * @return void
+ */
 function lu_render_admin_page() {
     include_once plugin_dir_path(__FILE__) . 'lu-login-page.php';
 }
@@ -48,7 +53,9 @@ add_shortcode('login-usuarios', 'mostrar_login_usuarios');
 require_once plugin_dir_path(__FILE__) . 'lu-jwt.php';
  
 /**
- * Procesar login desde el formulario
+ * Procesa el formulario de login
+ *
+ * @return void
  */
 function lu_procesar_login_form() {
     global $wpdb;
@@ -76,10 +83,11 @@ function lu_procesar_login_form() {
         wp_die('Contraseña incorrecta.');
     }
 
-    // 3. Validar estado
-    if (isset($user->estado) && $user->estado !== 'activo') {
-        wp_die('Tu cuenta no está activa.');
+    // 3. Validar estado del email
+    if ((int) $user->email_verificado !== 1) {
+        wp_die('Debes verificar tu correo antes de iniciar sesión.');
     }
+    
 
     // 4. Revisar si existe en wp_users
     $wp_user = get_user_by('email', $email);

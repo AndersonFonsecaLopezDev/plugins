@@ -57,7 +57,7 @@
         <button type="submit" class="login-button">Iniciar sesión</button>
 
         <div class="signup-link">
-            ¿No tienes una cuenta? <a href="#">Regístrate</a>
+            ¿No tienes una cuenta? <a href="<?php echo site_url('/pagina-registro'); ?>">Regístrate</a>
         </div>
     </form>
 </div>

@@ -277,7 +277,7 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
     </div>
   </div>
 
-  <form id="registerForm" action="" method="post">
+  <form id="registerForm" method="post" novalidate>
     <!-- Paso 1 -->
     <div class="step-section active" id="step1">
       <h2 class="form-title mb-4">Crear cuenta</h2>

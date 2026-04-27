@@ -21,26 +21,43 @@ function be_plugin_activate() {
     add_role('secretario', 'Secretario', ['read' => true]);
     add_role('talento_humano', 'Talento Humano', ['read' => true]);
 
-    // Modificar tabla wp_aess_users
+    // Crear/Modificar tabla wp_aess_users
     $table_name = $wpdb->prefix . 'aess_users';
     
-    // Lista de columnas a agregar
-    $columns = [
-        'academico' => "VARCHAR(255) DEFAULT ''",
-        'profesion' => "VARCHAR(255) DEFAULT ''",
-        'estado_laboral' => "VARCHAR(100) DEFAULT ''",
-        'libreta_militar' => "VARCHAR(100) DEFAULT ''",
-        'experiencia' => "TEXT",
-        'diploma' => "VARCHAR(255) DEFAULT ''",
-        'estatura' => "VARCHAR(50) DEFAULT ''",
-        'barrio' => "VARCHAR(255) DEFAULT ''",
-        'cv_aprobado' => "TINYINT(1) DEFAULT 0"
-    ];
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    $charset_collate = $wpdb->get_charset_collate();
 
-    foreach ($columns as $column_name => $column_definition) {
-        $column_exists = $wpdb->get_results("SHOW COLUMNS FROM {$table_name} LIKE '{$column_name}'");
-        if (empty($column_exists)) {
-            $wpdb->query("ALTER TABLE {$table_name} ADD COLUMN {$column_name} {$column_definition}");
-        }
-    }
+    $sql = "CREATE TABLE $table_name (
+        ID bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+        first_name varchar(100) NOT NULL,
+        middle_name varchar(100) DEFAULT '',
+        last_name varchar(100) NOT NULL,
+        second_last_name varchar(100) DEFAULT '',
+        national_id varchar(50) NOT NULL,
+        gender varchar(50) DEFAULT '',
+        birth_date date,
+        departamento varchar(100) DEFAULT '',
+        city varchar(100) DEFAULT '',
+        phone_number varchar(50) DEFAULT '',
+        email varchar(100) NOT NULL,
+        address varchar(255) DEFAULT '',
+        user_role varchar(50) DEFAULT 'estudiante',
+        contrasena varchar(255) NOT NULL,
+        codigo_activacion varchar(50) DEFAULT '',
+        fecha_activacion datetime,
+        email_verificado tinyint(1) DEFAULT 0,
+        academico varchar(255) DEFAULT '',
+        profesion varchar(255) DEFAULT '',
+        estado_laboral varchar(100) DEFAULT '',
+        libreta_militar varchar(100) DEFAULT '',
+        experiencia text,
+        diploma varchar(255) DEFAULT '',
+        estatura varchar(50) DEFAULT '',
+        barrio varchar(255) DEFAULT '',
+        cv_aprobado tinyint(1) DEFAULT 0,
+        PRIMARY KEY  (ID),
+        UNIQUE KEY email (email)
+    ) $charset_collate;";
+
+    dbDelta($sql);
 }

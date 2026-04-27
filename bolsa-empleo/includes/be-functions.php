@@ -17,7 +17,8 @@ function be_Add_My_Admin_Link()
     plugin_dir_url(__FILE__) . '../admin/img/icon.png', // Icono del menu
     1
   );
-  // Agregar el submenu de Ajustes
+  // La pestaña de ajustes se ocultó a petición del usuario
+  /*
   add_submenu_page(
     plugin_dir_path(__FILE__) . 'be-first-page.php', // Parent slug
     'Ajustes', // Titulo de la pagina
@@ -26,6 +27,7 @@ function be_Add_My_Admin_Link()
     plugin_dir_path(__FILE__) . 'be-menu-ajustes.php', // slug
     null
   );
+  */
   
   // Agregar submenu de Cursos Vencidos (solo para secretario y admin)
   add_submenu_page(
@@ -143,12 +145,12 @@ function beGetCv() {
     ID,
     first_name AS 'Nombres',
     last_name AS 'Apellidos',
-    gender AS 'Género',
-    TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) AS 'Edad',
+    gender AS 'Genero',
+    birth_date AS 'Edad',
     city AS 'Ciudad',
     phone_number AS 'Celular',
     email AS 'Correo',
-    academico AS 'Académico',
+    academico AS 'Academico',
     profesion AS 'Profesion',
     estado_laboral AS 'Estado',
     libreta_militar AS 'Libreta_militar',
@@ -156,14 +158,18 @@ function beGetCv() {
     diploma AS 'Diploma',
     estatura AS 'Estatura',
     barrio AS 'Barrio',
-    address AS 'Dirección',
+    address AS 'Direccion',
     departamento AS 'Departamento',
-    phone_number AS 'Teléfono',
-    national_id AS 'Cédula',
+    national_id AS 'Cedula',
     cv_aprobado AS 'Aprobado'
 FROM $table $where_clause;";
 
   $response = $wpdb->get_results($sql);
+  
+  if ($wpdb->last_error) {
+      wp_send_json([['Nombres' => 'Error SQL: ' . $wpdb->last_error]]);
+  }
+
   wp_send_json($response);
 }
 

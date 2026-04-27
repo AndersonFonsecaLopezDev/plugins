@@ -3,23 +3,7 @@
 add_action('admin_menu', 'ru_Add_My_Admin_Link');
 
 function ru_Add_My_Admin_Link(){
-    add_menu_page(
-    'Registro usuarios',               // Título de la página
-    'Registro usuarios',               // Texto en el menú
-    'manage_options',                  // Permiso requerido
-    'registro-usuarios',              // Slug único del menú
-    'ru_render_admin_page',           // Callback para mostrar la página principal
-    'dashicons-admin-users',          // Icono del menú
-        1
-    );  
-    add_submenu_page(
-        'registro-usuarios',               // SLUG del menú padre
-    'Ajustes',                         // Título de la página de ajustes
-    'Ajustes',                         // Texto en el submenú
-    'manage_options',                  // Permiso requerido
-    'registro-usuarios-ajustes',       // Slug del submenú
-    'ru_render_ajustes_registro'       // Callback para mostrar la página de ajustes
-    );
+    
 }
 
 

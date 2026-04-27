@@ -125,6 +125,14 @@ function beGetCv() {
 
   $table = $wpdb->prefix . 'aess_users';
   
+  // ASEGURAR QUE LAS COLUMNAS EXISTAN (Por si no se reactivó el plugin)
+  $required_columns = ['academico' => 'VARCHAR(255)', 'profesion' => 'VARCHAR(255)', 'estado_laboral' => 'VARCHAR(100)', 'libreta_militar' => 'VARCHAR(100)', 'experiencia' => 'TEXT', 'diploma' => 'VARCHAR(255)', 'estatura' => 'VARCHAR(50)', 'barrio' => 'VARCHAR(255)', 'cv_aprobado' => 'TINYINT(1) DEFAULT 0'];
+  foreach ($required_columns as $col => $def) {
+      if (empty($wpdb->get_results("SHOW COLUMNS FROM {$table} LIKE '{$col}'"))) {
+          $wpdb->query("ALTER TABLE {$table} ADD COLUMN {$col} {$def}");
+      }
+  }
+
   // Condicional de rol: si es talento_humano, solo ve los aprobados.
   $where_clause = "";
   if (current_user_can('talento_humano') && !current_user_can('secretario')) {

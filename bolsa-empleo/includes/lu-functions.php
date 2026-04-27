@@ -20,15 +20,7 @@ require_once plugin_dir_path(__FILE__) . 'ru-password.php';
 add_action('admin_menu', 'lu_Add_My_Admin_Link');
 
 function lu_Add_My_Admin_Link() {
-    add_menu_page(
-        'Login usuarios',
-        'Login usuarios',
-        'manage_options',
-        'login-usuarios',
-        'lu_render_admin_page',
-        'dashicons-admin-users',
-        1
-    );
+    // add_menu_page removed as per user request to not show in admin
 }
 
 /**

@@ -28,7 +28,7 @@ jQuery(document).ready(function ($) {
                 orderable: false,
                 searchable: false,
                 defaultContent: `
-                    <button class="btn btn-sm btn-primary btn-download">Descargar</button>
+                    <button class="btn btn-sm btn-secondary btn-download">Descargar</button>
                 `
             }
         ],

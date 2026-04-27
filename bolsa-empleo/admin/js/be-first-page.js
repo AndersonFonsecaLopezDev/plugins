@@ -46,6 +46,29 @@ jQuery(document).ready(function ($) {
             { data: 'Departamento' },
             { data: 'Teléfono' },
             { data: 'Cédula' },
+            { 
+                data: 'Aprobado',
+                render: function(data, type, row) {
+                    if (data == 1) {
+                        return '<span style="color: green; font-weight: bold;">Sí</span>';
+                    } else {
+                        return '<span style="color: orange; font-weight: bold;">Pendiente</span>';
+                    }
+                }
+            },
+            {
+                data: null,
+                render: function(data, type, row) {
+                    if (!personal_ajax_request.is_secretario) {
+                        return '<span style="color:gray;">Sin permisos</span>';
+                    }
+                    if (row.Aprobado == 1) {
+                        return '<button class="btn-aprobar button button-secondary" data-id="' + row.ID + '" data-status="0">Revocar</button>';
+                    } else {
+                        return '<button class="btn-aprobar button button-primary" data-id="' + row.ID + '" data-status="1">Aprobar</button>';
+                    }
+                }
+            }
         ],
         language: {
             url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/es-MX.json',
@@ -151,6 +174,39 @@ jQuery(document).ready(function ($) {
         }
 
         e.preventDefault(); // Prevent actual form submission
+    });
+
+    // Delegación de eventos para botones de aprobación
+    $('#principalTable tbody').on('click', '.btn-aprobar', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var status = $(this).data('status');
+        var btn = $(this);
+        
+        btn.prop('disabled', true);
+        
+        $.ajax({
+            type: "POST",
+            url: personal_ajax_request.url,
+            data: {
+                action: "approve_cv",
+                nonce: personal_ajax_request.security,
+                id: id,
+                status: status
+            },
+            success: function(response) {
+                if (response.success) {
+                    table.ajax.reload(null, false); // recargar datos sin perder paginación
+                } else {
+                    alert("Error: " + response.data);
+                    btn.prop('disabled', false);
+                }
+            },
+            error: function() {
+                alert("Error de conexión");
+                btn.prop('disabled', false);
+            }
+        });
     });
 
 });

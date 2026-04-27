@@ -17,7 +17,7 @@ function be_Add_My_Admin_Link()
     plugin_dir_url(__FILE__) . '../admin/img/icon.png', // Icono del menu
     1
   );
-  // Agregar el submenu
+  // Agregar el submenu de Ajustes
   add_submenu_page(
     plugin_dir_path(__FILE__) . 'be-first-page.php', // Parent slug
     'Ajustes', // Titulo de la pagina
@@ -26,7 +26,22 @@ function be_Add_My_Admin_Link()
     plugin_dir_path(__FILE__) . 'be-menu-ajustes.php', // slug
     null
   );
+  
+  // Agregar submenu de Cursos Vencidos (solo para secretario y admin)
+  add_submenu_page(
+    plugin_dir_path(__FILE__) . 'be-first-page.php',
+    'Cursos Vencidos',
+    'Cursos Vencidos',
+    'secretario', // Capability
+    'be-cursos-vencidos',
+    'be_render_cursos_vencidos'
+  );
 }
+
+function be_render_cursos_vencidos() {
+    include_once plugin_dir_path(__FILE__) . 'be-cursos-vencidos.php';
+}
+
 // Cargar JS de Bootstrap
 function beLoadBootstrapJS($hook)
 {
@@ -80,7 +95,8 @@ function beLoadJS($hook)
   wp_enqueue_script('be_personal_js', plugins_url('../admin/js/be-first-page.js', __FILE__));
   wp_localize_script('be_personal_js', 'personal_ajax_request', [
     'url' => admin_url('admin-ajax.php'),
-    'security' => wp_create_nonce('seg')
+    'security' => wp_create_nonce('seg'),
+    'is_secretario' => current_user_can('secretario') || current_user_can('manage_options')
   ]);
 }
 
@@ -100,57 +116,78 @@ add_action('admin_enqueue_scripts', 'beLoadCSS');
 
 // Ajax
 function beGetCv() {
-  
   $nonce = $_POST['nonce'];
   // Verificacion de seguridad
   if (!wp_verify_nonce($nonce, 'seg')) {
     die('No tiene permisos para ejecutar');
   }
   global $wpdb;
+
+  $table = $wpdb->prefix . 'aess_users';
+  
+  // Condicional de rol: si es talento_humano, solo ve los aprobados.
+  $where_clause = "";
+  if (current_user_can('talento_humano') && !current_user_can('secretario')) {
+      $where_clause = " WHERE cv_aprobado = 1";
+  }
   
   $sql = "SELECT 
-    p.ID,
-    MAX(CASE WHEN pm.meta_key = 'jobapp_nombre' THEN pm.meta_value END) AS 'Nombres',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_apellidos' THEN pm.meta_value END) AS 'Apellidos',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_sexo' THEN pm.meta_value END) AS 'Género',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_edad' THEN pm.meta_value END) AS 'Edad',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_ciudad' THEN pm.meta_value END) AS 'Ciudad',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_celular' THEN pm.meta_value END) AS 'Celular',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_correo' THEN pm.meta_value END) AS 'Correo',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_academico' THEN pm.meta_value END) AS 'Académico',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_profesion' THEN pm.meta_value END) AS 'Profesion',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_estado' THEN pm.meta_value END) AS 'Estado',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_libreta_militar' THEN pm.meta_value END) AS 'Libreta_militar',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_experiencia' THEN pm.meta_value END) AS 'Experiencia',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_diploma' THEN pm.meta_value END) AS 'Diploma',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_estatura' THEN pm.meta_value END) AS 'Estatura',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_barrio' THEN pm.meta_value END) AS 'Barrio',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_direccion' THEN pm.meta_value END) AS 'Dirección',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_departamento' THEN pm.meta_value END) AS 'Departamento',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_telefono' THEN pm.meta_value END) AS 'Teléfono',
-    MAX(CASE WHEN pm.meta_key = 'jobapp_cedula' THEN pm.meta_value END) AS 'Cédula'
-FROM 
-    aesswp_posts p
-    INNER JOIN aesswp_postmeta pm ON p.ID = pm.post_id
-WHERE 
-    p.post_type = 'jobpost_applicants'
-    AND p.post_status = 'publish'
-    AND pm.meta_key IN (
-        'jobapp_nombre', 'jobapp_apellidos', 'jobapp_sexo',
-        'jobapp_edad', 'jobapp_ciudad', 'jobapp_celular',
-        'jobapp_correo', 'jobapp_academico', 'jobapp_profesion',
-        'jobapp_estado', 'jobapp_libreta_militar', 'jobapp_experiencia',
-        'jobapp_diploma', 'jobapp_estatura', 'jobapp_barrio',
-        'jobapp_direccion', 'jobapp_departamento', 'jobapp_telefono',
-        'jobapp_cedula'
-    )
-GROUP BY 
-    p.ID;";
-  
+    ID,
+    first_name AS 'Nombres',
+    last_name AS 'Apellidos',
+    gender AS 'Género',
+    TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) AS 'Edad',
+    city AS 'Ciudad',
+    phone_number AS 'Celular',
+    email AS 'Correo',
+    academico AS 'Académico',
+    profesion AS 'Profesion',
+    estado_laboral AS 'Estado',
+    libreta_militar AS 'Libreta_militar',
+    experiencia AS 'Experiencia',
+    diploma AS 'Diploma',
+    estatura AS 'Estatura',
+    barrio AS 'Barrio',
+    address AS 'Dirección',
+    departamento AS 'Departamento',
+    phone_number AS 'Teléfono',
+    national_id AS 'Cédula',
+    cv_aprobado AS 'Aprobado'
+FROM $table $where_clause;";
 
   $response = $wpdb->get_results($sql);
-
   wp_send_json($response);
 }
 
 add_action('wp_ajax_get_cvs', 'beGetCv');
+
+// Shortcode para la hoja de vida del estudiante
+function be_student_cv_shortcode() {
+    ob_start();
+    include plugin_dir_path(__FILE__) . 'be-student-cv.php';
+    return ob_get_clean();
+}
+add_shortcode('mi_hoja_de_vida', 'be_student_cv_shortcode');
+
+// Action para aprobar/rechazar CV por el Secretario
+function be_approve_cv() {
+    $nonce = $_POST['nonce'];
+    if (!wp_verify_nonce($nonce, 'seg') || !current_user_can('secretario')) {
+        wp_send_json_error('No tiene permisos para ejecutar esta acción.');
+    }
+    
+    global $wpdb;
+    $id = intval($_POST['id']);
+    $status = intval($_POST['status']);
+    
+    $table = $wpdb->prefix . 'aess_users';
+    $result = $wpdb->update($table, ['cv_aprobado' => $status], ['ID' => $id]);
+    
+    if ($result !== false) {
+        wp_send_json_success('Estado actualizado.');
+    } else {
+        wp_send_json_error('Error al actualizar.');
+    }
+}
+add_action('wp_ajax_approve_cv', 'be_approve_cv');
+

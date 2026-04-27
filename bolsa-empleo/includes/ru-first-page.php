@@ -57,7 +57,20 @@ function guardar_usuario_en_bd($datos)
       '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'
     ];
     $inserted = $wpdb->insert($table, $data, $format);
+    
     if ($inserted) {
+      // Create WP User
+      $wp_user = get_user_by('email', $email);
+      if (!$wp_user) {
+        $username = sanitize_user(current(explode('@', $email)));
+        $user_id  = wp_create_user($username, $datos['password'], $email);
+        if (!is_wp_error($user_id)) {
+            wp_update_user([
+                'ID'   => $user_id,
+                'role' => 'estudiante',
+            ]);
+        }
+      }
   include_once __DIR__ . '/ru-mail.php';
   $asunto = "=?UTF-8?B?" . base64_encode("Código de activación de tu cuenta") . "?=";
   $mensaje_html = '

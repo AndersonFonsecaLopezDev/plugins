@@ -30,6 +30,8 @@
       <th>Departamento</th>
       <th>Teléfono</th>
       <th>Cédula</th>
+      <th>Aprobado</th>
+      <th>Acciones</th>
     </thead>
     <tbody id="principalBodyTable" class="the-list">
     </tbody>
@@ -54,6 +56,8 @@
       <th>Departamento</th>
       <th>Teléfono</th>
       <th>Cédula</th>
+      <th>Aprobado</th>
+      <th>Acciones</th>
     </tfoot>
   </table>
 </div>

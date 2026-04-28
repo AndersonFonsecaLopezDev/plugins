@@ -8,16 +8,21 @@ function enviar_correo_login($para, $asunto, $mensaje_html) {
     $mail = new PHPMailer(true);
 
     try {
+        // Obtener configuración desde las opciones de WordPress
+        $email_remitente = get_option('be_email_remitente', 'juansepulveda8010@gmail.com');
+        $email_password = get_option('be_email_password', 'ukwv yeqq gphc jzkk');
+        $nombre_remitente = get_option('be_email_nombre_remitente', 'Academia Aess');
+        
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';
         $mail->CharSet = 'UTF-8';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'juansepulveda8010@gmail.com'; // Cambia esto
-        $mail->Password   = 'ukwv yeqq gphc jzkk'; // Cambia esto
+        $mail->Username   = $email_remitente;
+        $mail->Password   = $email_password;
         $mail->SMTPSecure = 'tls';
         $mail->Port       = 587;
 
-        $mail->setFrom('juansepulveda8010@gmail.com', 'Academia Aess'); // Cambia esto
+        $mail->setFrom($email_remitente, $nombre_remitente);
         $mail->addAddress($para);
 
        

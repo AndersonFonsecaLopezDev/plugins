@@ -22,6 +22,25 @@
       <td><input type="text" name="be_terms_url" value="<?php echo esc_attr(get_option('be_terms_url', '#')); ?>" class="regular-text" /></td>
       </tr>
     </table>
+    
+    <h2 class="title">Configuración de Correo</h2>
+    <table class="form-table">
+      <tr valign="top">
+      <th scope="row">Correo Remitente (Email)</th>
+      <td><input type="email" name="be_email_remitente" value="<?php echo esc_attr(get_option('be_email_remitente', 'juansepulveda8010@gmail.com')); ?>" class="regular-text" required placeholder="ejemplo@gmail.com" />
+      <p class="description">Correo desde el que se enviarán los emails de activación y recuperación de contraseña.</p></td>
+      </tr>
+      <tr valign="top">
+      <th scope="row">Contraseña de Correo</th>
+      <td><input type="password" name="be_email_password" value="<?php echo esc_attr(get_option('be_email_password', 'ukwv yeqq gphc jzkk')); ?>" class="regular-text" required placeholder="Contraseña de aplicación" />
+      <p class="description">Para Gmail, usa una <a href="https://myaccount.google.com/apppasswords" target="_blank">contraseña de aplicación</a>.</p></td>
+      </tr>
+      <tr valign="top">
+      <th scope="row">Nombre del Remitente</th>
+      <td><input type="text" name="be_email_nombre_remitente" value="<?php echo esc_attr(get_option('be_email_nombre_remitente', 'Academia Aess')); ?>" class="regular-text" placeholder="Ej: Academia Aess" />
+      <p class="description">Nombre que aparecerá como remitente en los correos.</p></td>
+      </tr>
+    </table>
     <?php submit_button(); ?>
   </form>
 </div>

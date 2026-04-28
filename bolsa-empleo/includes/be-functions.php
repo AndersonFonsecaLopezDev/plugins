@@ -50,6 +50,9 @@ function be_register_settings() {
     register_setting('be_settings_group', 'be_register_url');
     register_setting('be_settings_group', 'be_forgot_password_url');
     register_setting('be_settings_group', 'be_terms_url');
+    register_setting('be_settings_group', 'be_email_remitente');
+    register_setting('be_settings_group', 'be_email_password');
+    register_setting('be_settings_group', 'be_email_nombre_remitente');
 }
 add_action('admin_init', 'be_register_settings');
 

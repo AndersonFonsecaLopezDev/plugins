@@ -129,3 +129,27 @@ add_shortcode('lu_forgot_password', 'lu_forgot_password_shortcode');
 // Hooks para procesar el action=custom_login
 add_action('admin_post_nopriv_custom_login', 'lu_procesar_login_form');
 add_action('admin_post_custom_login', 'lu_procesar_login_form');
+
+// Bloquear acceso al dashboard de WordPress para estudiantes
+function be_block_admin_access() {
+    if (is_admin() && !wp_doing_ajax()) {
+        if (!current_user_can('manage_options') && !current_user_can('secretario') && !current_user_can('talento_humano')) {
+            $redirect_url = get_option('be_login_redirect_url');
+            if (empty($redirect_url)) {
+                $redirect_url = home_url('/');
+            }
+            wp_safe_redirect($redirect_url);
+            exit;
+        }
+    }
+}
+add_action('admin_init', 'be_block_admin_access');
+
+// Ocultar la barra de administración en el frontend para estudiantes
+function be_hide_admin_bar($show) {
+    if (!current_user_can('manage_options') && !current_user_can('secretario') && !current_user_can('talento_humano')) {
+        return false;
+    }
+    return $show;
+}
+add_filter('show_admin_bar', 'be_hide_admin_bar');

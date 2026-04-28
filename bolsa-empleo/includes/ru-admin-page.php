@@ -25,8 +25,12 @@ add_action('wp_ajax_get_all_users', function() {
 ?>
 <div class="wrap">
   <?php
+  $logout_url = wp_logout_url(get_option('be_login_url', site_url('/pagina-login')));
   echo '
-    <h1>' . get_admin_page_title() . '</h1>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+      <h1>' . get_admin_page_title() . '</h1>
+      <a href="' . esc_url($logout_url) . '" class="button button-secondary">Cerrar sesión</a>
+    </div>
   ';
   ?>
   <p>Listado de usuarios registrados</p>

@@ -1,6 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 :root {
   --primary-color: #034C8C;
   --secondary-color: #D9C077;
+  --bg-color: #f4f7f6;
+  --text-color: #333333;
+  --error-color: #e74c3c;
+  --input-border: #e0e0e0;
+  --input-focus: #034C8C;
+}
+
+body.bg-light {
+    font-family: 'Inter', sans-serif !important;
+    background: linear-gradient(135deg, #f4f7f6 0%, #e0eaf5 100%) !important;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: var(--text-color);
+}
+
+.login-container {
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(3, 76, 140, 0.08);
+    width: 100%;
+    max-width: 600px;
+    padding: 40px;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    margin: 40px auto;
+}
+
+.login-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
 }
 
 .step-section {
@@ -11,38 +53,101 @@
   display: block;
 }
 
+.form-title {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+/* Inputs */
+.form-control, .form-select {
+    width: 100%;
+    padding: 14px 16px !important;
+    border: 1px solid var(--input-border) !important;
+    border-radius: 8px !important;
+    font-size: 15px !important;
+    transition: all 0.3s ease !important;
+    box-sizing: border-box;
+    background-color: #fcfcfc !important;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-color);
+}
+
+.input-group {
+    display: flex;
+}
+
+.input-group .form-control {
+    width: auto !important;
+    flex: 1 1 auto !important;
+    padding: 14px 16px !important;
+    border: 1px solid var(--input-border) !important;
+    border-right: none !important;
+    border-radius: 8px 0 0 8px !important;
+    font-size: 15px !important;
+    box-sizing: border-box;
+    background-color: #fcfcfc !important;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-color);
+}
+
+.form-control:focus, .form-select:focus, .input-group .form-control:focus {
+    outline: none !important;
+    border-color: var(--input-focus) !important;
+    box-shadow: 0 0 0 3px rgba(3, 76, 140, 0.1) !important;
+    background-color: #ffffff !important;
+}
+
+.input-group .btn {
+    border: 1px solid var(--input-border);
+    border-left: none;
+    background-color: #fcfcfc;
+    border-radius: 0 8px 8px 0;
+}
+
+.form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #555;
+}
+
+/* Buttons */
 .btn-primary {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  font-size: 16px;
-  font-weight: 500;
-  padding: 12px 24px;
-  min-width: 120px;
+    background-color: var(--primary-color) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease !important;
+    box-shadow: 0 4px 10px rgba(3, 76, 140, 0.2) !important;
+    font-family: 'Inter', sans-serif !important;
+    padding: 14px 24px !important;
+}
+
+.btn-primary:hover {
+    background-color: #023666 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 15px rgba(3, 76, 140, 0.3) !important;
 }
 
 .btn-secondary {
-  background-color: var(--secondary-color);
-  border-color: var(--secondary-color);
-  color: black;
-  font-size: 16px;
-  font-weight: 500;
-  padding: 12px 24px;
-  min-width: 120px;
+    background-color: #e0e0e0 !important;
+    color: #333 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease !important;
+    font-family: 'Inter', sans-serif !important;
+    padding: 14px 24px !important;
 }
 
-.form-title {
-  color: var(--primary-color);
-}
-
-.form-container {
-  max-width: 600px;
-  margin: auto;
-  padding: 2rem;
-  background-color: #f8f9fa;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  /* Prevent progress bar overflow */
+.btn-secondary:hover {
+    background-color: #d0d0d0 !important;
 }
 
 .toggle-password {
@@ -57,7 +162,6 @@
   margin-bottom: 2rem;
   position: relative;
   padding: 0 20px;
-  /* Add padding to prevent overflow */
 }
 
 .progress-steps::before {
@@ -68,10 +172,8 @@
   right: 0;
   height: 4px;
   background-color: #e0e0e0;
-  /* línea gris clara base */
   z-index: 0;
   transform: translateY(-50%);
-  /* centrado vertical */
   width: 100%;
 }
 
@@ -84,7 +186,6 @@
   flex-direction: column;
   align-items: center;
   max-width: 80px;
-  /* Limit step width */
 }
 
 .step-circle {
@@ -104,18 +205,19 @@
   font-size: 16px;
   min-width: 40px;
   min-height: 40px;
+  transition: all 0.3s ease;
 }
 
 .step.active .step-circle {
   background-color: var(--secondary-color);
   color: black;
+  box-shadow: 0 4px 10px rgba(217, 192, 119, 0.4);
 }
 
 .step-label {
   margin-top: 0.5rem;
   font-weight: bold;
   font-size: 12px;
-  /* Smaller font size */
   text-align: center;
   width: 100%;
   line-height: 1.2;
@@ -138,25 +240,6 @@
   margin-bottom: 1rem;
 }
 
-/* Make select elements same width as other inputs */
-.form-control {
-  width: 100%;
-}
-
-select.form-control,
-.form-control[type="select"] {
-  width: 100% !important;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-select,
-select.form-control,
-select.form-select {
-  width: 100% !important;
-  display: block !important;
-}
-
 /* Button container for consistent sizing */
 .btn-container {
   display: flex;
@@ -167,7 +250,6 @@ select.form-select {
 
 .btn-container .btn {
   flex: 1;
-  max-width: 200px;
 }
 
 .btn-single {
@@ -183,6 +265,18 @@ select.form-select {
 }
 
 .is-invalid {
-  border-color: #dc3545;
-  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 30px 20px;
+        border-radius: 0;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
 }

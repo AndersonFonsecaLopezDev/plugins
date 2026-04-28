@@ -6,6 +6,7 @@ require_once __DIR__ . '/ru-localitations.php';
 // Inicializar arrays de departamentos y ciudades
 $departamentos = ru_get_departamentos_colombia();
 $ciudades = ru_get_ciudades_colombia();
+$terms_url = get_option('be_terms_url', '#');
 
 // Función para guardar datos en la base de datos
 /**
@@ -265,6 +266,7 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
     });
   </script>
 
+  <div class="login-container">
   <!-- Título principal antes de la barra de progreso -->
   <h1 class="text-center mb-4" style="color: var(--primary-color); font-weight: bold;">Registro</h1>
 
@@ -319,7 +321,7 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
       <div class="form-check mb-3">
         <input class="form-check-input" type="checkbox" id="termsCheck" required>
         <label class="form-check-label" for="termsCheck">
-          Acepto los <a href="#" target="_blank">términos y condiciones</a> *
+          Acepto los <a href="<?php echo esc_url($terms_url); ?>" target="_blank">términos y condiciones</a> *
         </label>
       </div>
 

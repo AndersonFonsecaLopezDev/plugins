@@ -106,8 +106,12 @@ function lu_procesar_login_form() {
     wp_set_auth_cookie($wp_user->ID, true); // true = remember me
     do_action('wp_login', $wp_user->user_login, $wp_user);
 
-    // 6. Redirigir al home (o a donde quieras)
-    wp_safe_redirect(home_url('/'));
+    // 6. Redirigir al home (o a donde se configure)
+    $redirect_url = get_option('be_login_redirect_url');
+    if (empty($redirect_url)) {
+        $redirect_url = home_url('/');
+    }
+    wp_safe_redirect($redirect_url);
     exit;
 }
 

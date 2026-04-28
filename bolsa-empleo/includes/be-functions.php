@@ -17,17 +17,14 @@ function be_Add_My_Admin_Link()
     plugin_dir_url(__FILE__) . '../admin/img/icon.png', // Icono del menu
     1
   );
-  // La pestaña de ajustes se ocultó a petición del usuario
-  /*
   add_submenu_page(
     plugin_dir_path(__FILE__) . 'be-first-page.php', // Parent slug
     'Ajustes', // Titulo de la pagina
     'Ajustes', // Titulo del menu
     'manage_options', // Capability requirement to see the link
-    plugin_dir_path(__FILE__) . 'be-menu-ajustes.php', // slug
-    null
+    'be-menu-ajustes', // slug
+    'be_render_ajustes'
   );
-  */
   
   // Agregar submenu de Cursos Vencidos (solo para secretario y admin)
   add_submenu_page(
@@ -43,6 +40,18 @@ function be_Add_My_Admin_Link()
 function be_render_cursos_vencidos() {
     include_once plugin_dir_path(__FILE__) . 'be-cursos-vencidos.php';
 }
+
+function be_render_ajustes() {
+    include_once plugin_dir_path(__FILE__) . 'be-menu-ajustes.php';
+}
+
+function be_register_settings() {
+    register_setting('be_settings_group', 'be_login_redirect_url');
+    register_setting('be_settings_group', 'be_register_url');
+    register_setting('be_settings_group', 'be_forgot_password_url');
+    register_setting('be_settings_group', 'be_terms_url');
+}
+add_action('admin_init', 'be_register_settings');
 
 // Cargar JS de Bootstrap
 function beLoadBootstrapJS($hook)

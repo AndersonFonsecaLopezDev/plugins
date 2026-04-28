@@ -3,6 +3,8 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+$register_url = get_option('be_register_url', site_url('/pagina-registro'));
+$forgot_password_url = get_option('be_forgot_password_url', site_url('/recuperacion-contasena'));
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -263,12 +265,12 @@ if (!defined('ABSPATH')) {
             <div class="error-message" id="password-error">La contraseña es requerida</div>
         </div>
 
-        <a href="<?php echo site_url('/recuperacion-contasena'); ?>" class="forgot-password">¿Olvidaste tu contraseña?</a>
+        <a href="<?php echo esc_url($forgot_password_url); ?>" class="forgot-password">¿Olvidaste tu contraseña?</a>
 
         <button type="submit" class="login-button">Iniciar sesión</button>
 
         <div class="signup-link">
-            ¿No tienes una cuenta? <a href="<?php echo site_url('/pagina-registro'); ?>">Regístrate</a>
+            ¿No tienes una cuenta? <a href="<?php echo esc_url($register_url); ?>">Regístrate</a>
         </div>
     </form>
 </div>

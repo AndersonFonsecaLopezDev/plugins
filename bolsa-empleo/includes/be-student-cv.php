@@ -187,7 +187,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                         <a href="<?php echo esc_url($user_data['cv_file']); ?>" target="_blank" class="btn btn-outline-primary" style="padding: 6px 12px; font-size: 14px;">📄 Ver Archivo Actual</a>
                     </div>
                 <?php endif; ?>
-                <input type="file" class="form-control" name="cv_file_upload" accept=".pdf,.doc,.docx">
+                <div class="file-upload-wrapper">
+                    <input type="file" class="cv-file-input" id="cv_file_upload" name="cv_file_upload" accept=".pdf,.doc,.docx">
+                    <label for="cv_file_upload" class="file-upload-label">
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <span class="file-text">Arrastra tu CV aquí o haz clic para seleccionar</span>
+                        <span class="file-hint">PDF o Word (máx. 10MB)</span>
+                    </label>
+                    <div class="file-name-display" id="fileNameDisplay"></div>
+                    <div class="progress-container" id="progressContainer" style="display: none;">
+                        <div class="progress-bar" id="progressBar"></div>
+                        <span class="progress-text" id="progressText">0%</span>
+                    </div>
+                </div>
                 <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">Sube un archivo solo si deseas reemplazar el actual.</small>
             </div>
             <div class="col-12 mb-3">
@@ -332,4 +348,217 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
     border-color: #c3e6cb;
     color: #155724;
 }
+
+/* Estilos para carga de archivo mejorada */
+.file-upload-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.cv-file-input {
+    display: none;
+}
+
+.file-upload-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    border: 2px dashed #034C8C;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(3, 76, 140, 0.05) 0%, rgba(217, 192, 119, 0.05) 100%);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.file-upload-label:hover {
+    border-color: #D9C077;
+    background: linear-gradient(135deg, rgba(3, 76, 140, 0.1) 0%, rgba(217, 192, 119, 0.1) 100%);
+    box-shadow: 0 4px 15px rgba(3, 76, 140, 0.1);
+}
+
+.file-upload-label.dragover {
+    border-color: #034C8C;
+    background: linear-gradient(135deg, rgba(3, 76, 140, 0.15) 0%, rgba(217, 192, 119, 0.15) 100%);
+    box-shadow: 0 6px 20px rgba(3, 76, 140, 0.15);
+}
+
+.upload-icon {
+    width: 48px;
+    height: 48px;
+    color: #034C8C;
+    margin-bottom: 12px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.file-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #034C8C;
+    margin-bottom: 4px;
+}
+
+.file-hint {
+    font-size: 13px;
+    color: #777;
+}
+
+.file-name-display {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f0f8ff;
+    border-radius: 8px;
+    color: #034C8C;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    display: none;
+}
+
+.file-name-display.show {
+    display: block;
+}
+
+.progress-container {
+    margin-top: 15px;
+    background-color: #f1f3f5;
+    border-radius: 8px;
+    padding: 8px;
+    position: relative;
+}
+
+.progress-bar {
+    height: 8px;
+    background: linear-gradient(90deg, #034C8C, #D9C077);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.3s ease;
+    box-shadow: 0 2px 5px rgba(3, 76, 140, 0.2);
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    font-size: 12px;
+    font-weight: 600;
+    color: #034C8C;
+}
+
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('cv_file_upload');
+    const fileLabel = document.querySelector('.file-upload-label');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    // Prevenir el comportamiento por defecto del drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        fileLabel.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // Resaltar cuando arrastra archivos
+    ['dragenter', 'dragover'].forEach(eventName => {
+        fileLabel.addEventListener(eventName, () => {
+            fileLabel.classList.add('dragover');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        fileLabel.addEventListener(eventName, () => {
+            fileLabel.classList.remove('dragover');
+        }, false);
+    });
+
+    // Manejar el drop
+    fileLabel.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        fileInput.files = files;
+        handleFileSelect(files[0]);
+    }, false);
+
+    // Manejar selección por click
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+
+    function handleFileSelect(file) {
+        if (!file) return;
+
+        // Validar tipo de archivo
+        const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (!validTypes.includes(file.type)) {
+            alert('Por favor, sube un archivo PDF o Word (.pdf, .doc, .docx)');
+            fileInput.value = '';
+            fileNameDisplay.classList.remove('show');
+            return;
+        }
+
+        // Validar tamaño (máximo 10MB)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+            alert('El archivo es demasiado grande. El tamaño máximo es 10MB.');
+            fileInput.value = '';
+            fileNameDisplay.classList.remove('show');
+            return;
+        }
+
+        // Mostrar nombre del archivo
+        const fileName = file.name;
+        const fileSize = (file.size / 1024 / 1024).toFixed(2);
+        fileNameDisplay.innerHTML = `✓ ${fileName} (${fileSize} MB)`;
+        fileNameDisplay.classList.add('show');
+
+        // Mostrar barra de progreso simulada para archivos grandes
+        if (file.size > 1024 * 1024) { // Mayor a 1MB
+            simulateUploadProgress();
+        }
+    }
+
+    function simulateUploadProgress() {
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 30;
+            if (progress > 90) progress = 90;
+            
+            progressBar.style.width = progress + '%';
+            progressText.textContent = Math.round(progress) + '%';
+
+            if (progress >= 90) {
+                clearInterval(interval);
+            }
+        }, 200);
+
+        // Limpiar cuando se envíe el formulario
+        document.querySelector('form').addEventListener('submit', function() {
+            clearInterval(interval);
+            progressBar.style.width = '100%';
+            progressText.textContent = '100%';
+        });
+    }
+});
+</script>

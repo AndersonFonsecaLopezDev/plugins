@@ -54,8 +54,79 @@ function be_register_settings() {
     register_setting('be_settings_group', 'be_email_remitente');
     register_setting('be_settings_group', 'be_email_password');
     register_setting('be_settings_group', 'be_email_nombre_remitente');
+    register_setting('be_settings_group', 'be_access_bolsa_estudiante');
+    register_setting('be_settings_group', 'be_access_bolsa_secretario');
+    register_setting('be_settings_group', 'be_access_bolsa_talento_humano');
+    register_setting('be_settings_group', 'be_access_certificados_estudiante');
+    register_setting('be_settings_group', 'be_access_certificados_secretario');
+    register_setting('be_settings_group', 'be_access_certificados_talento_humano');
 }
 add_action('admin_init', 'be_register_settings');
+
+function be_get_current_custom_role() {
+    if (!is_user_logged_in()) {
+        return null;
+    }
+
+    $current_user = wp_get_current_user();
+    if (empty($current_user->user_email)) {
+        return null;
+    }
+
+    global $wpdb;
+    $table = $wpdb->prefix . 'aess_users';
+    $role = $wpdb->get_var($wpdb->prepare("SELECT user_role FROM {$table} WHERE email = %s", $current_user->user_email));
+
+    if (!empty($role)) {
+        return $role;
+    }
+
+    if (current_user_can('secretario')) {
+        return 'secretario';
+    }
+    if (current_user_can('talento_humano')) {
+        return 'talento_humano';
+    }
+    if (current_user_can('manage_options')) {
+        return 'administrator';
+    }
+
+    return 'estudiante';
+}
+
+function be_current_user_can_access_feature($feature) {
+    if (current_user_can('manage_options')) {
+        return true;
+    }
+
+    $role = be_get_current_custom_role();
+    if (!$role) {
+        return false;
+    }
+
+    if ($role === 'administrator') {
+        return true;
+    }
+
+    $option_name = 'be_access_' . $feature . '_' . $role;
+    return (bool) get_option($option_name, 1);
+}
+
+function be_current_user_can_access_bolsa() {
+    return be_current_user_can_access_feature('bolsa');
+}
+
+function be_current_user_can_access_certificados() {
+    return be_current_user_can_access_feature('certificados');
+}
+
+function be_restrict_certificate_form_access($content) {
+    if (strpos($content, '[certificate_form') !== false && !be_current_user_can_access_certificados()) {
+        return '<div class="alert alert-warning">No tienes permiso para consultar certificados.</div>';
+    }
+    return $content;
+}
+add_filter('the_content', 'be_restrict_certificate_form_access', 9);
 
 // Cargar JS de Bootstrap
 function beLoadBootstrapJS($hook)
@@ -191,16 +262,20 @@ add_action('wp_ajax_get_cvs', 'beGetCv');
 
 // Shortcode para la hoja de vida del estudiante
 function be_student_cv_shortcode() {
+    if (!be_current_user_can_access_bolsa()) {
+        return '<div class="alert alert-warning">No tienes permiso para ver la Bolsa de Empleo.</div>';
+    }
+
     ob_start();
     include plugin_dir_path(__FILE__) . 'be-student-cv.php';
     return ob_get_clean();
 }
 add_shortcode('mi_hoja_de_vida', 'be_student_cv_shortcode');
 
-// Action para aprobar/rechazar CV por el Secretario
+// Action para aprobar/rechazar CV por el Secretario o Administrador
 function be_approve_cv() {
     $nonce = $_POST['nonce'];
-    if (!wp_verify_nonce($nonce, 'seg') || !current_user_can('secretario')) {
+    if (!wp_verify_nonce($nonce, 'seg') || (!current_user_can('secretario') && !current_user_can('manage_options'))) {
         wp_send_json_error('No tiene permisos para ejecutar esta acción.');
     }
     

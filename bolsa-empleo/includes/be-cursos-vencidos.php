@@ -14,6 +14,16 @@
                     <th>Estado</th>
                 </tr>
             </thead>
+            <tfoot>
+                <tr>
+                    <th>Nombre Completo</th>
+                    <th>Curso</th>
+                    <th>Teléfono</th>
+                    <th>Fecha de Acta</th>
+                    <th>Fecha de Vencimiento</th>
+                    <th>Estado</th>
+                </tr>
+            </tfoot>
             <tbody>
                 <?php
                 // Leer el archivo CSV de consulta-certificados si existe
@@ -75,7 +85,7 @@
 
 <script>
 jQuery(document).ready(function($) {
-    $('#cursosVencidosTable').DataTable({
+    var table = $('#cursosVencidosTable').DataTable({
         language: {
             url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/es-MX.json',
         },
@@ -83,7 +93,26 @@ jQuery(document).ready(function($) {
         dom: 'Bfrtip',
         buttons: [
             'copy', 'csv', 'excel', 'pdf', 'print'
-        ]
+        ],
+        scrollX: true,
+        fixedHeader: {
+            header: true
+        }
+    });
+
+    // Agregar filtros por columna en el footer
+    $('#cursosVencidosTable tfoot th').each(function (i) {
+        var title = $(this).text();
+        $(this).html('<input type="text" placeholder="Buscar ' + title + '" style="width:100%; box-sizing:border-box;" />');
+    });
+
+    table.columns().every(function () {
+        var that = this;
+        $('input', this.footer()).on('keyup change clear', function () {
+            if (that.search() !== this.value) {
+                that.search(this.value).draw();
+            }
+        });
     });
 });
 </script>

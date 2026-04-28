@@ -57,9 +57,6 @@ function be_register_settings() {
     register_setting('be_settings_group', 'be_access_bolsa_estudiante');
     register_setting('be_settings_group', 'be_access_bolsa_secretario');
     register_setting('be_settings_group', 'be_access_bolsa_talento_humano');
-    register_setting('be_settings_group', 'be_access_certificados_estudiante');
-    register_setting('be_settings_group', 'be_access_certificados_secretario');
-    register_setting('be_settings_group', 'be_access_certificados_talento_humano');
 }
 add_action('admin_init', 'be_register_settings');
 
@@ -116,22 +113,15 @@ function be_current_user_can_access_bolsa() {
     return be_current_user_can_access_feature('bolsa');
 }
 
-function be_current_user_can_access_certificados() {
-    return be_current_user_can_access_feature('certificados');
+function be_is_bolsa_admin_page($hook)
+{
+  return strpos($hook, 'be-') !== false || strpos($hook, 'bolsa-empleo') !== false;
 }
-
-function be_restrict_certificate_form_access($content) {
-    if (strpos($content, '[certificate_form') !== false && !be_current_user_can_access_certificados()) {
-        return '<div class="alert alert-warning">No tienes permiso para consultar certificados.</div>';
-    }
-    return $content;
-}
-add_filter('the_content', 'be_restrict_certificate_form_access', 9);
 
 // Cargar JS de Bootstrap
 function beLoadBootstrapJS($hook)
 {
-  if ($hook != "bolsa-empleo/includes/be-first-page.php") {
+  if (!be_is_bolsa_admin_page($hook)) {
     return;
   }
   wp_enqueue_script('be_bootstrap_js', plugins_url('../admin/bootstrap/js/bootstrap.min.js', __FILE__), array('jquery'));
@@ -142,7 +132,7 @@ add_action('admin_enqueue_scripts', 'beLoadBootstrapJS');
 // Cargar CSS de Bootstrap
 function beLoadBootstrapCSS($hook)
 {
-  if ($hook != "bolsa-empleo/includes/be-first-page.php") {
+  if (!be_is_bolsa_admin_page($hook)) {
     return;
   }
   wp_enqueue_style('be_bootstrap_css', plugins_url('../admin/bootstrap/css/bootstrap.min.css', __FILE__));
@@ -153,7 +143,7 @@ add_action('admin_enqueue_scripts', 'beLoadBootstrapCSS');
 // Cargar JS de dataTables
 function beLoadDataTablesJS($hook)
 {
-  if ($hook != "bolsa-empleo/includes/be-first-page.php") {
+  if (!be_is_bolsa_admin_page($hook)) {
     return;
   }
   wp_enqueue_script('dataTables_js', plugins_url('../admin/js/datatables.min.js', __FILE__), array('jquery'));
@@ -164,7 +154,7 @@ add_action('admin_enqueue_scripts', 'beLoadDataTablesJS');
 // Cargar CSS de dataTables
 function beLoadDataTablesCSS($hook)
 {
-  if ($hook != "bolsa-empleo/includes/be-first-page.php") {
+  if (!be_is_bolsa_admin_page($hook)) {
     return;
   }
   wp_enqueue_style('dataTables_css', plugins_url('../admin/css/datatables.min.css', __FILE__));
@@ -175,7 +165,7 @@ add_action('admin_enqueue_scripts', 'beLoadDataTablesCSS');
 // Cargar JS personalizado
 function beLoadJS($hook)
 {
-  if ($hook != "bolsa-empleo/includes/be-first-page.php") {
+  if (!be_is_bolsa_admin_page($hook)) {
     return;
   }
   wp_enqueue_script('be_personal_js', plugins_url('../admin/js/be-first-page.js', __FILE__));

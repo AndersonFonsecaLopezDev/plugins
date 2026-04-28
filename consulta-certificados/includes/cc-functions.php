@@ -19,16 +19,16 @@ function cc_Add_My_Admin_Link()
     plugin_dir_url(__FILE__) . '../admin/img/icon.png', // Icono del menu
     1
   );
-  // Agregar submenu cursos vencidos
+  // Agregar submenu de Cargue
   add_submenu_page(
     plugin_dir_path(__FILE__) . 'cc-first-acp-page.php', // Parent slug
-    'Cursos Vencidos', // Titulo de la pagina
-    'Cursos Vencidos', // Titulo del menu
+    'Cargue', // Titulo de la pagina
+    'Cargue', // Titulo del menu
     'manage_options', // Capability requirement to see the link
-    plugin_dir_path(__FILE__) . 'cc-menu-cursos-vencidos.php', // slug
+    plugin_dir_path(__FILE__) . 'cc-menu-cargue.php', // slug
     null
   );
-  // Agregar el submenu
+  // Agregar submenu de ajustes reales
   add_submenu_page(
     plugin_dir_path(__FILE__) . 'cc-first-acp-page.php', // Parent slug
     'Ajustes', // Titulo de la pagina
@@ -93,6 +93,27 @@ function cc_load_assets($hook)
         plugins_url('../admin/css/styles.css', __FILE__),
       ],
     ],
+    'consulta-certificados/includes/cc-menu-cargue.php' => [
+      'scripts' => [
+        [
+          'handle' => 'cc_menu_cargue_js',
+          'src'    => plugins_url('../admin/js/cc-menu-ajustes.js', __FILE__),
+          'deps'   => ['jquery'],
+          'localize' => true,
+        ],
+        [
+          'handle' => 'datatables_js',
+          'src'    => plugins_url('../admin/js/datatables.min.js', __FILE__),
+          'deps'   => ['jquery'],
+          'localize' => false,
+        ],
+      ],
+      'styles' => [
+        plugins_url('../admin/bootstrap/css/bootstrap.min.css', __FILE__),
+        plugins_url('../admin/css/datatables.min.css', __FILE__),
+        plugins_url('../admin/css/styles.css', __FILE__),
+      ],
+    ],
     'consulta-certificados/includes/cc-menu-ajustes.php' => [
       'scripts' => [
         [
@@ -138,6 +159,39 @@ function cc_load_assets($hook)
   }
 }
 add_action('admin_enqueue_scripts', 'cc_load_assets');
+
+function cc_register_settings() {
+  register_setting('cc_settings_group', 'cc_access_certificados_estudiante');
+  register_setting('cc_settings_group', 'cc_access_certificados_secretario');
+  register_setting('cc_settings_group', 'cc_access_certificados_talento_humano');
+}
+add_action('admin_init', 'cc_register_settings');
+
+function cc_current_user_can_access_certificados() {
+  if (current_user_can('manage_options')) {
+    return true;
+  }
+
+  $role = null;
+  if (current_user_can('secretario')) {
+    $role = 'secretario';
+  } elseif (current_user_can('talento_humano')) {
+    $role = 'talento_humano';
+  } elseif (current_user_can('read')) {
+    $role = 'estudiante';
+  }
+
+  if (!$role) {
+    return false;
+  }
+
+  $option_name = 'cc_access_certificados_' . $role;
+  return (bool) get_option($option_name, true);
+}
+
+function cc_render_ajustes() {
+  include_once plugin_dir_path(__FILE__) . 'cc-menu-ajustes.php';
+}
 
 // Shortcode
 function setShortCode($atts)

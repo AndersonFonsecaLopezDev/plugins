@@ -42,18 +42,6 @@
           <p class="description">Define qué roles pueden acceder al formulario de Bolsa de Empleo.</p>
         </td>
       </tr>
-      <tr valign="top">
-        <th scope="row">Consulta de Certificados</th>
-        <td>
-          <input type="hidden" name="be_access_certificados_estudiante" value="0" />
-          <label><input type="checkbox" name="be_access_certificados_estudiante" value="1" <?php checked(get_option('be_access_certificados_estudiante', 1), 1); ?> /> Estudiante</label><br>
-          <input type="hidden" name="be_access_certificados_secretario" value="0" />
-          <label><input type="checkbox" name="be_access_certificados_secretario" value="1" <?php checked(get_option('be_access_certificados_secretario', 1), 1); ?> /> Secretario</label><br>
-          <input type="hidden" name="be_access_certificados_talento_humano" value="0" />
-          <label><input type="checkbox" name="be_access_certificados_talento_humano" value="1" <?php checked(get_option('be_access_certificados_talento_humano', 1), 1); ?> /> Talento Humano</label>
-          <p class="description">Define qué roles pueden acceder a la consulta de certificados.</p>
-        </td>
-      </tr>
     </table>
     
     <h2 class="title">Configuración de Correo</h2>

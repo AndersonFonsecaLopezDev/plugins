@@ -28,8 +28,8 @@
       <th>Barrio</th>
       <th>Dirección</th>
       <th>Departamento</th>
-      <th>Teléfono</th>
       <th>Cédula</th>
+      <th>Archivo CV</th>
       <th>Aprobado</th>
       <th>Acciones</th>
     </thead>
@@ -54,8 +54,8 @@
       <th>Barrio</th>
       <th>Dirección</th>
       <th>Departamento</th>
-      <th>Teléfono</th>
       <th>Cédula</th>
+      <th>Archivo CV</th>
       <th>Aprobado</th>
       <th>Acciones</th>
     </tfoot>

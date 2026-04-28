@@ -110,19 +110,56 @@ jQuery(document).ready(function ($) {
             data: formData,
             processData: false,
             contentType: false,
+            xhr: function() {
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener("progress", function(evt) {
+                    if (evt.lengthComputable) {
+                        var percentComplete = Math.round((evt.loaded / evt.total) * 100);
+                        $('#progress-container').show();
+                        $('#upload-progress-bar').css('width', percentComplete + '%').text(percentComplete + '%');
+                        if (percentComplete === 100) {
+                            $('#upload-response').html('<div style="color:#2271b1; font-weight: 500;">⏳ Archivo subido. Procesando e importando datos en el servidor, esto puede tomar unos minutos...</div>');
+                            $('#upload-progress-bar').css('background-color', '#ffb900'); // Cambiar a naranja para indicar procesamiento
+                        }
+                    }
+                }, false);
+                return xhr;
+            },
             beforeSend: function () {
-                $('#upload-response').html('<div style="color:blue;">⏳ Subiendo archivo, por favor espera...</div>');
+                $('#upload-response').html('<div style="color:#2271b1; font-weight: 500;">⏳ Iniciando subida del archivo...</div>');
+                $('#progress-container').show();
+                $('#upload-progress-bar').css('width', '0%').text('0%').css('background-color', '#2271b1');
             },
             success: function (response) {
+                $('#progress-container').hide();
                 if (response.success) {
-                    $('#upload-response').html('<div style="color:green;">✅ ' + response.data.message + '</div>');
+                    let msg = response.data.message || 'Importación completada con éxito.';
+                    let details = '';
+                    if (response.data.inserted !== undefined) details += '<br><b>Nuevos insertados:</b> ' + response.data.inserted;
+                    if (response.data.updated !== undefined) details += '<br><b>Actualizados:</b> ' + response.data.updated;
+                    if (response.data.errors && response.data.errors.length > 0) {
+                        details += '<br><br><b style="color:#d63638;">Detalles de errores/advertencias:</b><br><small style="color:#d63638; display:block; max-height:150px; overflow-y:auto; background:#fbeaea; padding:10px; border-radius:4px; border:1px solid #f2cdd0; text-align:left;">' + response.data.errors.join('<br>') + '</small>';
+                    }
+                    $('#upload-response').html('<div style="color:#007017; font-weight: 500;">✅ ' + msg + details + '</div>');
                     $('#upload_excel_button').prop('disabled', true);
                 } else {
-                    $('#upload-response').html('<div style="color:red;">❌ ' + response.data.message + '</div>');
+                    let errorMsg = response.data.message || response.data || 'Error desconocido al importar.';
+                    let details = '';
+                    if (response.data.errors && response.data.errors.length > 0) {
+                        details = '<br><br><b style="color:#d63638;">Detalles del error:</b><br><small style="color:#d63638; display:block; max-height:150px; overflow-y:auto; background:#fbeaea; padding:10px; border-radius:4px; border:1px solid #f2cdd0; text-align:left;">' + response.data.errors.join('<br>') + '</small>';
+                    }
+                    $('#upload-response').html('<div style="color:#d63638; font-weight: 500;">❌ ' + errorMsg + details + '</div>');
                 }
             },
             error: function (xhr) {
-                $('#upload-response').html('<div style="color:red;">❌ Error en la importación.</div>');
+                $('#progress-container').hide();
+                let errorMsg = 'Error grave en la importación (Fallo del servidor o archivo muy pesado). ';
+                if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+                    errorMsg += xhr.responseJSON.data.message;
+                } else {
+                    errorMsg += xhr.statusText || '';
+                }
+                $('#upload-response').html('<div style="color:#d63638; font-weight: 500;">❌ ' + errorMsg + '</div>');
                 console.log(xhr.responseText);
             }
         });

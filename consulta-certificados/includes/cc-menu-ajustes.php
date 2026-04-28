@@ -18,6 +18,10 @@
       </div>
     </div>
 
+    <div id="progress-container" style="display:none; width: 100%; max-width: 500px; margin: 20px auto 0 auto; background-color: #f0f6fc; border-radius: 8px; overflow: hidden; border: 1px solid #c3c4c7;">
+        <div id="upload-progress-bar" style="width: 0%; height: 24px; background-color: #2271b1; text-align: center; color: white; font-size: 13px; line-height: 24px; transition: width 0.3s ease; font-weight: 600;">0%</div>
+    </div>
+
     <div id="upload-response" style="margin-top: 20px; font-size: 15px;"></div>
   </div>
 

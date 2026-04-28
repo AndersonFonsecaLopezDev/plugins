@@ -46,6 +46,15 @@ jQuery(document).ready(function ($) {
             { data: 'Departamento' },
             { data: 'Cedula' },
             { 
+                data: 'Archivo_CV',
+                render: function(data) {
+                    if (data) {
+                        return '<a href="'+data+'" target="_blank" class="button button-secondary">Ver CV</a>';
+                    }
+                    return '<span style="color:gray">N/A</span>';
+                }
+            },
+            { 
                 data: 'Aprobado',
                 render: function(data, type, row) {
                     if (data == 1) {

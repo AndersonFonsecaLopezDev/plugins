@@ -10,6 +10,11 @@
       <p class="description">URL a la que se redirige al usuario después de iniciar sesión. Si está vacío, se redirige al inicio.</p></td>
       </tr>
       <tr valign="top">
+      <th scope="row">URL de la Página de Inicio de Sesión</th>
+      <td><input type="text" name="be_login_url" value="<?php echo esc_attr(get_option('be_login_url', site_url('/pagina-login'))); ?>" class="regular-text" placeholder="Ej: /pagina-login" />
+      <p class="description">URL a la que se redirige al usuario después de activar su cuenta.</p></td>
+      </tr>
+      <tr valign="top">
       <th scope="row">URL de la Página de Registro</th>
       <td><input type="text" name="be_register_url" value="<?php echo esc_attr(get_option('be_register_url', site_url('/pagina-registro'))); ?>" class="regular-text" /></td>
       </tr>

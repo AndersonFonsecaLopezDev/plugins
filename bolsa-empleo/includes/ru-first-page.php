@@ -234,10 +234,11 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
 <body class="bg-light">
 
 <?php if (isset($tipo_mensaje_activacion) && $tipo_mensaje_activacion === 'success'): ?>
+  <?php $login_url = get_option('be_login_url', site_url('/pagina-login')); ?>
   <div class="alert alert-success text-center mt-5" id="final-success">
     <h2>¡Cuenta activada correctamente!</h2>
     <p>Tu registro ha finalizado con éxito. Puedes cerrar esta ventana o ir a la página de inicio de sesión cuando esté disponible.</p>
-    <button class="btn btn-primary mt-3" onclick="window.location.reload()">Volver al inicio</button>
+    <button class="btn btn-primary mt-3" onclick="window.location.href='<?php echo esc_url($login_url); ?>'">Ir a Inicio de Sesión</button>
   </div>
 <?php else: ?>
   <?php if ($mensaje): ?>

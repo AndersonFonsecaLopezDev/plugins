@@ -47,6 +47,7 @@ function be_render_ajustes() {
 
 function be_register_settings() {
     register_setting('be_settings_group', 'be_login_redirect_url');
+    register_setting('be_settings_group', 'be_login_url');
     register_setting('be_settings_group', 'be_register_url');
     register_setting('be_settings_group', 'be_forgot_password_url');
     register_setting('be_settings_group', 'be_terms_url');

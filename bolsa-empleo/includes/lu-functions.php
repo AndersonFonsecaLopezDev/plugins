@@ -84,21 +84,48 @@ function lu_procesar_login_form() {
     // 4. Revisar si existe en wp_users
     $wp_user = get_user_by('email', $email);
 
+    $user_role = strtolower(trim($user->user_role ?: 'estudiante'));
+
+    // El rol secretario y talento_humano solo deben ingresar por WP-admin.
+    if (in_array($user_role, ['secretario', 'talento_humano'], true)) {
+        $redirect_to_admin = wp_login_url(admin_url());
+        wp_safe_redirect($redirect_to_admin);
+        exit;
+    }
+
     if (!$wp_user) {
-        // Si no existe → lo creamos como subscriber
-        $username = sanitize_user(current(explode('@', $email)));
-        $user_id  = wp_create_user($username, wp_generate_password(), $email);
+        $username_base = sanitize_user(strpos($email, '@') !== false ? strstr($email, '@', true) : $email, true);
+        if (empty($username_base)) {
+            $username_base = 'user' . time();
+        }
+
+        $username = $username_base;
+        $suffix = 1;
+        while (username_exists($username)) {
+            $username = $username_base . $suffix;
+            $suffix++;
+        }
+
+        $user_id = wp_create_user($username, wp_generate_password(), $email);
 
         if (is_wp_error($user_id)) {
             wp_die('Error creando usuario en WordPress: ' . $user_id->get_error_message());
         }
 
         wp_update_user([
-            'ID'   => $user_id,
-            'role' => 'subscriber',
+            'ID' => $user_id,
+            'role' => 'estudiante',
         ]);
 
         $wp_user = get_user_by('id', $user_id);
+    } else {
+        // Si ya existe el usuario en WP, actualizamos su rol solo si no es administrador.
+        if (!in_array('administrator', (array) $wp_user->roles, true) && !in_array('secretario', (array) $wp_user->roles, true) && !in_array('talento_humano', (array) $wp_user->roles, true)) {
+            wp_update_user([
+                'ID' => $wp_user->ID,
+                'role' => 'estudiante',
+            ]);
+        }
     }
 
     // 5. Forzar login (sin chequear otra vez la pass en WP)

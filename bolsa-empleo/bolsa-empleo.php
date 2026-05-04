@@ -16,10 +16,10 @@ register_activation_hook(__FILE__, 'be_plugin_activate');
 function be_plugin_activate() {
     global $wpdb;
 
-    // Crear roles de WordPress
-    add_role('estudiante', 'Estudiante', ['read' => true]);
-    add_role('secretario', 'Secretario', ['read' => true]);
-    add_role('talento_humano', 'Talento Humano', ['read' => true]);
+    // Asegurar roles y opciones por defecto al activar el plugin.
+    if (function_exists('be_setup_plugin_defaults')) {
+        be_setup_plugin_defaults();
+    }
 
     // Crear/Modificar tabla wp_aess_users
     $table_name = $wpdb->prefix . 'aess_users';
@@ -60,4 +60,4 @@ function be_plugin_activate() {
     ) $charset_collate;";
 
     dbDelta($sql);
-}
+}

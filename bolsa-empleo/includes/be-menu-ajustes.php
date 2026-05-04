@@ -6,7 +6,7 @@
     <table class="form-table">
       <tr valign="top">
       <th scope="row">URL de Redirección Post-Login</th>
-      <td><input type="text" name="be_login_redirect_url" value="<?php echo esc_attr(get_option('be_login_redirect_url')); ?>" class="regular-text" placeholder="Ej: /mi-hoja-de-vida" />
+      <td><input type="text" name="be_login_redirect_url" value="<?php echo esc_attr(get_option('be_login_redirect_url', home_url('/'))); ?>" class="regular-text" placeholder="Ej: /mi-hoja-de-vida" />
       <p class="description">URL a la que se redirige al usuario después de iniciar sesión. Si está vacío, se redirige al inicio.</p></td>
       </tr>
       <tr valign="top">

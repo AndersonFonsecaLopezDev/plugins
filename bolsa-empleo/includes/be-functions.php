@@ -46,19 +46,63 @@ function be_render_ajustes() {
 }
 
 function be_register_settings() {
-    register_setting('be_settings_group', 'be_login_redirect_url');
-    register_setting('be_settings_group', 'be_login_url');
-    register_setting('be_settings_group', 'be_register_url');
-    register_setting('be_settings_group', 'be_forgot_password_url');
-    register_setting('be_settings_group', 'be_terms_url');
-    register_setting('be_settings_group', 'be_email_remitente');
-    register_setting('be_settings_group', 'be_email_password');
-    register_setting('be_settings_group', 'be_email_nombre_remitente');
-    register_setting('be_settings_group', 'be_access_bolsa_estudiante');
-    register_setting('be_settings_group', 'be_access_bolsa_secretario');
-    register_setting('be_settings_group', 'be_access_bolsa_talento_humano');
+    $settings = [
+        'be_login_redirect_url' => 'esc_url_raw',
+        'be_login_url' => 'esc_url_raw',
+        'be_register_url' => 'esc_url_raw',
+        'be_forgot_password_url' => 'esc_url_raw',
+        'be_terms_url' => 'esc_url_raw',
+        'be_email_remitente' => 'sanitize_email',
+        'be_email_password' => 'sanitize_text_field',
+        'be_email_nombre_remitente' => 'sanitize_text_field',
+        'be_access_bolsa_estudiante' => 'absint',
+        'be_access_bolsa_secretario' => 'absint',
+        'be_access_bolsa_talento_humano' => 'absint',
+    ];
+
+    foreach ($settings as $option => $callback) {
+        register_setting('be_settings_group', $option, [
+            'sanitize_callback' => $callback,
+        ]);
+    }
 }
 add_action('admin_init', 'be_register_settings');
+
+function be_setup_plugin_defaults() {
+    // Asegurar que los roles siempre existan.
+    $roles = [
+        'estudiante' => 'Estudiante',
+        'secretario' => 'Secretario',
+        'talento_humano' => 'Talento Humano',
+    ];
+
+    foreach ($roles as $role => $name) {
+        if (null === get_role($role)) {
+            add_role($role, $name, ['read' => true]);
+        }
+    }
+
+    $defaults = [
+        'be_login_redirect_url' => home_url('/'),
+        'be_login_url' => site_url('/pagina-login'),
+        'be_register_url' => site_url('/pagina-registro'),
+        'be_forgot_password_url' => site_url('/recuperacion-contasena'),
+        'be_terms_url' => '#',
+        'be_email_remitente' => 'juansepulveda8010@gmail.com',
+        'be_email_password' => 'ukwv yeqq gphc jzkk',
+        'be_email_nombre_remitente' => 'Academia Aess',
+        'be_access_bolsa_estudiante' => 1,
+        'be_access_bolsa_secretario' => 1,
+        'be_access_bolsa_talento_humano' => 1,
+    ];
+
+    foreach ($defaults as $name => $value) {
+        if (get_option($name) === false) {
+            add_option($name, $value);
+        }
+    }
+}
+add_action('init', 'be_setup_plugin_defaults');
 
 function be_get_current_custom_role() {
     if (!is_user_logged_in()) {

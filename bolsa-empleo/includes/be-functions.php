@@ -116,20 +116,29 @@ function be_get_current_custom_role() {
 
     global $wpdb;
     $table = $wpdb->prefix . 'aess_users';
-    $role = $wpdb->get_var($wpdb->prepare("SELECT user_role FROM {$table} WHERE email = %s", $current_user->user_email));
+    $role = strtolower(trim($wpdb->get_var($wpdb->prepare("SELECT user_role FROM {$table} WHERE email = %s", $current_user->user_email))));
 
     if (!empty($role)) {
         return $role;
     }
 
-    if (current_user_can('secretario')) {
+    if (in_array('secretario', (array) $current_user->roles, true)) {
         return 'secretario';
     }
-    if (current_user_can('talento_humano')) {
+    if (in_array('talento_humano', (array) $current_user->roles, true)) {
         return 'talento_humano';
     }
-    if (current_user_can('manage_options')) {
+    if (in_array('administrator', (array) $current_user->roles, true) || current_user_can('manage_options')) {
         return 'administrator';
+    }
+
+    if (in_array('estudiante', (array) $current_user->roles, true) || in_array('subscriber', (array) $current_user->roles, true) || current_user_can('read')) {
+        return 'estudiante';
+    }
+
+    // Devolver el primer rol de WP si existe.
+    if (!empty($current_user->roles)) {
+        return strtolower($current_user->roles[0]);
     }
 
     return 'estudiante';
@@ -154,6 +163,15 @@ function be_current_user_can_access_feature($feature) {
 }
 
 function be_current_user_can_access_bolsa() {
+    if (!is_user_logged_in()) {
+        return false;
+    }
+
+    $role = be_get_current_custom_role();
+    if ($role === 'administrator') {
+        return true;
+    }
+
     return be_current_user_can_access_feature('bolsa');
 }
 
@@ -296,7 +314,13 @@ add_action('wp_ajax_get_cvs', 'beGetCv');
 
 // Shortcode para la hoja de vida del estudiante
 function be_student_cv_shortcode() {
-    if (!be_current_user_can_access_bolsa()) {
+    // Debug temporal - permitir acceso a estudiantes
+    if (current_user_can('estudiante') || current_user_can('read')) {
+        // Usuario es estudiante, permitir acceso
+        if (WP_DEBUG) {
+            error_log("BE Debug - Estudiante accediendo al shortcode mi_hoja_de_vida");
+        }
+    } elseif (!be_current_user_can_access_bolsa()) {
         return '<div class="alert alert-warning">No tienes permiso para ver la Bolsa de Empleo.</div>';
     }
 

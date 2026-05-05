@@ -117,6 +117,10 @@ function lu_procesar_login_form() {
             'role' => 'estudiante',
         ]);
 
+        // Asegurar que el rol se asigna correctamente
+        $wp_user_obj = new WP_User($user_id);
+        $wp_user_obj->set_role('estudiante');
+
         $wp_user = get_user_by('id', $user_id);
     } else {
         // Si ya existe el usuario en WP, actualizamos su rol solo si no es administrador.
@@ -125,6 +129,10 @@ function lu_procesar_login_form() {
                 'ID' => $wp_user->ID,
                 'role' => 'estudiante',
             ]);
+
+            // Asegurar que el rol se asigna correctamente
+            $wp_user_obj = new WP_User($wp_user->ID);
+            $wp_user_obj->set_role('estudiante');
         }
     }
 

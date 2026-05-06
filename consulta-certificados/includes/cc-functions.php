@@ -13,7 +13,7 @@ function cc_Add_My_Admin_Link()
   add_menu_page(
     'Consulta de certificados', // Titulo de la pagina
     'Consulta certificados', // Texto para mostrar en el menu
-    'manage_options', // Capability requirement to see the link
+    'access_certificados', // Capability requirement to see the link
     plugin_dir_path(__FILE__) . 'cc-first-acp-page.php', // The 'slug' - file to display when clicking the link
     null, // Funcion del sitio
     plugin_dir_url(__FILE__) . '../admin/img/icon.png', // Icono del menu
@@ -24,7 +24,7 @@ function cc_Add_My_Admin_Link()
     plugin_dir_path(__FILE__) . 'cc-first-acp-page.php', // Parent slug
     'Cargue', // Titulo de la pagina
     'Cargue', // Titulo del menu
-    'manage_options', // Capability requirement to see the link
+    'access_certificados', // Capability requirement to see the link
     plugin_dir_path(__FILE__) . 'cc-menu-cargue.php', // slug
     null
   );
@@ -166,6 +166,30 @@ function cc_register_settings() {
   register_setting('cc_settings_group', 'cc_access_certificados_talento_humano');
 }
 add_action('admin_init', 'cc_register_settings');
+
+function cc_ensure_custom_role_caps() {
+  $roles = ['secretario', 'talento_humano', 'estudiante'];
+  foreach ($roles as $role) {
+    $existing_role = get_role($role);
+    if ($existing_role) {
+      if (!$existing_role->has_cap($role)) {
+        $existing_role->add_cap($role, true);
+      }
+      if (!$existing_role->has_cap('access_certificados')) {
+        $existing_role->add_cap('access_certificados', true);
+      }
+    }
+  }
+
+  $admin_role = get_role('administrator');
+  if ($admin_role) {
+    $admin_role->add_cap('access_certificados');
+    $admin_role->add_cap('secretario');
+    $admin_role->add_cap('talento_humano');
+    $admin_role->add_cap('estudiante');
+  }
+}
+add_action('init', 'cc_ensure_custom_role_caps');
 
 function cc_current_user_can_access_certificados() {
   if (current_user_can('manage_options')) {

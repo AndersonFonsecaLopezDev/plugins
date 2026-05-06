@@ -11,7 +11,7 @@ function be_Add_My_Admin_Link()
   add_menu_page(
     'Bolsa de empleo', // Titulo de la pagina
     'Bolsa de empleo', // Texto para mostrar en el menu
-    'manage_options', // Capability requirement to see the link
+    'access_bolsa', // Capability requirement to see the link
     plugin_dir_path(__FILE__) . 'be-first-page.php', // The 'slug' - file to display when clicking the link
     null, // Funcion del sitio
     plugin_dir_url(__FILE__) . '../admin/img/icon.png', // Icono del menu
@@ -31,7 +31,7 @@ function be_Add_My_Admin_Link()
     plugin_dir_path(__FILE__) . 'be-first-page.php',
     'Cursos Vencidos',
     'Cursos Vencidos',
-    'secretario', // Capability
+    'access_bolsa', // Capability
     'be-cursos-vencidos',
     'be_render_cursos_vencidos'
   );
@@ -77,9 +77,30 @@ function be_setup_plugin_defaults() {
     ];
 
     foreach ($roles as $role => $name) {
-        if (null === get_role($role)) {
-            add_role($role, $name, ['read' => true]);
+        $capabilities = [
+            'read' => true,
+            $role => true,
+            'access_bolsa' => true,
+        ];
+
+        $existing_role = get_role($role);
+        if (null === $existing_role) {
+            add_role($role, $name, $capabilities);
+        } else {
+            foreach ($capabilities as $cap => $value) {
+                if (!$existing_role->has_cap($cap)) {
+                    $existing_role->add_cap($cap, $value);
+                }
+            }
         }
+    }
+
+    $admin_role = get_role('administrator');
+    if ($admin_role) {
+        $admin_role->add_cap('access_bolsa');
+        $admin_role->add_cap('secretario');
+        $admin_role->add_cap('talento_humano');
+        $admin_role->add_cap('estudiante');
     }
 
     $defaults = [
@@ -314,13 +335,11 @@ add_action('wp_ajax_get_cvs', 'beGetCv');
 
 // Shortcode para la hoja de vida del estudiante
 function be_student_cv_shortcode() {
-    // Debug temporal - permitir acceso a estudiantes
-    if (current_user_can('estudiante') || current_user_can('read')) {
-        // Usuario es estudiante, permitir acceso
-        if (WP_DEBUG) {
-            error_log("BE Debug - Estudiante accediendo al shortcode mi_hoja_de_vida");
-        }
-    } elseif (!be_current_user_can_access_bolsa()) {
+    if (!is_user_logged_in()) {
+        return '<div class="alert alert-warning">Debes iniciar sesión para ver la Bolsa de Empleo.</div>';
+    }
+
+    if (!be_current_user_can_access_bolsa()) {
         return '<div class="alert alert-warning">No tienes permiso para ver la Bolsa de Empleo.</div>';
     }
 

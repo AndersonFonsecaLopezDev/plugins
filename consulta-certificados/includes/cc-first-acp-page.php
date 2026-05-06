@@ -1,3 +1,8 @@
+<?php
+if (!function_exists('cc_current_user_can_access_certificados') || !cc_current_user_can_access_certificados()) {
+    wp_die('No tienes permisos para acceder a esta página.');
+}
+?>
 <div class="wrap">
   <?php
   echo '

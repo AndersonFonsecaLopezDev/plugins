@@ -1,6 +1,6 @@
 <?php
 // Verificar permisos
-if (!current_user_can('secretario') && !current_user_can('manage_options')) {
+if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
     wp_die('No tienes permisos para acceder a esta página.');
 }
 ?>

@@ -6,13 +6,32 @@ jQuery(document).ready(function ($) {
         return fileName.toLowerCase().endsWith('.csv');
     }
 
+    function setResponseMessage(html, isError = false) {
+        $('#upload-response').html('<div style="color:' + (isError ? '#d63638' : '#007017') + '; font-weight: 500;">' + html + '</div>');
+    }
+
+    function resetPreview() {
+        if ($.fn.DataTable.isDataTable('#importedDataTable')) {
+            importedDataTable.destroy();
+            $('#importedDataTable').empty();
+        }
+        $('#upload_excel_button').prop('disabled', true);
+        $('#upload-response').empty();
+        $('#progress-container').hide();
+        $('#upload-progress-bar').css('width', '0%').text('0%').css('background-color', '#2271b1');
+    }
+
+    $('#excel_file').on('change', function () {
+        resetPreview();
+    });
+
     // Botón para previsualizar
     $('#preview_excel_button').on('click', function (e) {
         e.preventDefault();
 
         let fileInput = $('#excel_file')[0];
         if (fileInput.files.length === 0) {
-            alert('Por favor selecciona un archivo.');
+            setResponseMessage('Por favor selecciona un archivo CSV o Excel antes de previsualizar.', true);
             return;
         }
 
@@ -95,7 +114,7 @@ jQuery(document).ready(function ($) {
 
         let fileInput = $('#excel_file')[0];
         if (fileInput.files.length === 0) {
-            alert('Por favor selecciona un archivo.');
+            setResponseMessage('Debes seleccionar primero un archivo antes de importar.', true);
             return;
         }
 

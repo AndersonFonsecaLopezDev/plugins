@@ -84,14 +84,12 @@ function lu_procesar_login_form() {
     // 4. Revisar si existe en wp_users
     $wp_user = get_user_by('email', $email);
 
-    $user_role = strtolower(trim($user->user_role ?: 'estudiante'));
-
-    // El rol secretario y talento_humano solo deben ingresar por WP-admin.
-    if (in_array($user_role, ['secretario', 'talento_humano'], true)) {
-        $redirect_to_admin = wp_login_url(admin_url());
-        wp_safe_redirect($redirect_to_admin);
-        exit;
+    $desired_role = strtolower(trim($user->user_role ?: 'estudiante'));
+    if (!in_array($desired_role, ['secretario', 'talento_humano', 'estudiante'], true)) {
+        $desired_role = 'estudiante';
     }
+
+    $is_admin_role = $wp_user && in_array('administrator', (array) $wp_user->roles, true);
 
     if (!$wp_user) {
         $username_base = sanitize_user(strpos($email, '@') !== false ? strstr($email, '@', true) : $email, true);
@@ -112,28 +110,23 @@ function lu_procesar_login_form() {
             wp_die('Error creando usuario en WordPress: ' . $user_id->get_error_message());
         }
 
-        wp_update_user([
-            'ID' => $user_id,
-            'role' => 'estudiante',
-        ]);
-
-        // Asegurar que el rol se asigna correctamente
         $wp_user_obj = new WP_User($user_id);
-        $wp_user_obj->set_role('estudiante');
-
+        $wp_user_obj->set_role($desired_role);
         $wp_user = get_user_by('id', $user_id);
     } else {
-        // Si ya existe el usuario en WP, actualizamos su rol solo si no es administrador.
-        if (!in_array('administrator', (array) $wp_user->roles, true) && !in_array('secretario', (array) $wp_user->roles, true) && !in_array('talento_humano', (array) $wp_user->roles, true)) {
-            wp_update_user([
-                'ID' => $wp_user->ID,
-                'role' => 'estudiante',
-            ]);
-
-            // Asegurar que el rol se asigna correctamente
+        if (!$is_admin_role) {
             $wp_user_obj = new WP_User($wp_user->ID);
-            $wp_user_obj->set_role('estudiante');
+            if (!in_array($desired_role, (array) $wp_user->roles, true)) {
+                $wp_user_obj->set_role($desired_role);
+            }
         }
+    }
+
+    // El rol secretario y talento_humano solo deben ingresar por WP-admin.
+    if (in_array($desired_role, ['secretario', 'talento_humano'], true)) {
+        $redirect_to_admin = admin_url();
+        wp_safe_redirect($redirect_to_admin);
+        exit;
     }
 
     // 5. Forzar login (sin chequear otra vez la pass en WP)

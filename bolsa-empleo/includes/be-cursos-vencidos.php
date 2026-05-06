@@ -1,3 +1,8 @@
+<?php
+if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
+    wp_die('No tienes permisos para acceder a esta página.');
+}
+?>
 <div class="wrap">
     <h1>Cursos Vencidos (Más de 1 año)</h1>
     <p>Listado de estudiantes cuyos cursos se encuentran vencidos según el registro histórico.</p>

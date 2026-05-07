@@ -80,6 +80,11 @@
       <td style="padding: 12px 15px;"><textarea name="be_profesiones_disponibles" rows="3" class="large-text" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;"><?php echo esc_textarea(get_option('be_profesiones_disponibles', 'Vigilante, Escolta, Supervisor, Operador de Medios Tecnológicos')); ?></textarea>
       <p class="description" style="color: #646970; font-size: 13px; margin-top: 6px;">Lista de profesiones separadas por coma para el dropdown en la hoja de vida.</p></td>
       </tr>
+      <tr valign="top">
+      <th scope="row" style="padding: 12px 15px; background: #f5f5f5; font-weight: 600;">Políticas de la Empresa</th>
+      <td style="padding: 12px 15px;"><textarea name="be_politicas" rows="10" class="large-text" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;"><?php echo esc_textarea(get_option('be_politicas', '')); ?></textarea>
+      <p class="description" style="color: #646970; font-size: 13px; margin-top: 6px;">Políticas de la empresa que se incluirán en el correo de verificación.</p></td>
+      </tr>
     </table>
     <?php submit_button('Guardar ajustes', 'primary', 'submit', true, ['style' => 'margin-top: 20px; padding: 10px 30px; font-size: 15px; background-color: #0d4c92; border-color: #0d4c92; border-radius: 6px;']); ?>
   </form>

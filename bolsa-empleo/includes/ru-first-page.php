@@ -105,6 +105,10 @@ function guardar_usuario_en_bd($datos)
           ' . htmlspecialchars($codigo_activacion) . '
         </p>
         <p>Por favor, ingrésalo en la página de registro para activar tu cuenta.</p>
+        <p>Al verificar tu cuenta, aceptas las siguientes políticas de la empresa:</p>
+        <div style="background: #f9f9f9; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #0d4c92;">
+          ' . nl2br(htmlspecialchars(get_option('be_politicas', 'Políticas no definidas.'))) . '
+        </div>
       </div>
       <!-- Footer -->
       <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #777;">
@@ -233,6 +237,24 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
     $tipo_mensaje_activacion = 'error';
     $forzar_paso_4 = true;
   }
+}
+
+if (isset($mensaje_activacion) && !empty($mensaje_activacion)) {
+  $toast_type = $tipo_mensaje_activacion === 'success' ? 'success' : ($tipo_mensaje_activacion === 'info' ? 'info' : 'error');
+  $toast_title = $tipo_mensaje_activacion === 'success' ? 'Éxito' : ($tipo_mensaje_activacion === 'info' ? 'Información' : 'Error');
+  echo '<script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof iziToast !== "undefined") {
+        iziToast.' . $toast_type . '({
+          title: "' . addslashes($toast_title) . '",
+          message: "' . addslashes($mensaje_activacion) . '",
+          position: "topRight",
+          timeout: 5000
+        });
+      }
+      ' . ($forzar_paso_4 ? 'goToStep(4);' : '') . '
+    });
+  </script>';
 }
 ?>
 

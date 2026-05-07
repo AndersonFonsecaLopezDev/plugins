@@ -173,13 +173,21 @@ jQuery(document).ready(function ($) {
             error: function (xhr) {
                 $('#progress-container').hide();
                 let errorMsg = 'Error grave en la importación (Fallo del servidor o archivo muy pesado). ';
+                let details = '';
                 if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
-                    errorMsg += xhr.responseJSON.data.message;
-                } else {
-                    errorMsg += xhr.statusText || '';
+                    details = xhr.responseJSON.data.message;
+                } else if (xhr.responseText) {
+                    details = xhr.responseText;
+                } else if (xhr.statusText) {
+                    details = xhr.statusText;
                 }
+
+                if (details) {
+                    errorMsg += details;
+                }
+
                 $('#upload-response').html('<div style="color:#d63638; font-weight: 500;">❌ ' + errorMsg + '</div>');
-                console.log(xhr.responseText);
+                console.log('Import error details:', details || xhr);
             }
         });
     });

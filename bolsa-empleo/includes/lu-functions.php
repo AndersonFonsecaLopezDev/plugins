@@ -193,6 +193,38 @@ function lu_forgot_password_shortcode() {
 }
 add_shortcode('lu_forgot_password', 'lu_forgot_password_shortcode');
 
+function be_logout_shortcode() {
+    if (!is_user_logged_in()) {
+        return '';
+    }
+
+    $logout_url = wp_logout_url(get_option('be_login_url', site_url('/pagina-login')));
+    return '<div class="be-logout-container" style="margin:1rem 0;"><a class="button button-secondary" href="' . esc_url($logout_url) . '">Cerrar sesión</a></div>';
+}
+add_shortcode('be_logout', 'be_logout_shortcode');
+
+function be_login_status_shortcode() {
+    if (!is_user_logged_in()) {
+        return '';
+    }
+
+    $current_user = wp_get_current_user();
+    $logout_url = wp_logout_url(get_option('be_login_url', site_url('/pagina-login')));
+    return '<div class="be-login-status" style="margin:1rem 0; padding:1rem; background:#f7f7f7; border:1px solid #ddd; border-radius:6px;">Has iniciado sesión como <strong>' . esc_html($current_user->display_name ? $current_user->display_name : $current_user->user_login) . '</strong>. <a href="' . esc_url($logout_url) . '">Cerrar sesión</a></div>';
+}
+add_shortcode('be_login_status', 'be_login_status_shortcode');
+
+function be_login_status_shortcode() {
+    if (!is_user_logged_in()) {
+        return '';
+    }
+
+    $current_user = wp_get_current_user();
+    $logout_url = wp_logout_url(get_option('be_login_url', site_url('/pagina-login')));
+    return '<div class="be-login-status" style="margin:1rem 0; padding:1rem; background:#f7f7f7; border:1px solid #ddd; border-radius:6px;">Has iniciado sesión como <strong>' . esc_html($current_user->display_name ? $current_user->display_name : $current_user->user_login) . '</strong>. <a href="' . esc_url($logout_url) . '">Cerrar sesión</a></div>';
+}
+add_shortcode('be_login_status', 'be_login_status_shortcode');
+
 
 
 // Hooks para procesar el action=custom_login

@@ -221,7 +221,13 @@ $login_email = isset($_GET['login_email']) ? sanitize_email(urldecode($_GET['log
         <p>Inicia sesión para continuar</p>
     </div>
 
-    <form id="loginForm" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
+    <?php if (is_user_logged_in()) : ?>
+        <div class="logged-in-notice" style="background:#fff; padding:20px; border-radius:12px; border:1px solid #e2e4e7; box-shadow:0 6px 18px rgba(0,0,0,.05); text-align:center;">
+            <p style="font-size:1rem; margin-bottom:1rem;">Ya has iniciado sesión como <strong><?php echo esc_html(wp_get_current_user()->display_name ?: wp_get_current_user()->user_login); ?></strong>.</p>
+            <a class="login-button" href="<?php echo esc_url(wp_logout_url(get_option('be_login_url', site_url('/pagina-login')))); ?>">Cerrar sesión</a>
+        </div>
+    <?php else : ?>
+        <form id="loginForm" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
         <input type="hidden" name="action" value="custom_login">
 
         <div class="form-group">
@@ -264,6 +270,7 @@ $login_email = isset($_GET['login_email']) ? sanitize_email(urldecode($_GET['log
             ¿No tienes una cuenta? <a href="<?php echo esc_url($register_url); ?>">Regístrate</a>
         </div>
     </form>
+    <?php endif; ?>
 </div>
 
 <?php if ($login_error): ?>

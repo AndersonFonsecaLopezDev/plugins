@@ -494,17 +494,45 @@ add_action('wp_ajax_get_all_cursos_vencidos', 'getAllCursosVencidos');
 // }
 
 function handle_import_excel() {
-    check_ajax_referer('seg', 'nonce');
+    if (!check_ajax_referer('seg', 'nonce', false)) {
+        wp_send_json_error(['message' => 'Nonce inválido. Recarga la página e intenta de nuevo.']);
+        wp_die();
+    }
 
     if (!isset($_FILES['excel_file'])) {
-        wp_send_json_error(['message' => 'No se recibió ningún archivo']);
+        wp_send_json_error(['message' => 'No se recibió ningún archivo.']);
+        wp_die();
+    }
+
+    if ($_FILES['excel_file']['error'] !== UPLOAD_ERR_OK) {
+        $upload_errors = [
+            UPLOAD_ERR_INI_SIZE => 'El archivo excede el tamaño máximo permitido por PHP (upload_max_filesize).',
+            UPLOAD_ERR_FORM_SIZE => 'El archivo excede el tamaño máximo permitido por el formulario (post_max_size).',
+            UPLOAD_ERR_PARTIAL => 'La subida fue parcial. Intenta de nuevo.',
+            UPLOAD_ERR_NO_FILE => 'No se envió ningún archivo.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Falta el directorio temporal en el servidor.',
+            UPLOAD_ERR_CANT_WRITE => 'No se pudo escribir el archivo en el disco.',
+            UPLOAD_ERR_EXTENSION => 'La subida fue detenida por una extensión de PHP.',
+        ];
+
+        $message = $upload_errors[$_FILES['excel_file']['error']] ?? 'Error desconocido de subida de archivo.';
+        $message .= ' upload_max_filesize=' . ini_get('upload_max_filesize') . ', post_max_size=' . ini_get('post_max_size');
+
+        wp_send_json_error([
+            'message' => $message,
+            'error_code' => $_FILES['excel_file']['error'],
+        ]);
         wp_die();
     }
 
     $file = $_FILES['excel_file']['tmp_name'];
+    if (empty($file) || !is_uploaded_file($file)) {
+        wp_send_json_error(['message' => 'El archivo temporal no es válido o no se pudo cargar correctamente.']);
+        wp_die();
+    }
 
     if (!file_exists($file)) {
-        wp_send_json_error(['message' => 'Archivo no encontrado']);
+        wp_send_json_error(['message' => 'Archivo no encontrado en el servidor.']);
         wp_die();
     }
 

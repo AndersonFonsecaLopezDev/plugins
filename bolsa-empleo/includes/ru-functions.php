@@ -3,9 +3,15 @@
 add_action('admin_menu', 'ru_Add_My_Admin_Link');
 
 function ru_Add_My_Admin_Link(){
-    
+    add_submenu_page(
+        plugin_dir_path(__FILE__) . 'be-first-page.php',
+        'Usuarios',
+        'Usuarios',
+        'access_bolsa',
+        'registro-usuarios',
+        'ru_render_admin_page'
+    );
 }
-
 
 function ru_render_ajustes_registro() {
     include_once plugin_dir_path(__FILE__) . 'ru-menu-ajustes.php';
@@ -101,9 +107,11 @@ add_action('admin_enqueue_scripts', function($hook) {
     if ($hook === 'toplevel_page_registro-usuarios') {
         wp_enqueue_style('ru_bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css');
         wp_enqueue_style('ru_datatables', 'https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css');
+        wp_enqueue_style('ru_fontawesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css');
         wp_enqueue_script('ru_datatables', 'https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js', ['jquery']);
         wp_enqueue_script('ru_datatables_bs', 'https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js', ['ru_datatables']);
-        wp_enqueue_script('ru_admin_page', plugins_url('../admin/js/ru-admin-page.js', __FILE__), ['ru_datatables_bs'], false, true);
+        wp_enqueue_script('ru_bootstrap_admin_js', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js', ['jquery'], '5.3.2', true);
+        wp_enqueue_script('ru_admin_page', plugins_url('../admin/js/ru-admin-page.js', __FILE__), ['ru_datatables_bs', 'ru_bootstrap_admin_js'], false, true);
         wp_localize_script('ru_admin_page', 'ru_ajax', [
             'url' => admin_url('admin-ajax.php'),
             'security' => wp_create_nonce('ru_seg')
@@ -123,8 +131,69 @@ add_action('admin_enqueue_scripts', function($hook) {
 add_action('wp_ajax_get_all_users', function() {
     check_ajax_referer('ru_seg', 'nonce');
     global $wpdb;
-    $usuarios = $wpdb->get_results("SELECT last_name, second_last_name, first_name, middle_name, national_id FROM {$wpdb->prefix}aess_users", ARRAY_A);
+    $usuarios = $wpdb->get_results(
+        "SELECT ID, last_name, second_last_name, first_name, middle_name, national_id, email, phone_number, user_role, address FROM {$wpdb->prefix}aess_users",
+        ARRAY_A
+    );
     wp_send_json($usuarios);
+});
+
+add_action('wp_ajax_get_user_details', function() {
+    check_ajax_referer('ru_seg', 'nonce');
+    global $wpdb;
+    $user_id = intval($_POST['id'] ?? 0);
+    if (!$user_id) {
+        wp_send_json_error('ID de usuario inválido');
+    }
+
+    $user = $wpdb->get_row($wpdb->prepare(
+        "SELECT ID, first_name, middle_name, last_name, second_last_name, national_id, email, phone_number, address, user_role FROM {$wpdb->prefix}aess_users WHERE ID = %d",
+        $user_id
+    ), ARRAY_A);
+
+    if (!$user) {
+        wp_send_json_error('Usuario no encontrado');
+    }
+
+    wp_send_json_success($user);
+});
+
+add_action('wp_ajax_ru_update_user', function() {
+    check_ajax_referer('ru_seg', 'nonce');
+    global $wpdb;
+
+    $user_id = intval($_POST['id'] ?? 0);
+    if (!$user_id) {
+        wp_send_json_error('Usuario inválido');
+    }
+
+    $user_data = [
+        'first_name' => sanitize_text_field($_POST['first_name'] ?? ''),
+        'middle_name' => sanitize_text_field($_POST['middle_name'] ?? ''),
+        'last_name' => sanitize_text_field($_POST['last_name'] ?? ''),
+        'second_last_name' => sanitize_text_field($_POST['second_last_name'] ?? ''),
+        'national_id' => sanitize_text_field($_POST['national_id'] ?? ''),
+        'email' => sanitize_email($_POST['email'] ?? ''),
+        'phone_number' => sanitize_text_field($_POST['phone_number'] ?? ''),
+        'address' => sanitize_text_field($_POST['address'] ?? ''),
+        'user_role' => sanitize_text_field($_POST['user_role'] ?? ''),
+    ];
+
+    $format = ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'];
+
+    $updated = $wpdb->update(
+        "{$wpdb->prefix}aess_users",
+        $user_data,
+        ['ID' => $user_id],
+        $format,
+        ['%d']
+    );
+
+    if (false === $updated) {
+        wp_send_json_error('No se pudo actualizar el usuario.');
+    }
+
+    wp_send_json_success('Usuario actualizado con éxito.');
 });
 
 // Endpoint AJAX: importa usuarios desde un archivo CSV

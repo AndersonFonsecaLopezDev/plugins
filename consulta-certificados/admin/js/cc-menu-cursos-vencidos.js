@@ -1,20 +1,27 @@
 jQuery(document).ready(function ($) {
-    // let table = new DataTable('#principalTable');
     var table = $('#principalTable').DataTable({
         ajax: {
-            type: "POST",
+            type: 'POST',
             url: personal_ajax_request.url,
-            data: {
-                action: "get_all_cursos_vencidos",
-                nonce: personal_ajax_request.security,
+            data: function () {
+                return {
+                    action: 'get_all_cursos_vencidos',
+                    nonce: personal_ajax_request.security,
+                    fecha_desde: $('#fecha_desde').val(),
+                    fecha_hasta: $('#fecha_hasta').val(),
+                };
             },
-            dataSrc: ""
+            dataSrc: ''
         },
         columns: [
             { data: 'nombre', title: 'NOMBRE' },
-            { data: 'curso', title: 'ULTIMO CURSO REALIZADO' },
-            { data: 'telefono', title: 'TÉLEFONO' },
-            { data: 'fecha_acta', title: 'FECHA' },
+            { data: 'curso', title: 'ÚLTIMO CURSO REALIZADO' },
+            { data: 'telefono', title: 'TELÉFONO' },
+            { data: 'email', title: 'EMAIL' },
+            { data: 'acta', title: 'ACTA' },
+            { data: 'fecha_acta', title: 'FECHA ACTA' },
+            { data: 'fecha_vencimiento', title: 'FECHA VENCIMIENTO' },
+            { data: 'estado', title: 'ESTADO' }
         ],
         language: {
             url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/es-MX.json',
@@ -23,41 +30,24 @@ jQuery(document).ready(function ($) {
         fixedHeader: {
             header: true,
         },
-        layout: {
-            topStart: {
-                buttons: [
-                    'copy',
-                    'colvis',
-                    {
-                        extend: 'excelHtml5',
-                        text: 'Exportar Excel',
-                        exportOptions: {
-                            modifier: {
-                                search: 'applied',
-                                order: 'applied',
-                                page: 'all' // Exporta todos los registros
-                            }
-                        },
-                        filename: 'cursos_vencidos',
-                        title: null
-                    }
-                ]
-            }
-        },
-        select: true
+        pageLength: 25,
+        responsive: true,
     });
-    // Setup - add a text input to each footer cell
+
+    $('#applyFechaFilter').on('click', function () {
+        table.ajax.reload();
+    });
+
+    $('#fecha_desde, #fecha_hasta').on('change', function () {
+        table.ajax.reload();
+    });
+
     $('#principalTable tfoot th').each(function (i) {
-        var titles = ['NOMBRE', 'ULTIMO CURSO REALIZADO', 'TÉLEFONO', 'FECHA ACTA']; // Coincide con columns.title
-        $(this).html('<input type="text" placeholder="' + titles[i] + '" data-index="' + i + '" />');
+        var titles = ['NOMBRE', 'ÚLTIMO CURSO REALIZADO', 'TELÉFONO', 'EMAIL', 'ACTA', 'FECHA ACTA', 'FECHA VENCIMIENTO', 'ESTADO'];
+        $(this).html('<input type="text" placeholder="Buscar ' + titles[i] + '" class="form-control form-control-sm" data-index="' + i + '" />');
     });
 
-    // Filter event handler
-    $('#principalTable tfoot th input').on('keyup', function () {
-        table
-            .column($(this).data('index'))
-            .search(this.value)
-            .draw();
+    $('#principalTable tfoot th input').on('keyup change clear', function () {
+        table.column($(this).data('index')).search(this.value).draw();
     });
-
 });

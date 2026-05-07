@@ -139,6 +139,11 @@ function cc_load_assets($hook)
 
   // Si la página tiene assets definidos
   if (isset($assets[$hook])) {
+    $bolsa_style_path = plugin_dir_path(__FILE__) . '../../bolsa-empleo/admin/css/styles.css';
+    if (file_exists($bolsa_style_path)) {
+      wp_enqueue_style('cc_bolsa_admin_styles', plugins_url('../../bolsa-empleo/admin/css/styles.css', __FILE__));
+    }
+
     // Cargar estilos
     foreach ($assets[$hook]['styles'] as $style_src) {
       wp_enqueue_style(md5($style_src), $style_src);
@@ -327,9 +332,33 @@ function getAllCursosVencidos()
   }
 
   global $wpdb;
-  $table = $wpdb->prefix . 'cc_certificados';
-  $sql = "SELECT apellido1, apellido2, nombre1, nombre2, curso, fecha_acta FROM $table WHERE fecha_acta IS NOT NULL";
-  $rows = $wpdb->get_results($sql, ARRAY_A);
+  $certificados_table = $wpdb->prefix . 'cc_certificados';
+  $users_table = $wpdb->prefix . 'aess_users';
+
+  $where = 'WHERE c.fecha_acta IS NOT NULL';
+  $params = [];
+
+  $fecha_desde = sanitize_text_field($_POST['fecha_desde'] ?? '');
+  $fecha_hasta = sanitize_text_field($_POST['fecha_hasta'] ?? '');
+
+  if (!empty($fecha_desde)) {
+    $where .= ' AND c.fecha_acta >= %s';
+    $params[] = $fecha_desde;
+  }
+
+  if (!empty($fecha_hasta)) {
+    $where .= ' AND c.fecha_acta <= %s';
+    $params[] = $fecha_hasta;
+  }
+
+  $sql = "SELECT c.apellido1, c.apellido2, c.nombre1, c.nombre2, c.cedula, c.curso, c.acta, c.fecha_acta, COALESCE(u.phone_number, 'No registrado') AS telefono, COALESCE(u.email, 'No registrado') AS email FROM {$certificados_table} c LEFT JOIN {$users_table} u ON TRIM(u.national_id) = TRIM(c.cedula) {$where}";
+
+  if (!empty($params)) {
+    $rows = $wpdb->get_results($wpdb->prepare($sql, $params), ARRAY_A);
+  } else {
+    $rows = $wpdb->get_results($sql, ARRAY_A);
+  }
+
   $response = [];
   $fecha_actual = new DateTime();
 
@@ -346,8 +375,11 @@ function getAllCursosVencidos()
       $response[] = [
         'nombre' => trim(($row['nombre1'] ?? '') . ' ' . ($row['nombre2'] ?? '') . ' ' . ($row['apellido1'] ?? '') . ' ' . ($row['apellido2'] ?? '')),
         'curso' => $row['curso'],
-        'telefono' => 'No registrado',
+        'telefono' => $row['telefono'] ?: 'No registrado',
+        'email' => $row['email'] ?: 'No registrado',
         'fecha_acta' => $row['fecha_acta'],
+        'fecha_vencimiento' => $fecha_vencimiento->format('Y-m-d'),
+        'estado' => 'Vencido',
       ];
     }
   }

@@ -160,7 +160,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
             </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label">Profesión u Oficio</label>
-                <input type="text" class="form-control" name="profesion" value="<?php echo esc_attr($user_data['profesion'] ?? ''); ?>" placeholder="Ej: Administrador, Guarda de Seguridad...">
+                <select class="form-select" name="profesion">
+                    <option value="">Selecciona una profesión</option>
+                    <?php 
+                    $profesiones_str = get_option('be_profesiones_disponibles', 'Vigilante, Escolta, Supervisor, Operador de Medios Tecnológicos');
+                    $profesiones_arr = array_map('trim', explode(',', $profesiones_str));
+                    foreach ($profesiones_arr as $p) {
+                        if (empty($p)) continue;
+                        $sel = (($user_data['profesion'] ?? '') === $p) ? 'selected' : '';
+                        echo '<option value="' . esc_attr($p) . '" ' . $sel . '>' . esc_html($p) . '</option>';
+                    }
+                    ?>
+                </select>
             </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label">Estado Laboral Actual</label>

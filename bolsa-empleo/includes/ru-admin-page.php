@@ -94,7 +94,11 @@
             </div>
             <div class="col-md-6">
               <label class="form-label" for="edit_user_role">Rol</label>
-              <input type="text" class="form-control" id="edit_user_role" name="user_role">
+              <select class="form-select" id="edit_user_role" name="user_role">
+                <option value="estudiante">Estudiante</option>
+                <option value="secretario">Secretario</option>
+                <option value="talento_humano">Talento Humano</option>
+              </select>
             </div>
             <div class="col-12">
               <label class="form-label" for="edit_address">Dirección</label>

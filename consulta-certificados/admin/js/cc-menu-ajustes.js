@@ -6,6 +6,10 @@ jQuery(document).ready(function ($) {
         return fileName.toLowerCase().endsWith('.xlsx');
     }
 
+    function isCSV(fileName) {
+        return fileName.toLowerCase().endsWith('.csv');
+    }
+
     function setResponseMessage(html, isError = false) {
         $('#upload-response').html('<div style="color:' + (isError ? '#d63638' : '#007017') + '; font-weight: 500;">' + html + '</div>');
     }
@@ -38,8 +42,8 @@ jQuery(document).ready(function ($) {
         }
 
         let file = fileInput.files[0];
-        if (!isExcel(file.name)) {
-            setResponseMessage('Por favor selecciona un archivo Excel (.xlsx) válido.', true);
+        if (!isExcel(file.name) && !isCSV(file.name)) {
+            setResponseMessage('Por favor selecciona un archivo Excel (.xlsx) o CSV válido.', true);
             return;
         }
 

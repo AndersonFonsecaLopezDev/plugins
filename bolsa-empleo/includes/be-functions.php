@@ -57,6 +57,8 @@ function be_register_settings() {
         'be_access_bolsa_estudiante' => 'absint',
         'be_access_bolsa_secretario' => 'absint',
         'be_access_bolsa_talento_humano' => 'absint',
+        'be_cursos_disponibles' => 'sanitize_text_field',
+        'be_profesiones_disponibles' => 'sanitize_text_field',
     ];
 
     foreach ($settings as $option => $callback) {

@@ -268,7 +268,7 @@ function getCertificate()
   global $wpdb;
   $table = $wpdb->prefix . 'cc_certificados';
   $prepared = $wpdb->prepare(
-    "SELECT * FROM $table WHERE cedula = %s OR numerodiploma = %s",
+    "SELECT * FROM $table WHERE (cedula = %s OR numerodiploma = %s) AND estado = 'activo'",
     $document,
     $document
   );
@@ -329,7 +329,7 @@ add_action('wp_ajax_get_all_certificates', 'getAllCertificates');
 // Endpoints AJAX para editar y ocultar certificados
 add_action('wp_ajax_cc_toggle_certificate_status', 'cc_toggle_certificate_status');
 function cc_toggle_certificate_status() {
-    check_ajax_referer('cc_seg', 'nonce');
+    check_ajax_referer('seg', 'nonce');
     global $wpdb;
     $id = intval($_POST['id'] ?? 0);
     $status = sanitize_text_field($_POST['status'] ?? 'inactivo');
@@ -345,7 +345,7 @@ function cc_toggle_certificate_status() {
 
 add_action('wp_ajax_cc_edit_certificate', 'cc_edit_certificate');
 function cc_edit_certificate() {
-    check_ajax_referer('cc_seg', 'nonce');
+    check_ajax_referer('seg', 'nonce');
     global $wpdb;
     
     $id = intval($_POST['idCertificado'] ?? 0);

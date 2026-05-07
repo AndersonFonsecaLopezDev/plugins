@@ -227,9 +227,9 @@ $login_email = isset($_GET['login_email']) ? sanitize_email(urldecode($_GET['log
             <a class="login-button" href="<?php echo esc_url(wp_logout_url(get_option('be_login_url', site_url('/pagina-login')))); ?>">Cerrar sesión</a>
         </div>
     <?php else : ?>
-        <form id="loginForm" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
-        <input type="hidden" name="action" value="custom_login">
-        <input type="hidden" name="current_url" value="<?php echo esc_url((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>">
+        <form id="loginForm">
+        <input type="hidden" id="login_nonce" name="nonce" value="<?php echo wp_create_nonce('ru_seg'); ?>">
+        <input type="hidden" id="ajax_url" name="ajax_url" value="<?php echo admin_url('admin-ajax.php'); ?>">
 
         <div class="form-group">
             <label for="email">Correo electrónico</label>
@@ -265,7 +265,8 @@ $login_email = isset($_GET['login_email']) ? sanitize_email(urldecode($_GET['log
 
         <a href="<?php echo esc_url($forgot_password_url); ?>" class="forgot-password">¿Olvidaste tu contraseña?</a>
 
-        <button type="submit" class="login-button">Iniciar sesión</button>
+        <div id="login-feedback" style="margin-bottom: 15px; font-size: 14px; text-align: center; font-weight: 500;"></div>
+        <button type="submit" class="login-button" id="submitLoginBtn">Iniciar sesión</button>
 
         <div class="signup-link">
             ¿No tienes una cuenta? <a href="<?php echo esc_url($register_url); ?>">Regístrate</a>
@@ -314,5 +315,49 @@ document.addEventListener('DOMContentLoaded', function () {
 
         togglePassword.setAttribute('aria-pressed', String(isPassword));
     });
+
+    const loginForm = document.getElementById('loginForm');
+    const submitBtn = document.getElementById('submitLoginBtn');
+    const feedback = document.getElementById('login-feedback');
+    const ajaxUrl = document.getElementById('ajax_url').value;
+    const nonce = document.getElementById('login_nonce').value;
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Verificando...';
+            feedback.innerHTML = '';
+
+            const formData = new FormData(loginForm);
+            formData.append('action', 'be_ajax_login');
+            formData.append('nonce', nonce);
+
+            fetch(ajaxUrl, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    feedback.style.color = 'green';
+                    feedback.innerHTML = '¡Sesión iniciada correctamente! Redirigiendo...';
+                    window.location.href = data.data.redirect_url;
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Iniciar sesión';
+                    feedback.style.color = '#e74c3c';
+                    feedback.innerHTML = data.data || 'Error al iniciar sesión.';
+                }
+            })
+            .catch(error => {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Iniciar sesión';
+                feedback.style.color = '#e74c3c';
+                feedback.innerHTML = 'Error de conexión. Intenta de nuevo.';
+                console.error('Error:', error);
+            });
+        });
+    }
 });
 </script>

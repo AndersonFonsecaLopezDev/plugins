@@ -50,8 +50,13 @@ $x_centrado_curso = (($ancho_pagina - $ancho_texto_curso) / 2) + $desplazamiento
 $pdf->SetXY($x_centrado_curso, $curso_y);
 $pdf->Write(10, $curso);
 
-// Convertir fecha_acta (formato: dd/mm/yyyy) a objeto DateTime
-$fecha_obj = DateTime::createFromFormat('d/m/Y', $fecha_acta);
+// Convertir fecha_acta a objeto DateTime
+$fecha_obj = null;
+try {
+    $fecha_obj = new DateTime($fecha_acta);
+} catch (Exception $e) {
+    $fecha_obj = new DateTime(); // Fallback a hoy
+}
 
 setlocale(LC_TIME, 'es_ES.UTF-8', 'spanish');
 

@@ -195,19 +195,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 <label class="form-label">Nombre del Curso</label>
                 <select class="form-select select2-course" name="curso_realizado">
                     <option value="">Seleccione un curso...</option>
-                    <option value="FUNDAMENTACION VIGILANCIA" <?php selected($user_data['curso_realizado'] ?? '', 'FUNDAMENTACION VIGILANCIA'); ?>>FUNDAMENTACION VIGILANCIA</option>
-                    <option value="REENTRENAMIENTO VIGILANCIA" <?php selected($user_data['curso_realizado'] ?? '', 'REENTRENAMIENTO VIGILANCIA'); ?>>REENTRENAMIENTO VIGILANCIA</option>
-                    <option value="ESPECIALIZACION VIGILANCIA" <?php selected($user_data['curso_realizado'] ?? '', 'ESPECIALIZACION VIGILANCIA'); ?>>ESPECIALIZACION VIGILANCIA</option>
-                    <option value="FUNDAMENTACION ESCOLTA" <?php selected($user_data['curso_realizado'] ?? '', 'FUNDAMENTACION ESCOLTA'); ?>>FUNDAMENTACION ESCOLTA</option>
-                    <option value="REENTRENAMIENTO ESCOLTA" <?php selected($user_data['curso_realizado'] ?? '', 'REENTRENAMIENTO ESCOLTA'); ?>>REENTRENAMIENTO ESCOLTA</option>
-                    <option value="ESPECIALIZACION ESCOLTA" <?php selected($user_data['curso_realizado'] ?? '', 'ESPECIALIZACION ESCOLTA'); ?>>ESPECIALIZACION ESCOLTA</option>
-                    <option value="FUNDAMENTACION SUPERVISOR" <?php selected($user_data['curso_realizado'] ?? '', 'FUNDAMENTACION SUPERVISOR'); ?>>FUNDAMENTACION SUPERVISOR</option>
-                    <option value="REENTRENAMIENTO SUPERVISOR" <?php selected($user_data['curso_realizado'] ?? '', 'REENTRENAMIENTO SUPERVISOR'); ?>>REENTRENAMIENTO SUPERVISOR</option>
-                    <option value="ESPECIALIZACION SUPERVISOR" <?php selected($user_data['curso_realizado'] ?? '', 'ESPECIALIZACION SUPERVISOR'); ?>>ESPECIALIZACION SUPERVISOR</option>
-                    <option value="FUNDAMENTACION OPERADOR MEDIOS TECNOLOGICOS" <?php selected($user_data['curso_realizado'] ?? '', 'FUNDAMENTACION OPERADOR MEDIOS TECNOLOGICOS'); ?>>FUNDAMENTACION OPERADOR MEDIOS TECNOLOGICOS</option>
-                    <option value="REENTRENAMIENTO OPERADOR MEDIOS TECNOLOGICOS" <?php selected($user_data['curso_realizado'] ?? '', 'REENTRENAMIENTO OPERADOR MEDIOS TECNOLOGICOS'); ?>>REENTRENAMIENTO OPERADOR MEDIOS TECNOLOGICOS</option>
-                    <option value="SEMINARIO" <?php selected($user_data['curso_realizado'] ?? '', 'SEMINARIO'); ?>>SEMINARIO</option>
-                    <option value="OTRO" <?php selected($user_data['curso_realizado'] ?? '', 'OTRO'); ?>>OTRO</option>
+                    <?php 
+                    $cursos_str = get_option('be_cursos_disponibles', 'Vigilante, Escolta, Supervisor, Operador de Medios Tecnológicos');
+                    $cursos_arr = array_map('trim', explode(',', $cursos_str));
+                    foreach ($cursos_arr as $c) {
+                        if (empty($c)) continue;
+                        $sel = (($user_data['curso_realizado'] ?? '') === $c) ? 'selected' : '';
+                        echo '<option value="' . esc_attr($c) . '" ' . $sel . '>' . esc_html($c) . '</option>';
+                    }
+                    ?>
                 </select>
             </div>
             <div class="col-md-6 mb-3">

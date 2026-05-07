@@ -3,6 +3,7 @@ if (!function_exists('cc_current_user_can_access_certificados') || !cc_current_u
     wp_die('No tienes permisos para acceder a esta página.');
 }
 ?>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <div class="wrap" style="max-width: 900px; margin: 20px auto;">
   <div style="background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 40px; text-align: center; border: 1px solid #e2e4e7;">
     <h1 style="font-size: 28px; font-weight: 600; margin-bottom: 10px; color: #1d2327;">Cargue de Certificados</h1>

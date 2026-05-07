@@ -34,6 +34,9 @@ jQuery(document).ready(function ($) {
             { data: 'Ciudad' },
             { data: 'Celular' },
             { data: 'Correo' },
+            { data: 'Curso' },
+            { data: 'Fecha_Acta' },
+            { data: 'Vencimiento' },
             { data: 'Academico' },
             { data: 'Profesion' },
             { data: 'Estado' },
@@ -252,6 +255,9 @@ jQuery(document).ready(function ($) {
                 $('#edit_diploma').val(user.diploma);
                 $('#edit_estatura').val(user.estatura);
                 $('#edit_barrio').val(user.barrio);
+                $('#edit_curso_realizado').val(user.curso_realizado);
+                $('#edit_fecha_acta_curso').val(user.fecha_acta_curso);
+                $('#edit_fecha_vencimiento_curso').val(user.fecha_vencimiento_curso);
                 $('#editUserFeedback').html('');
 
                 var editModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('editUserModal'));

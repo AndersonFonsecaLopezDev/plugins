@@ -342,3 +342,17 @@ function be_get_all_cursos_vencidos() {
 
     wp_send_json($data);
 }
+
+ / /   E n d p o i n t   A J A X :   G u a r d a r   c u r s o s   d i s p o n i b l e s   e n   A j u s t e s 
+ a d d _ a c t i o n ( ' w p _ a j a x _ b e _ s a v e _ c u r s o s _ d i s p o n i b l e s ' ,   ' b e _ s a v e _ c u r s o s _ d i s p o n i b l e s ' ) ; 
+ f u n c t i o n   b e _ s a v e _ c u r s o s _ d i s p o n i b l e s ( )   { 
+         c h e c k _ a j a x _ r e f e r e r ( ' r u _ s e g ' ,   ' n o n c e ' ) ; 
+         i f   ( ! c u r r e n t _ u s e r _ c a n ( ' m a n a g e _ o p t i o n s ' )   & &   ! c u r r e n t _ u s e r _ c a n ( ' s e c r e t a r i o ' ) )   { 
+                 w p _ s e n d _ j s o n _ e r r o r ( ' N o   t i e n e s   p e r m i s o s . ' ) ; 
+         } 
+         \   =   s a n i t i z e _ t e x t a r e a _ f i e l d ( \ [ ' c u r s o s ' ]   ? ?   ' ' ) ; 
+         u p d a t e _ o p t i o n ( ' b e _ c u r s o s _ d i s p o n i b l e s ' ,   \ ) ; 
+         w p _ s e n d _ j s o n _ s u c c e s s ( ' C u r s o s   g u a r d a d o s   e x i t o s a m e n t e . ' ) ; 
+ } 
+  
+ 

@@ -32,6 +32,9 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
               <th>Ciudad</th>
               <th>Celular</th>
               <th>Correo</th>
+              <th>Curso</th>
+              <th>Fecha Acta</th>
+              <th>Vencimiento</th>
               <th>Académico</th>
               <th>Profesion</th>
               <th>Estado</th>
@@ -60,6 +63,9 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
               <th>Ciudad</th>
               <th>Celular</th>
               <th>Correo</th>
+              <th>Curso</th>
+              <th>Fecha Acta</th>
+              <th>Vencimiento</th>
               <th>Académico</th>
               <th>Profesion</th>
               <th>Estado</th>
@@ -95,68 +101,118 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
           <input type="hidden" id="edit_user_id" name="id" />
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label" for="edit_first_name">Nombre</label>
-              <input type="text" class="form-control" id="edit_first_name" name="first_name" required>
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_first_name" name="first_name" placeholder="Nombre" required>
+                <label for="edit_first_name">Nombre</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_middle_name">Segundo nombre</label>
-              <input type="text" class="form-control" id="edit_middle_name" name="middle_name">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_middle_name" name="middle_name" placeholder="Segundo nombre">
+                <label for="edit_middle_name">Segundo nombre</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_last_name">Apellido</label>
-              <input type="text" class="form-control" id="edit_last_name" name="last_name" required>
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_last_name" name="last_name" placeholder="Apellido" required>
+                <label for="edit_last_name">Apellido</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_second_last_name">Segundo apellido</label>
-              <input type="text" class="form-control" id="edit_second_last_name" name="second_last_name">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_second_last_name" name="second_last_name" placeholder="Segundo apellido">
+                <label for="edit_second_last_name">Segundo apellido</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_national_id">Cédula</label>
-              <input type="text" class="form-control" id="edit_national_id" name="national_id" required>
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_national_id" name="national_id" placeholder="Cédula" required>
+                <label for="edit_national_id">Cédula</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_email">Email</label>
-              <input type="email" class="form-control" id="edit_email" name="email" required>
+              <div class="form-floating">
+                <input type="email" class="form-control" id="edit_email" name="email" placeholder="Email" required>
+                <label for="edit_email">Email</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_phone_number">Teléfono</label>
-              <input type="text" class="form-control" id="edit_phone_number" name="phone_number">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_phone_number" name="phone_number" placeholder="Teléfono">
+                <label for="edit_phone_number">Teléfono</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_user_role">Rol</label>
-              <input type="text" class="form-control" id="edit_user_role" name="user_role">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_user_role" name="user_role" placeholder="Rol">
+                <label for="edit_user_role">Rol</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_academico">Nivel Académico</label>
-              <input type="text" class="form-control" id="edit_academico" name="academico">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_academico" name="academico" placeholder="Nivel Académico">
+                <label for="edit_academico">Nivel Académico</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_profesion">Profesión</label>
-              <input type="text" class="form-control" id="edit_profesion" name="profesion">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_profesion" name="profesion" placeholder="Profesión">
+                <label for="edit_profesion">Profesión</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_estado_laboral">Estado Laboral</label>
-              <input type="text" class="form-control" id="edit_estado_laboral" name="estado_laboral">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_estado_laboral" name="estado_laboral" placeholder="Estado Laboral">
+                <label for="edit_estado_laboral">Estado Laboral</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_libreta_militar">Libreta Militar</label>
-              <input type="text" class="form-control" id="edit_libreta_militar" name="libreta_militar">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_libreta_militar" name="libreta_militar" placeholder="Libreta Militar">
+                <label for="edit_libreta_militar">Libreta Militar</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_diploma">Diploma</label>
-              <input type="text" class="form-control" id="edit_diploma" name="diploma">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_diploma" name="diploma" placeholder="Diploma">
+                <label for="edit_diploma">Diploma</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_estatura">Estatura</label>
-              <input type="text" class="form-control" id="edit_estatura" name="estatura">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_estatura" name="estatura" placeholder="Estatura">
+                <label for="edit_estatura">Estatura</label>
+              </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label" for="edit_barrio">Barrio</label>
-              <input type="text" class="form-control" id="edit_barrio" name="barrio">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_barrio" name="barrio" placeholder="Barrio">
+                <label for="edit_barrio">Barrio</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_curso_realizado" name="curso_realizado" placeholder="Último Curso">
+                <label for="edit_curso_realizado">Último Curso</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="date" class="form-control" id="edit_fecha_acta_curso" name="fecha_acta_curso" placeholder="Fecha Acta Curso">
+                <label for="edit_fecha_acta_curso">Fecha Acta Curso</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="date" class="form-control" id="edit_fecha_vencimiento_curso" name="fecha_vencimiento_curso" placeholder="Vencimiento Curso">
+                <label for="edit_fecha_vencimiento_curso">Vencimiento Curso</label>
+              </div>
             </div>
             <div class="col-12">
-              <label class="form-label" for="edit_address">Dirección</label>
-              <textarea class="form-control" id="edit_address" name="address" rows="2"></textarea>
+              <div class="form-floating">
+                <textarea class="form-control" id="edit_address" name="address" placeholder="Dirección" style="height: 100px"></textarea>
+                <label for="edit_address">Dirección</label>
+              </div>
             </div>
             <div class="col-12">
               <label class="form-label" for="edit_experiencia">Experiencia</label>

@@ -449,6 +449,10 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
 
   <!-- Scripts y datos JS se cargan vía wp_enqueue_script y wp_localize_script en el plugin principal. -->
   <script>
+    var ruData = {
+      ajaxUrl: "<?php echo admin_url('admin-ajax.php'); ?>",
+      ciudadesPorDepartamento: <?php echo json_encode($ciudades); ?>
+    };
     document.addEventListener('DOMContentLoaded', function() {
       if (typeof ruData !== 'undefined' && ruData.ciudadesPorDepartamento) {
         ruInitCiudades(ruData.ciudadesPorDepartamento);

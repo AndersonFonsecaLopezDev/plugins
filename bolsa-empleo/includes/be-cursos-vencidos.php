@@ -84,7 +84,7 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: function (d) {
                 d.action = 'get_all_cursos_vencidos';
-                d.nonce = personal_ajax_request.security;
+                d.nonce = personal_ajax_request.ru_security;
                 d.fecha_desde = $('#fecha_desde').val();
                 d.fecha_hasta = $('#fecha_hasta').val();
                 d.ciudad = $('#ciudad_filtro').val();

@@ -37,6 +37,22 @@ function guardar_usuario_en_bd($datos)
     $codigo_activacion = strtoupper(bin2hex(random_bytes(3)));
 
     $table = $wpdb->prefix . 'aess_users';
+
+    // Verificar si el correo o cédula ya existen
+    $exists = $wpdb->get_row($wpdb->prepare(
+        "SELECT email, national_id FROM $table WHERE email = %s OR national_id = %s LIMIT 1",
+        $email, $national_id
+    ), ARRAY_A);
+
+    if ($exists) {
+        if ($exists['email'] === $email) {
+            return ['success' => false, 'error' => 'El correo electrónico ya está registrado.'];
+        }
+        if ($exists['national_id'] === $national_id) {
+            return ['success' => false, 'error' => 'La cédula ingresada ya se encuentra registrada.'];
+        }
+    }
+
     $data = [
       'first_name' => $first_name,
       'middle_name' => $middle_name,
@@ -280,7 +296,7 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
     </div>
   </div>
 
-  <form id="registerForm" method="post" novalidate>
+  <form id="registerForm" method="post">
     <!-- Paso 1 -->
     <div class="step-section active" id="step1">
       <h2 class="form-title mb-4">Crear cuenta</h2>

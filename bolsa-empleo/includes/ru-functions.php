@@ -77,6 +77,7 @@ function ru_enqueue_front_scripts() {
         wp_enqueue_script('ru_izitoast', 'https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js', [], '1.4.0', true);
         wp_enqueue_script('ru-first-page-js', plugin_dir_url(__FILE__) . 'ru-first-page.js', ['jquery'], '1.0', true);
 
+        require_once plugin_dir_path(__FILE__) . 'ru-localitations.php';
         $ciudades = function_exists('ru_get_ciudades_colombia') ? ru_get_ciudades_colombia() : [];
         $js_data = [
             'ciudadesPorDepartamento' => $ciudades,

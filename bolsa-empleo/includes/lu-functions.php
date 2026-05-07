@@ -64,7 +64,11 @@ function lu_procesar_login_form()
     $email = sanitize_email($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    $login_url = get_option('be_login_url', site_url('/pagina-login'));
+    $referer = wp_get_referer();
+    $login_url = get_option('be_login_url');
+    if (empty($login_url)) {
+        $login_url = $referer ? remove_query_arg(['login_error', 'login_email'], $referer) : site_url('/pagina-login');
+    }
 
     if (empty($email) || empty($password)) {
         wp_safe_redirect(add_query_arg(

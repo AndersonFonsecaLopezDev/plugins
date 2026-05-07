@@ -1,5 +1,5 @@
 <div class="wrap">
-  <div class="card mb-4 shadow-sm">
+  <div class="card mb-4 shadow-sm" style="max-width: 100%;">
     <div class="card-body">
       <h1 class="card-title mb-2"><?php echo esc_html(get_admin_page_title()); ?></h1>
       <p class="text-muted mb-4">Listado de cursos vencidos. Filtra por rango de fechas de acta para revisar cursos vencidos y ver los datos de contacto del usuario.</p>
@@ -20,7 +20,7 @@
     </div>
   </div>
 
-  <div class="card shadow-sm">
+  <div class="card shadow-sm" style="max-width: 100%;">
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-bordered table-hover display nowrap" id="principalTable" style="width:100%">

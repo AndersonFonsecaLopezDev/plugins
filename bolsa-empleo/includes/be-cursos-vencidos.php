@@ -4,7 +4,7 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
 }
 ?>
 <div class="wrap">
-    <div class="card shadow-sm mb-4">
+    <div class="card shadow-sm mb-4" style="max-width: 100%;">
         <div class="card-body">
             <h1 class="card-title mb-2">Cursos Vencidos (Más de 1 año)</h1>
             <p class="text-muted mb-4">Listado de estudiantes cuyos cursos se encuentran vencidos según el registro histórico de certificados.</p>
@@ -25,7 +25,7 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
         </div>
     </div>
 
-    <div class="card shadow-sm">
+    <div class="card shadow-sm" style="max-width: 100%;">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-bordered table-hover display nowrap" id="cursosVencidosTable" style="width:100%">

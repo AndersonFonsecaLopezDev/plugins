@@ -6,7 +6,7 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
 ?>
 
 <div class="wrap">
-  <div class="card mb-4 shadow-sm">
+  <div class="card mb-4 shadow-sm" style="max-width: 100%;">
     <div class="card-body">
       <?php
       echo '<h1 class="card-title mb-2">' . get_admin_page_title() . '</h1>';
@@ -18,7 +18,7 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
     </div>
   </div>
 
-  <div class="card shadow-sm">
+  <div class="card shadow-sm" style="max-width: 100%;">
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-striped wp-list-table widefat fixed pages" id="principalTable" style="width:100%">

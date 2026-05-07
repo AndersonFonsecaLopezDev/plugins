@@ -10,7 +10,7 @@ require_once plugin_dir_path(__DIR__) . 'vendor/autoload.php';
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
- 
+
 // Incluir funciones de hash de contraseñas
 require_once plugin_dir_path(__FILE__) . 'ru-password.php';
 
@@ -19,7 +19,8 @@ require_once plugin_dir_path(__FILE__) . 'ru-password.php';
  */
 add_action('admin_menu', 'lu_Add_My_Admin_Link');
 
-function lu_Add_My_Admin_Link() {
+function lu_Add_My_Admin_Link()
+{
     // add_menu_page removed as per user request to not show in admin
 }
 
@@ -28,14 +29,16 @@ function lu_Add_My_Admin_Link() {
  *
  * @return void
  */
-function lu_render_admin_page() {
+function lu_render_admin_page()
+{
     include_once plugin_dir_path(__FILE__) . 'lu-login-page.php';
 }
 
 /**
  * Shortcode [login-usuarios]
  */
-function mostrar_login_usuarios() {
+function mostrar_login_usuarios()
+{
     ob_start();
     include_once plugin_dir_path(__FILE__) . 'lu-login-page.php';
     return ob_get_clean();
@@ -47,17 +50,18 @@ add_action('admin_post_custom_login', 'lu_procesar_login_form');
 add_action('admin_post_nopriv_custom_login', 'lu_procesar_login_form');
 
 require_once plugin_dir_path(__FILE__) . 'lu-jwt.php';
- 
+
 /**
  * Procesa el formulario de login
  *
  * @return void
  */
-function lu_procesar_login_form() {
+function lu_procesar_login_form()
+{
     global $wpdb;
 
     // Sanitizar datos
-    $email    = sanitize_email($_POST['email'] ?? '');
+    $email = sanitize_email($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
     $login_url = get_option('be_login_url', site_url('/pagina-login'));
@@ -75,7 +79,7 @@ function lu_procesar_login_form() {
 
     // 1. Buscar en tu tabla personalizada
     $table = $wpdb->prefix . 'aess_users';
-    $user  = $wpdb->get_row(
+    $user = $wpdb->get_row(
         $wpdb->prepare("SELECT * FROM $table WHERE email = %s", $email)
     );
 
@@ -113,7 +117,7 @@ function lu_procesar_login_form() {
         ));
         exit;
     }
-    
+
 
     // 4. Revisar si existe en wp_users
     $wp_user = get_user_by('email', $email);
@@ -186,14 +190,16 @@ function lu_procesar_login_form() {
 
 
 // Shortcode para mostrar la página de recuperación de contraseña
-function lu_forgot_password_shortcode() {
+function lu_forgot_password_shortcode()
+{
     ob_start();
     include plugin_dir_path(__FILE__) . 'lu-forgot.php';
     return ob_get_clean();
 }
 add_shortcode('lu_forgot_password', 'lu_forgot_password_shortcode');
 
-function be_logout_shortcode() {
+function be_logout_shortcode()
+{
     if (!is_user_logged_in()) {
         return '';
     }
@@ -203,7 +209,8 @@ function be_logout_shortcode() {
 }
 add_shortcode('be_logout', 'be_logout_shortcode');
 
-function be_login_status_shortcode() {
+function be_login_status_shortcode()
+{
     if (!is_user_logged_in()) {
         return '';
     }
@@ -214,16 +221,7 @@ function be_login_status_shortcode() {
 }
 add_shortcode('be_login_status', 'be_login_status_shortcode');
 
-function be_login_status_shortcode() {
-    if (!is_user_logged_in()) {
-        return '';
-    }
 
-    $current_user = wp_get_current_user();
-    $logout_url = wp_logout_url(get_option('be_login_url', site_url('/pagina-login')));
-    return '<div class="be-login-status" style="margin:1rem 0; padding:1rem; background:#f7f7f7; border:1px solid #ddd; border-radius:6px;">Has iniciado sesión como <strong>' . esc_html($current_user->display_name ? $current_user->display_name : $current_user->user_login) . '</strong>. <a href="' . esc_url($logout_url) . '">Cerrar sesión</a></div>';
-}
-add_shortcode('be_login_status', 'be_login_status_shortcode');
 
 
 
@@ -232,7 +230,8 @@ add_action('admin_post_nopriv_custom_login', 'lu_procesar_login_form');
 add_action('admin_post_custom_login', 'lu_procesar_login_form');
 
 // Bloquear acceso al dashboard de WordPress para estudiantes
-function be_block_admin_access() {
+function be_block_admin_access()
+{
     if (is_admin() && !wp_doing_ajax()) {
         if (!current_user_can('manage_options') && !current_user_can('secretario') && !current_user_can('talento_humano')) {
             $redirect_url = get_option('be_login_redirect_url');
@@ -247,7 +246,8 @@ function be_block_admin_access() {
 add_action('admin_init', 'be_block_admin_access');
 
 // Ocultar la barra de administración en el frontend para estudiantes
-function be_hide_admin_bar($show) {
+function be_hide_admin_bar($show)
+{
     if (!current_user_can('manage_options') && !current_user_can('secretario') && !current_user_can('talento_humano')) {
         return false;
     }

@@ -70,11 +70,14 @@ jQuery(document).ready(function ($) {
                     if (!personal_ajax_request.is_secretario) {
                         return '<span style="color:gray;">Sin permisos</span>';
                     }
+                    var html = '';
                     if (row.Aprobado == 1) {
-                        return '<button class="btn-aprobar button button-secondary" data-id="' + row.ID + '" data-status="0">Revocar</button>';
+                        html += '<button class="btn-aprobar button button-secondary" data-id="' + row.ID + '" data-status="0" style="margin-right: 5px;">Revocar</button>';
                     } else {
-                        return '<button class="btn-aprobar button button-primary" data-id="' + row.ID + '" data-status="1">Aprobar</button>';
+                        html += '<button class="btn-aprobar button button-primary" data-id="' + row.ID + '" data-status="1" style="margin-right: 5px;">Aprobar</button>';
                     }
+                    html += '<button type="button" class="btn btn-sm btn-info edit-user-button button" data-user-id="' + row.ID + '"><i class="fa fa-edit"></i> Editar</button>';
+                    return html;
                 }
             }
         ],
@@ -215,6 +218,56 @@ jQuery(document).ready(function ($) {
                 btn.prop('disabled', false);
             }
         });
+    });
+
+    // Delegación de eventos para botón de editar
+    $('#principalTable tbody').on('click', 'button.edit-user-button', function () {
+        var userId = $(this).data('user-id');
+        loadUserForEdit(userId);
+    });
+
+    function loadUserForEdit(userId) {
+        $.post(personal_ajax_request.url, {
+            action: 'get_user_details',
+            nonce: personal_ajax_request.ru_security,
+            id: userId,
+        }, function (response) {
+            if (response.success) {
+                var user = response.data;
+                $('#edit_user_id').val(user.ID);
+                $('#edit_first_name').val(user.first_name);
+                $('#edit_middle_name').val(user.middle_name);
+                $('#edit_last_name').val(user.last_name);
+                $('#edit_second_last_name').val(user.second_last_name);
+                $('#edit_national_id').val(user.national_id);
+                $('#edit_email').val(user.email);
+                $('#edit_phone_number').val(user.phone_number);
+                $('#edit_user_role').val(user.user_role);
+                $('#edit_address').val(user.address);
+                $('#editUserFeedback').html('');
+
+                var editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                editModal.show();
+            } else {
+                alert(response.data || 'No se pudo cargar la información del usuario.');
+            }
+        }, 'json');
+    }
+
+    $('#editUserForm').on('submit', function (event) {
+        event.preventDefault();
+        var formData = $(this).serializeArray();
+        formData.push({ name: 'action', value: 'ru_update_user' });
+        formData.push({ name: 'nonce', value: personal_ajax_request.ru_security });
+
+        $.post(personal_ajax_request.url, formData, function (response) {
+            if (response.success) {
+                $('#editUserFeedback').html('<div class="alert alert-success">' + response.data + '</div>');
+                table.ajax.reload(null, false);
+            } else {
+                $('#editUserFeedback').html('<div class="alert alert-danger">' + (response.data || 'Error al actualizar el usuario.') + '</div>');
+            }
+        }, 'json');
     });
 
 });

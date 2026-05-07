@@ -1,17 +1,6 @@
 <?php
 
-add_action('admin_menu', 'ru_Add_My_Admin_Link');
 
-function ru_Add_My_Admin_Link(){
-    add_submenu_page(
-        plugin_dir_path(__FILE__) . 'be-first-page.php',
-        'Usuarios',
-        'Usuarios',
-        'access_bolsa',
-        'registro-usuarios',
-        'ru_render_admin_page'
-    );
-}
 
 function ru_render_ajustes_registro() {
     include_once plugin_dir_path(__FILE__) . 'ru-menu-ajustes.php';

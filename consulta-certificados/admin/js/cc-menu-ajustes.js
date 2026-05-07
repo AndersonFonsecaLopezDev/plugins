@@ -19,6 +19,8 @@ jQuery(document).ready(function ($) {
         $('#upload-response').empty();
         $('#progress-container').hide();
         $('#upload-progress-bar').css('width', '0%').text('0%').css('background-color', '#2271b1');
+        $('#error-log-container').hide();
+        $('#error-log-list').empty();
     }
 
     $('#excel_file').on('change', function () {
@@ -148,6 +150,8 @@ jQuery(document).ready(function ($) {
                 $('#upload-response').html('<div style="color:#2271b1; font-weight: 500;">⏳ Iniciando subida del archivo...</div>');
                 $('#progress-container').show();
                 $('#upload-progress-bar').css('width', '0%').text('0%').css('background-color', '#2271b1');
+                $('#error-log-container').hide();
+                $('#error-log-list').empty();
             },
             success: function (response) {
                 $('#progress-container').hide();
@@ -157,17 +161,18 @@ jQuery(document).ready(function ($) {
                     if (response.data.inserted !== undefined) details += '<br><b>Nuevos insertados:</b> ' + response.data.inserted;
                     if (response.data.updated !== undefined) details += '<br><b>Actualizados:</b> ' + response.data.updated;
                     if (response.data.errors && response.data.errors.length > 0) {
-                        details += '<br><br><b style="color:#d63638;">Detalles de errores/advertencias:</b><br><small style="color:#d63638; display:block; max-height:150px; overflow-y:auto; background:#fbeaea; padding:10px; border-radius:4px; border:1px solid #f2cdd0; text-align:left;">' + response.data.errors.join('<br>') + '</small>';
+                        $('#error-log-list').html(response.data.errors.join('\n'));
+                        $('#error-log-container').show();
                     }
                     $('#upload-response').html('<div style="color:#007017; font-weight: 500;">✅ ' + msg + details + '</div>');
                     $('#upload_excel_button').prop('disabled', true);
                 } else {
                     let errorMsg = response.data.message || response.data || 'Error desconocido al importar.';
-                    let details = '';
                     if (response.data.errors && response.data.errors.length > 0) {
-                        details = '<br><br><b style="color:#d63638;">Detalles del error:</b><br><small style="color:#d63638; display:block; max-height:150px; overflow-y:auto; background:#fbeaea; padding:10px; border-radius:4px; border:1px solid #f2cdd0; text-align:left;">' + response.data.errors.join('<br>') + '</small>';
+                        $('#error-log-list').html(response.data.errors.join('\n'));
+                        $('#error-log-container').show();
                     }
-                    $('#upload-response').html('<div style="color:#d63638; font-weight: 500;">❌ ' + errorMsg + details + '</div>');
+                    $('#upload-response').html('<div style="color:#d63638; font-weight: 500;">❌ ' + errorMsg + '</div>');
                 }
             },
             error: function (xhr) {

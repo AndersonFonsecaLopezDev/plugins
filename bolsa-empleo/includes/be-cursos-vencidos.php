@@ -4,87 +4,53 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
 }
 ?>
 <div class="wrap">
-    <h1>Cursos Vencidos (Más de 1 año)</h1>
-    <p>Listado de estudiantes cuyos cursos se encuentran vencidos según el registro histórico.</p>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h1 class="card-title mb-2">Cursos Vencidos (Más de 1 año)</h1>
+            <p class="text-muted mb-4">Listado de estudiantes cuyos cursos se encuentran vencidos según el registro histórico de certificados.</p>
+            
+            <form id="cursosVencidosFilterForm" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="fecha_desde" class="form-label">Fecha acta desde</label>
+                    <input type="date" class="form-control" id="fecha_desde" name="fecha_desde">
+                </div>
+                <div class="col-md-4">
+                    <label for="fecha_hasta" class="form-label">Fecha acta hasta</label>
+                    <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta">
+                </div>
+                <div class="col-md-4">
+                    <button type="button" id="applyFechaFilter" class="btn btn-primary w-100">Aplicar filtro</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <div class="card" style="max-width: 100%; padding: 20px; margin-top: 20px;">
-        <table class="wp-list-table widefat fixed striped" id="cursosVencidosTable">
-            <thead>
-                <tr>
-                    <th>Nombre Completo</th>
-                    <th>Curso</th>
-                    <th>Teléfono</th>
-                    <th>Fecha de Acta</th>
-                    <th>Fecha de Vencimiento</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tfoot>
-                <tr>
-                    <th>Nombre Completo</th>
-                    <th>Curso</th>
-                    <th>Teléfono</th>
-                    <th>Fecha de Acta</th>
-                    <th>Fecha de Vencimiento</th>
-                    <th>Estado</th>
-                </tr>
-            </tfoot>
-            <tbody>
-                <?php
-                // Leer el archivo CSV de consulta-certificados si existe
-                $csv_file = WP_PLUGIN_DIR . '/consulta-certificados/includes/certificado/listado.csv';
-                
-                if (file_exists($csv_file)) {
-                    $fecha_actual = new DateTime();
-                    
-                    if (($handle = fopen($csv_file, "r")) !== FALSE) {
-                        $header = fgetcsv($handle, 1000, ";");
-                        if ($header) {
-                            $header[0] = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $header[0]); 
-                            
-                            while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
-                                if (count($header) == count($data)) {
-                                    $row = array_combine($header, $data);
-                                    
-                                    if (isset($row['FECHA_ACTA']) && !empty($row['FECHA_ACTA'])) {
-                                        $fecha_emision = DateTime::createFromFormat('d/m/Y', trim($row['FECHA_ACTA']));
-                                        
-                                        if ($fecha_emision) {
-                                            $fecha_vencimiento = clone $fecha_emision;
-                                            $fecha_vencimiento->add(new DateInterval('P1Y'));
-                                            
-                                            if ($fecha_actual > $fecha_vencimiento) {
-                                                $telefono = 'No registrado';
-                                                if (isset($row['TÉLEFONO']) && !empty($row['TÉLEFONO'])) {
-                                                    $telefono = $row['TÉLEFONO'];
-                                                } elseif (isset($row['TELEFONO'])) {
-                                                    $telefono = $row['TELEFONO'];
-                                                }
-                                                
-                                                $nombre = trim($row['NOMBRE1'] . ' ' . ($row['NOMBRE2'] ?? '') . ' ' . $row['APELLIDO1'] . ' ' . ($row['APELLIDO2'] ?? ''));
-                                                
-                                                echo "<tr>";
-                                                echo "<td>" . esc_html($nombre) . "</td>";
-                                                echo "<td>" . esc_html($row['CURSO'] ?? '') . "</td>";
-                                                echo "<td>" . esc_html($telefono) . "</td>";
-                                                echo "<td>" . esc_html($fecha_emision->format('d/m/Y')) . "</td>";
-                                                echo "<td><strong style='color:red;'>" . esc_html($fecha_vencimiento->format('d/m/Y')) . "</strong></td>";
-                                                echo "<td><span class='badge' style='background:red; color:white; padding:4px 8px; border-radius:4px;'>Vencido</span></td>";
-                                                echo "</tr>";
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        fclose($handle);
-                    }
-                } else {
-                    echo "<tr><td colspan='6'>No se encontró el archivo de listado.csv en el plugin de certificados. Por favor, asegúrese de cargarlo allí primero.</td></tr>";
-                }
-                ?>
-            </tbody>
-        </table>
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover display nowrap" id="cursosVencidosTable" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>NOMBRE COMPLETO</th>
+                            <th>CURSO</th>
+                            <th>FECHA ACTA</th>
+                            <th>FECHA VENCIMIENTO</th>
+                            <th>ESTADO</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>NOMBRE COMPLETO</th>
+                            <th>CURSO</th>
+                            <th>FECHA ACTA</th>
+                            <th>FECHA VENCIMIENTO</th>
+                            <th>ESTADO</th>
+                        </tr>
+                    </tfoot>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -102,22 +68,49 @@ jQuery(document).ready(function($) {
         scrollX: true,
         fixedHeader: {
             header: true
-        }
+        },
+        ajax: {
+            url: personal_ajax_request.url,
+            type: 'POST',
+            data: function (d) {
+                d.action = 'get_all_cursos_vencidos';
+                d.nonce = personal_ajax_request.security;
+                d.fecha_desde = $('#fecha_desde').val();
+                d.fecha_hasta = $('#fecha_hasta').val();
+            },
+            dataSrc: ''
+        },
+        columns: [
+            { data: 'nombre' },
+            { data: 'curso' },
+            { data: 'fecha_acta' },
+            { 
+                data: 'fecha_vencimiento',
+                render: function(data) {
+                    return '<strong style="color:red;">' + data + '</strong>';
+                }
+            },
+            { 
+                data: 'estado',
+                render: function(data) {
+                    return "<span class='badge bg-danger'>Vencido</span>";
+                }
+            }
+        ]
+    });
+
+    $('#applyFechaFilter').on('click', function () {
+        table.ajax.reload();
     });
 
     // Agregar filtros por columna en el footer
     $('#cursosVencidosTable tfoot th').each(function (i) {
         var title = $(this).text();
-        $(this).html('<input type="text" placeholder="Buscar ' + title + '" style="width:100%; box-sizing:border-box;" />');
+        $(this).html('<input type="text" class="form-control form-control-sm" placeholder="Buscar ' + title + '" data-index="' + i + '" />');
     });
 
-    table.columns().every(function () {
-        var that = this;
-        $('input', this.footer()).on('keyup change clear', function () {
-            if (that.search() !== this.value) {
-                that.search(this.value).draw();
-            }
-        });
+    $('#cursosVencidosTable tfoot th input').on('keyup change clear', function () {
+        table.column($(this).data('index')).search(this.value).draw();
     });
 });
 </script>

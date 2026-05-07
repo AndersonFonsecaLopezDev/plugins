@@ -254,6 +254,7 @@ function beLoadJS($hook)
   wp_localize_script('be_personal_js', 'personal_ajax_request', [
     'url' => admin_url('admin-ajax.php'),
     'security' => wp_create_nonce('seg'),
+    'ru_security' => wp_create_nonce('ru_seg'),
     'is_secretario' => current_user_can('secretario') || current_user_can('manage_options')
   ]);
 }

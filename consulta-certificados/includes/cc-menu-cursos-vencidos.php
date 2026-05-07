@@ -28,8 +28,6 @@
             <tr>
               <th>NOMBRE</th>
               <th>ÚLTIMO CURSO REALIZADO</th>
-              <th>TELÉFONO</th>
-              <th>EMAIL</th>
               <th>ACTA</th>
               <th>FECHA ACTA</th>
               <th>FECHA VENCIMIENTO</th>
@@ -40,8 +38,6 @@
             <tr>
               <th>NOMBRE</th>
               <th>ÚLTIMO CURSO REALIZADO</th>
-              <th>TELÉFONO</th>
-              <th>EMAIL</th>
               <th>ACTA</th>
               <th>FECHA ACTA</th>
               <th>FECHA VENCIMIENTO</th>

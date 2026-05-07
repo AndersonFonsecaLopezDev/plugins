@@ -333,7 +333,6 @@ function getAllCursosVencidos()
 
   global $wpdb;
   $certificados_table = $wpdb->prefix . 'cc_certificados';
-  $users_table = $wpdb->prefix . 'aess_users';
 
   $where = 'WHERE c.fecha_acta IS NOT NULL';
   $params = [];
@@ -351,7 +350,7 @@ function getAllCursosVencidos()
     $params[] = $fecha_hasta;
   }
 
-  $sql = "SELECT c.apellido1, c.apellido2, c.nombre1, c.nombre2, c.cedula, c.curso, c.acta, c.fecha_acta, COALESCE(u.phone_number, 'No registrado') AS telefono, COALESCE(u.email, 'No registrado') AS email FROM {$certificados_table} c LEFT JOIN {$users_table} u ON TRIM(u.national_id) = TRIM(c.cedula) {$where}";
+  $sql = "SELECT c.apellido1, c.apellido2, c.nombre1, c.nombre2, c.cedula, c.curso, c.acta, c.fecha_acta FROM {$certificados_table} c {$where}";
 
   if (!empty($params)) {
     $rows = $wpdb->get_results($wpdb->prepare($sql, $params), ARRAY_A);
@@ -375,8 +374,6 @@ function getAllCursosVencidos()
       $response[] = [
         'nombre' => trim(($row['nombre1'] ?? '') . ' ' . ($row['nombre2'] ?? '') . ' ' . ($row['apellido1'] ?? '') . ' ' . ($row['apellido2'] ?? '')),
         'curso' => $row['curso'],
-        'telefono' => $row['telefono'] ?: 'No registrado',
-        'email' => $row['email'] ?: 'No registrado',
         'fecha_acta' => $row['fecha_acta'],
         'fecha_vencimiento' => $fecha_vencimiento->format('Y-m-d'),
         'estado' => 'Vencido',

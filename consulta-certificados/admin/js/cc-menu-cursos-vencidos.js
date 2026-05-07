@@ -16,8 +16,6 @@ jQuery(document).ready(function ($) {
         columns: [
             { data: 'nombre', title: 'NOMBRE' },
             { data: 'curso', title: 'ÚLTIMO CURSO REALIZADO' },
-            { data: 'telefono', title: 'TELÉFONO' },
-            { data: 'email', title: 'EMAIL' },
             { data: 'acta', title: 'ACTA' },
             { data: 'fecha_acta', title: 'FECHA ACTA' },
             { data: 'fecha_vencimiento', title: 'FECHA VENCIMIENTO' },
@@ -43,7 +41,7 @@ jQuery(document).ready(function ($) {
     });
 
     $('#principalTable tfoot th').each(function (i) {
-        var titles = ['NOMBRE', 'ÚLTIMO CURSO REALIZADO', 'TELÉFONO', 'EMAIL', 'ACTA', 'FECHA ACTA', 'FECHA VENCIMIENTO', 'ESTADO'];
+        var titles = ['NOMBRE', 'ÚLTIMO CURSO REALIZADO', 'ACTA', 'FECHA ACTA', 'FECHA VENCIMIENTO', 'ESTADO'];
         $(this).html('<input type="text" placeholder="Buscar ' + titles[i] + '" class="form-control form-control-sm" data-index="' + i + '" />');
     });
 

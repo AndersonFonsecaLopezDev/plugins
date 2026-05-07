@@ -14,7 +14,7 @@ if (!function_exists('cc_current_user_can_access_certificados') || !cc_current_u
   <div class="card shadow-sm">
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-striped wp-list-table widefat" id="principalTable">
+        <table class="table table-striped wp-list-table widefat" id="principalTable" style="width:100%">
     <thead>
       <tr>
         <th>RAZON SOCIAL</th>

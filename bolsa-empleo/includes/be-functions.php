@@ -17,15 +17,6 @@ function be_Add_My_Admin_Link()
     plugin_dir_url(__FILE__) . '../admin/img/icon.png', // Icono del menu
     1
   );
-  add_submenu_page(
-    plugin_dir_path(__FILE__) . 'be-first-page.php', // Parent slug
-    'Ajustes', // Titulo de la pagina
-    'Ajustes', // Titulo del menu
-    'manage_options', // Capability requirement to see the link
-    'be-menu-ajustes', // slug
-    'be_render_ajustes'
-  );
-  
   // Agregar submenu de Cursos Vencidos (solo para secretario y admin)
   add_submenu_page(
     plugin_dir_path(__FILE__) . 'be-first-page.php',
@@ -34,6 +25,14 @@ function be_Add_My_Admin_Link()
     'access_bolsa', // Capability
     'be-cursos-vencidos',
     'be_render_cursos_vencidos'
+  );
+  add_submenu_page(
+    plugin_dir_path(__FILE__) . 'be-first-page.php', // Parent slug
+    'Ajustes', // Titulo de la pagina
+    'Ajustes', // Titulo del menu
+    'manage_options', // Capability requirement to see the link
+    'be-menu-ajustes', // slug
+    'be_render_ajustes'
   );
 }
 

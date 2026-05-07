@@ -59,10 +59,20 @@ Los certificados se cargan desde archivos Excel/CSV con la siguiente estructura:
 - Acta
 - Fecha Acta
 
-## Requisitos
-- WordPress 5.0+
-- PHP 7.4+
-- Tabla `wp_cc_certificados` (se crea automáticamente al activar)
+## Gestión de Certificados
 
-## Licencia
-[MIT](https://choosealicense.com/licenses/mit/)
+### Modificar o Eliminar Información de Certificados
+
+Los certificados se almacenan en un archivo CSV ubicado en `includes/certificado/listado.csv`. Para modificar o eliminar información:
+
+1. **Modificar un certificado:**
+   - Edita directamente el archivo `listado.csv` con un editor de texto o Excel.
+   - Asegúrate de mantener el formato correcto: RAZON SOCIAL, NIT, RESOLUCION, FECHA RESOLUCION, APELLIDO1, APELLIDO2, NOMBRE1, NOMBRE2, CEDULA, NUMERODIPLOMA, CURSO, ACTA, FECHA_ACTA.
+   - Guarda los cambios y la tabla se actualizará automáticamente.
+
+2. **Eliminar un certificado:**
+   - Abre el archivo `listado.csv`.
+   - Elimina la fila correspondiente al certificado que deseas remover.
+   - Guarda el archivo. Los cambios serán reflejados en la interfaz administrativa.
+
+**Nota:** No hay interfaz gráfica para editar individualmente los certificados. Todas las modificaciones se realizan directamente en el archivo CSV. Se recomienda hacer una copia de respaldo antes de editar.

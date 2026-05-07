@@ -32,9 +32,14 @@ function enviar_correo_login($para, $asunto, $mensaje_html) {
         $mail->Body    = $mensaje_html;
 
         $mail->send();
+        $log_file = plugin_dir_path(__FILE__) . '../email-log.txt';
+        $log_entry = date('Y-m-d H:i:s') . " | enviar_correo_login | to: {$para} | subject: {$asunto} | status: success\n";
+        file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
         return true;
     } catch (Exception $e) {
-        // Puedes guardar el error en un log si quieres
+        $log_file = plugin_dir_path(__FILE__) . '../email-log.txt';
+        $log_entry = date('Y-m-d H:i:s') . " | enviar_correo_login | to: {$para} | subject: {$asunto} | status: failure | error: " . $e->getMessage() . "\n";
+        file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
         return false;
     }
 }

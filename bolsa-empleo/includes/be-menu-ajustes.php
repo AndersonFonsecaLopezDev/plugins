@@ -2,6 +2,8 @@
   <h1 style="font-size: 28px; font-weight: 600; margin-bottom: 10px; color: #1d2327;">Ajustes de Bolsa de Empleo</h1>
   <p style="color: #646970; font-size: 16px; margin-bottom: 30px;">Configura las URL, permisos de acceso y opciones de correo para la bolsa de empleo.</p>
 
+  <?php settings_errors(); ?>
+
   <form method="post" action="options.php" style="background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 30px; border: 1px solid #e2e4e7;">
     <?php settings_fields('be_settings_group'); ?>
     <?php do_settings_sections('be_settings_group'); ?>
@@ -67,7 +69,5 @@
       </tr>
     </table>
     <?php submit_button('Guardar ajustes', 'primary', 'submit', true, ['style' => 'margin-top: 20px; padding: 10px 30px; font-size: 15px; background-color: #0d4c92; border-color: #0d4c92; border-radius: 6px;']); ?>
-  </form>
-</div>
   </form>
 </div>

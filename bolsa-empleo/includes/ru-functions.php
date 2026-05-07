@@ -58,20 +58,30 @@ function ru_enqueue_front_scripts() {
     if (is_admin()) return; // No cargar en el admin
     global $post;
     if (!is_a($post, 'WP_Post')) return;
-    if (has_shortcode($post->post_content, 'registro-usuarios')) {
-        wp_enqueue_style(
-            'ru-first-page-css',
-            plugin_dir_url(__FILE__) . 'ru-first-page.css',
-            [],
-            '1.0'
-        );
-        wp_enqueue_script(
-            'ru-first-page-js',
-            plugin_dir_url(__FILE__) . 'ru-first-page.js',
-            ['jquery'],
-            '1.0',
-            true
-        );
+
+    $shortcodes = [
+        'registro-usuarios',
+        'login-usuarios',
+        'lu_forgot_password'
+    ];
+
+    $has_shortcode = false;
+    foreach ($shortcodes as $shortcode) {
+        if (has_shortcode($post->post_content, $shortcode)) {
+            $has_shortcode = true;
+            break;
+        }
+    }
+
+    if ($has_shortcode) {
+        wp_enqueue_style('ru_bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css', [], '5.3.2');
+        wp_enqueue_style('ru_izitoast', 'https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css', [], '1.4.0');
+        wp_enqueue_style('ru_fontawesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css', [], '6.5.2');
+        wp_enqueue_style('ru-first-page-css', plugin_dir_url(__FILE__) . 'ru-first-page.css', [], '1.0');
+
+        wp_enqueue_script('ru_izitoast', 'https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js', [], '1.4.0', true);
+        wp_enqueue_script('ru-first-page-js', plugin_dir_url(__FILE__) . 'ru-first-page.js', ['jquery'], '1.0', true);
+
         $ciudades = function_exists('ru_get_ciudades_colombia') ? ru_get_ciudades_colombia() : [];
         $js_data = [
             'ciudadesPorDepartamento' => $ciudades,

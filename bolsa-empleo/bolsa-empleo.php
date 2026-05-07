@@ -55,6 +55,9 @@ function be_plugin_activate() {
         estatura varchar(50) DEFAULT '',
         barrio varchar(255) DEFAULT '',
         cv_aprobado tinyint(1) DEFAULT 0,
+        fecha_creacion datetime DEFAULT CURRENT_TIMESTAMP,
+        reset_code varchar(10) DEFAULT '',
+        reset_code_expires datetime DEFAULT NULL,
         PRIMARY KEY  (ID),
         UNIQUE KEY email (email)
     ) $charset_collate;";

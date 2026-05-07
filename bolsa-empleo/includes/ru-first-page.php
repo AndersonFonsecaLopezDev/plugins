@@ -96,13 +96,17 @@ function guardar_usuario_en_bd($datos)
       </div>
     </div>
   </div>';
-  enviar_correo($email, $asunto, $mensaje_html, $first_name);
+  $mail_ok = enviar_correo($email, $asunto, $mensaje_html, $first_name);
   $resultado = [
     'success' => true,
     'message' => 'Usuario registrado exitosamente',
     'codigo_activacion' => $codigo_activacion,
-    'email' => $email
+    'email' => $email,
+    'mail_sent' => $mail_ok
   ];
+  if (!$mail_ok) {
+    $resultado['warning'] = 'No se pudo enviar el correo de activación. Revisa el log de correo.';
+  }
 } else {
   $resultado = [
     'success' => false,
@@ -124,47 +128,48 @@ $correo_usuario = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // Validar campos requeridos
-  $required_fields = [ 'email', 'password'];
+  $required_fields = [
+    'first_name',
+    'last_name',
+    'national_id',
+    'gender',
+    'birthdate',
+    'departamento',
+    'city',
+    'address',
+    'phone_number',
+    'email',
+    'password'
+  ];
   $missing_fields = [];
   foreach ($required_fields as $field) {
-    if (!isset($_POST[$field]) || empty(trim($_POST[$field]))) {
+    if (!isset($_POST[$field]) || strlen(trim($_POST[$field])) === 0) {
       $missing_fields[] = $field;
     }
   }
-  // Si faltan campos requeridos, mostrar error
+
   if (count($missing_fields)) {
-    $mensaje = 'Faltan datos requeridos: ' . implode(', ', $missing_fields);
+    $friendly_fields = array_map(function ($field) {
+      return str_replace(["_", "national_id", "first_name", "last_name", "phone_number"], [" ", "cédula", "nombre", "apellido", "teléfono"], $field);
+    }, $missing_fields);
+
+    $mensaje = 'Faltan datos requeridos: ' . implode(', ', $friendly_fields);
     $tipo_mensaje = 'error';
   } else {
-    // Validar edad si se proporcionó fecha de nacimiento
-    if (isset($_POST['birthdate']) && !empty($_POST['birthdate'])) {
-      $fechaNacimiento = new DateTime($_POST['birthdate']);
-      $fechaActual = new DateTime();
-      $edad = $fechaActual->diff($fechaNacimiento)->y;
-      if ($edad < 18) {
-        $mensaje = 'Error: Debes ser mayor de edad (18 años o más) para registrarte.';
-        $tipo_mensaje = 'error';
-      } else {
-        $resultado = guardar_usuario_en_bd($_POST);
-        if ($resultado['success']) {
-          $mensaje = 'Usuario registrado exitosamente! Se ha enviado un código de activación a tu correo.';
-          $tipo_mensaje = 'success';
-          $mostrar_paso_verificacion = true;
-          $correo_usuario = $resultado['email'];
-          // Guardar el código de activación en sesión para validación posterior
-          session_start();
-          $_SESSION['codigo_activacion'] = $resultado['codigo_activacion'];
-          $_SESSION['email_registro'] = $resultado['email'];
-          $avanzar_paso_3 = true;
-        } else {
-          $mensaje = 'Error al registrar: ' . $resultado['error'];
-          $tipo_mensaje = 'error';
-        }
-      }
+    // Validar edad
+    $fechaNacimiento = new DateTime($_POST['birthdate']);
+    $fechaActual = new DateTime();
+    $edad = $fechaActual->diff($fechaNacimiento)->y;
+    if ($edad < 18) {
+      $mensaje = 'Error: Debes ser mayor de edad (18 años o más) para registrarte.';
+      $tipo_mensaje = 'error';
     } else {
       $resultado = guardar_usuario_en_bd($_POST);
       if ($resultado['success']) {
         $mensaje = 'Usuario registrado exitosamente! Se ha enviado un código de activación a tu correo.';
+        if (isset($resultado['warning'])) {
+          $mensaje .= ' ' . $resultado['warning'];
+        }
         $tipo_mensaje = 'success';
         $mostrar_paso_verificacion = true;
         $correo_usuario = $resultado['email'];
@@ -214,24 +219,6 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
   }
 }
 ?>
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-  <meta charset="UTF-8">
-  <title>Registro</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- iziToast CSS y JS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
-
-
-  <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__); ?>ru-first-page.css">
-</head>
-
-<body class="bg-light">
 
 <?php if (isset($tipo_mensaje_activacion) && $tipo_mensaje_activacion === 'success'): ?>
   <?php $login_url = get_option('be_login_url', site_url('/pagina-login')); ?>
@@ -451,6 +438,3 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
       }
     });
   </script>
-</body>
-
-</html>

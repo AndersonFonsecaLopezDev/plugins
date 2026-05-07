@@ -42,6 +42,10 @@ function mostrar_login_usuarios() {
 }
 add_shortcode('login-usuarios', 'mostrar_login_usuarios');
 
+// Hooks for login form processing
+add_action('admin_post_custom_login', 'lu_procesar_login_form');
+add_action('admin_post_nopriv_custom_login', 'lu_procesar_login_form');
+
 require_once plugin_dir_path(__FILE__) . 'lu-jwt.php';
  
 /**
@@ -56,8 +60,17 @@ function lu_procesar_login_form() {
     $email    = sanitize_email($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
+    $login_url = get_option('be_login_url', site_url('/pagina-login'));
+
     if (empty($email) || empty($password)) {
-        wp_die('Debes completar todos los campos.');
+        wp_safe_redirect(add_query_arg(
+            [
+                'login_error' => urlencode('Debes completar todos los campos.'),
+                'login_email' => urlencode($email)
+            ],
+            $login_url
+        ));
+        exit;
     }
 
     // 1. Buscar en tu tabla personalizada
@@ -67,17 +80,38 @@ function lu_procesar_login_form() {
     );
 
     if (!$user) {
-        wp_die('Usuario no encontrado.');
+        wp_safe_redirect(add_query_arg(
+            [
+                'login_error' => urlencode('Usuario o contraseña inválido.'),
+                'login_email' => urlencode($email)
+            ],
+            $login_url
+        ));
+        exit;
     }
 
     // 2. Validar contraseña
     if (!verify_password($password, $user->contrasena)) {
-        wp_die('Contraseña incorrecta.');
+        wp_safe_redirect(add_query_arg(
+            [
+                'login_error' => urlencode('Usuario o contraseña inválido.'),
+                'login_email' => urlencode($email)
+            ],
+            $login_url
+        ));
+        exit;
     }
 
     // 3. Validar estado del email
     if ((int) $user->email_verificado !== 1) {
-        wp_die('Debes verificar tu correo antes de iniciar sesión.');
+        wp_safe_redirect(add_query_arg(
+            [
+                'login_error' => urlencode('Debes verificar tu correo antes de iniciar sesión.'),
+                'login_email' => urlencode($email)
+            ],
+            $login_url
+        ));
+        exit;
     }
     
 
@@ -107,7 +141,14 @@ function lu_procesar_login_form() {
         $user_id = wp_create_user($username, wp_generate_password(), $email);
 
         if (is_wp_error($user_id)) {
-            wp_die('Error creando usuario en WordPress: ' . $user_id->get_error_message());
+            wp_safe_redirect(add_query_arg(
+                [
+                    'login_error' => urlencode('Error al crear el usuario en WordPress. Por favor intenta de nuevo.'),
+                    'login_email' => urlencode($email)
+                ],
+                $login_url
+            ));
+            exit;
         }
 
         $wp_user_obj = new WP_User($user_id);

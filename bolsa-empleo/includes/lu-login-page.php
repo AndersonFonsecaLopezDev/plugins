@@ -5,20 +5,10 @@ if (!defined('ABSPATH')) {
 }
 $register_url = get_option('be_register_url', site_url('/pagina-registro'));
 $forgot_password_url = get_option('be_forgot_password_url', site_url('/recuperacion-contasena'));
+$login_error = isset($_GET['login_error']) ? sanitize_text_field(urldecode($_GET['login_error'])) : '';
+$login_email = isset($_GET['login_email']) ? sanitize_email(urldecode($_GET['login_email'])) : '';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="<?php bloginfo('charset'); ?>">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php bloginfo('name'); ?> - Iniciar Sesión</title>
-
-    <!-- Font Awesome para los íconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
+<style>
         :root {
             --primary-color: #034C8C;
             --secondary-color: #D9C077;
@@ -242,6 +232,7 @@ $forgot_password_url = get_option('be_forgot_password_url', site_url('/recuperac
                 name="email"
                 class="input-field"
                 placeholder="tu@email.com"
+                value="<?php echo esc_attr($login_email); ?>"
                 required
                 autocomplete="username">
             <div class="error-message" id="email-error">Por favor ingresa un correo electrónico válido</div>
@@ -275,6 +266,22 @@ $forgot_password_url = get_option('be_forgot_password_url', site_url('/recuperac
     </form>
 </div>
 
+<?php if ($login_error): ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof iziToast !== 'undefined') {
+            iziToast.error({
+                title: 'Error',
+                message: '<?php echo esc_js($login_error); ?>',
+                position: 'topRight'
+            });
+        } else {
+            alert('<?php echo esc_js($login_error); ?>');
+        }
+    });
+</script>
+<?php endif; ?>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const togglePassword = document.getElementById('togglePassword');
@@ -301,6 +308,3 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-
-</body>
-</html>

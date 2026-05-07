@@ -127,7 +127,7 @@
       var dep = departamentoSelect.value;
       var ciudades = ciudadesPorDepartamento[dep] || [];
       ciudadSelect.innerHTML = '';
-      if (ciudades.length > 0) {
+        if (ciudades.length > 0) {
         ciudadSelect.removeAttribute('disabled');
         ciudades.forEach(function(ciudad) {
           var option = document.createElement('option');
@@ -136,7 +136,7 @@
           ciudadSelect.appendChild(option);
         });
       } else {
-        ciudadSelect.setAttribute('disabled', 'disabled');
+        ciudadSelect.removeAttribute('disabled');
         var option = document.createElement('option');
         option.value = '';
         option.textContent = 'Primero selecciona un departamento';

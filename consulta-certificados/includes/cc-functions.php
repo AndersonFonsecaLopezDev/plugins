@@ -249,39 +249,32 @@ function getCertificate()
     wp_die();
   }
 
-  $nonce = $_POST['nonce'];
-  $document = $_POST['document'];
+  $nonce = sanitize_text_field($_POST['nonce']);
+  $document = sanitize_text_field($_POST['document']);
 
   // Verificación de seguridad
   cc_verify_nonce($nonce);
 
-  $response = [];
-  $file = plugin_dir_path(__FILE__) . "certificado/listado.csv";
-
-  if (!file_exists($file)) {
-    wp_send_json_error('Archivo no encontrado', 404);
+  if (empty($document)) {
+    wp_send_json_error('Documento vacío', 400);
     wp_die();
   }
 
-  if (($handle = fopen($file, "r")) !== FALSE) {
-    $encabezados = fgetcsv($handle, 1000, ";");
-    $key = array_search("CEDULA", $encabezados);
+  global $wpdb;
+  $table = $wpdb->prefix . 'cc_certificados';
+  $prepared = $wpdb->prepare(
+    "SELECT * FROM $table WHERE cedula = %s OR numerodiploma = %s",
+    $document,
+    $document
+  );
 
-    if ($key === false) {
-      wp_send_json_error('Columna CEDULA no encontrada', 500);
-      wp_die();
-    }
-
-    while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
-      if (isset($data[$key]) && trim($data[$key]) === $document) {
-        $response[] = array_combine($encabezados, $data);
-      }
-    }
-    fclose($handle);
+  $results = $wpdb->get_results($prepared, ARRAY_A);
+  if (!$results) {
+    $results = [];
   }
 
-  wp_send_json($response);
-  wp_die(); // IMPORTANTE: Terminar la ejecución
+  wp_send_json($results);
+  wp_die();
 }
 
 // 3. Registrar hooks CORRECTAMENTE
@@ -291,87 +284,75 @@ add_action('wp_ajax_nopriv_get_certificate', 'getCertificate');
 // Ajax
 function getAllCertificates()
 {
-  // Declaración de variables
-  $nonce = $_POST['nonce'];
-  $contador = 0;
-  // Verificacion de seguridad
+  $nonce = sanitize_text_field($_POST['nonce'] ?? '');
   if (!wp_verify_nonce($nonce, 'seg')) {
-    die('No tiene permisos para ejecutar');
+    wp_send_json_error('Acceso no autorizado', 403);
+    wp_die();
   }
-  $response = [];
-  // Abrir el archivo Csv
-  $file = plugin_dir_path(__FILE__) . "certificado/listado.csv";
-  if (($handle = fopen($file, "r")) !== FALSE) {
-    // Leer la primera línea del archivo (encabezados)
-    $encabezados = fgetcsv($handle, 1000, ";");
-    while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
-      // Extraer los datos deseados
-      $datosExtraidos = array_combine($encabezados, $data);
-      // Almacenar los datos extraídos en el array filtrado
-      $response[] = $datosExtraidos;
-      $contador++;
-    }
 
-    fclose($handle);
-    wp_send_json($response);
+  global $wpdb;
+  $table = $wpdb->prefix . 'cc_certificados';
+
+  $sql = "SELECT 
+    razon_social AS 'RAZON SOCIAL',
+    nit AS 'NIT',
+    resolucion AS 'RESOLUCION',
+    DATE_FORMAT(fecha_resolucion, '%Y-%m-%d') AS 'FECHA RESOLUCION',
+    apellido1 AS 'APELLIDO1',
+    apellido2 AS 'APELLIDO2',
+    nombre1 AS 'NOMBRE1',
+    nombre2 AS 'NOMBRE2',
+    cedula AS 'CEDULA',
+    numerodiploma AS 'NUMERODIPLOMA',
+    curso AS 'CURSO',
+    acta AS 'ACTA',
+    DATE_FORMAT(fecha_acta, '%Y-%m-%d') AS 'FECHA_ACTA'
+  FROM $table";
+
+  $response = $wpdb->get_results($sql, ARRAY_A);
+  if ($wpdb->last_error) {
+    wp_send_json([['RAZON SOCIAL' => 'Error SQL: ' . $wpdb->last_error]]);
+    wp_die();
   }
+
+  wp_send_json($response);
 }
 add_action('wp_ajax_get_all_certificates', 'getAllCertificates');
 
 function getAllCursosVencidos()
 {
-  // Verificación de seguridad
-  if (!wp_verify_nonce($_POST['nonce'], 'seg')) {
+  if (!wp_verify_nonce($_POST['nonce'] ?? '', 'seg')) {
     wp_send_json_error('Acceso no autorizado', 403);
+    wp_die();
   }
 
-  $file = plugin_dir_path(__FILE__) . "certificado/listado.csv";
+  global $wpdb;
+  $table = $wpdb->prefix . 'cc_certificados';
+  $sql = "SELECT apellido1, apellido2, nombre1, nombre2, curso, fecha_acta FROM $table WHERE fecha_acta IS NOT NULL";
+  $rows = $wpdb->get_results($sql, ARRAY_A);
   $response = [];
   $fecha_actual = new DateTime();
 
-  if (($handle = fopen($file, "r")) !== FALSE) {
-    $encabezados = fgetcsv($handle, 1000, ";");
-
-    while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
-      $row = array_combine($encabezados, $data);
-
-      if (!empty($row['FECHA_ACTA'])) {
-        $fecha_emision = DateTime::createFromFormat('d/m/Y', $row['FECHA_ACTA']);
-
-        if ($fecha_emision) {
-          $fecha_vencimiento = clone $fecha_emision;
-
-          $fecha_vencimiento->add(new DateInterval('P1Y'));
-
-
-          if ($fecha_actual > $fecha_vencimiento) {
-            // Manejo del teléfono (si no existe en el CSV)
-            $telefono = 'No registrado';
-            if (isset($row['TÉLEFONO']) && !empty($row['TÉLEFONO'])) {
-              $telefono = $row['TÉLEFONO'];
-            } elseif (isset($row['TELEFONO'])) { // Por si acaso viene sin tilde
-              $telefono = $row['TELEFONO'];
-            }
-
-
-            $response[] = [
-              'nombre' => trim($row['NOMBRE1'] . ' ' . ($row['NOMBRE2'] ?? '') . ' ' .
-                $row['APELLIDO1'] . ' ' . ($row['APELLIDO2'] ?? '')),
-              'curso' => $row['CURSO'],
-              'telefono' => $telefono,
-              'fecha_acta' => $row['FECHA_ACTA'],
-
-            ];
-          }
-        }
-      }
+  foreach ($rows as $row) {
+    $fecha_emision = DateTime::createFromFormat('Y-m-d', $row['fecha_acta']);
+    if (!$fecha_emision) {
+      continue;
     }
-    fclose($handle);
 
-    wp_send_json($response);
-  } else {
-    wp_send_json_error("No se pudo abrir listado.csv", 500);
+    $fecha_vencimiento = clone $fecha_emision;
+    $fecha_vencimiento->add(new DateInterval('P1Y'));
+
+    if ($fecha_actual > $fecha_vencimiento) {
+      $response[] = [
+        'nombre' => trim(($row['nombre1'] ?? '') . ' ' . ($row['nombre2'] ?? '') . ' ' . ($row['apellido1'] ?? '') . ' ' . ($row['apellido2'] ?? '')),
+        'curso' => $row['curso'],
+        'telefono' => 'No registrado',
+        'fecha_acta' => $row['fecha_acta'],
+      ];
+    }
   }
+
+  wp_send_json($response);
 }
 add_action('wp_ajax_get_all_cursos_vencidos', 'getAllCursosVencidos');
 
@@ -497,48 +478,23 @@ function handle_import_excel() {
 
     require_once plugin_dir_path(__FILE__) . '../vendor/autoload.php';
 
-    // Ruta del archivo destino
-    $output_file = plugin_dir_path(__FILE__) . "certificado/listado.csv";
-
     try {
-        // Cargar el archivo subido
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
         $sheet = $spreadsheet->getActiveSheet();
         $rows = $sheet->toArray(null, true, true, true);
 
-        // Verificar si el archivo destino existe
-        if (file_exists($output_file)) {
-            $existingSpreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($output_file);
-            $existingSheet = $existingSpreadsheet->getActiveSheet();
-            $highestRow = $existingSheet->getHighestRow();
-        } else {
-            // Crear nuevo spreadsheet si no existe
-            $existingSpreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-            $existingSheet = $existingSpreadsheet->getActiveSheet();
-            
-            // Agregar encabezados
-            $headers = [
-                'A' => 'RAZON SOCIAL', 'B' => 'NIT', 'C' => 'RESOLUCION', 
-                'D' => 'FECHA RESOLUCION', 'E' => 'APELLIDO1', 'F' => 'APELLIDO2',
-                'G' => 'NOMBRE1', 'H' => 'NOMBRE2', 'I' => 'CEDULA', 
-                'J' => 'NUMERODIPLOMA', 'K' => 'CURSO', 'L' => 'ACTA', 
-                'M' => 'FECHA_ACTA'
-            ];
-            
-            foreach ($headers as $col => $header) {
-                $existingSheet->setCellValue($col.'1', $header);
-            }
-            
-            $highestRow = 1;
-        }
+        global $wpdb;
+        $table = $wpdb->prefix . 'cc_certificados';
 
         $inserted_rows = [];
         $duplicated_rows = [];
+        $errors = [];
 
         foreach ($rows as $index => $row) {
-            if ($index === 1) continue; // Saltar encabezado
+            if ($index === 1) {
+                continue; // Saltar encabezado
+            }
 
-            // Mapear columnas
             $razon_social    = sanitize_text_field($row['A'] ?? '');
             $nit             = sanitize_text_field($row['B'] ?? '');
             $resolucion      = sanitize_text_field($row['C'] ?? '');
@@ -553,70 +509,65 @@ function handle_import_excel() {
             $acta            = sanitize_text_field($row['L'] ?? '');
             $fecha_acta      = !empty($row['M']) ? date('Y-m-d', strtotime($row['M'])) : null;
 
-            // Validar número de diploma
             if (empty($numerodiploma)) {
+                $errors[] = "Fila $index: numerodiploma vacío";
                 continue;
             }
 
-            // Verificar duplicados en el archivo existente
-            $is_duplicate = false;
-            if ($highestRow > 1) {
-                for ($i = 2; $i <= $highestRow; $i++) {
-                    if ($existingSheet->getCell('J'.$i)->getValue() == $numerodiploma) {
-                        $duplicated_rows[] = $numerodiploma;
-                        $is_duplicate = true;
-                        break;
-                    }
-                }
-            }
-
-            if ($is_duplicate) {
+            $exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE numerodiploma = %s", $numerodiploma));
+            if ($exists) {
+                $duplicated_rows[] = $numerodiploma;
                 continue;
             }
 
-            // Agregar nueva fila
-            $newRow = $highestRow + 1;
-            $existingSheet->setCellValue('A'.$newRow, $razon_social);
-            $existingSheet->setCellValue('B'.$newRow, $nit);
-            $existingSheet->setCellValue('C'.$newRow, $resolucion);
-            $existingSheet->setCellValue('D'.$newRow, $fecha_resolucion);
-            $existingSheet->setCellValue('E'.$newRow, $apellido1);
-            $existingSheet->setCellValue('F'.$newRow, $apellido2);
-            $existingSheet->setCellValue('G'.$newRow, $nombre1);
-            $existingSheet->setCellValue('H'.$newRow, $nombre2);
-            $existingSheet->setCellValue('I'.$newRow, $cedula);
-            $existingSheet->setCellValue('J'.$newRow, $numerodiploma);
-            $existingSheet->setCellValue('K'.$newRow, $curso);
-            $existingSheet->setCellValue('L'.$newRow, $acta);
-            $existingSheet->setCellValue('M'.$newRow, $fecha_acta);
+            $inserted = $wpdb->insert(
+                $table,
+                [
+                    'razon_social'     => $razon_social,
+                    'nit'              => $nit,
+                    'resolucion'       => $resolucion,
+                    'fecha_resolucion' => $fecha_resolucion,
+                    'apellido1'        => $apellido1,
+                    'apellido2'        => $apellido2,
+                    'nombre1'          => $nombre1,
+                    'nombre2'          => $nombre2,
+                    'cedula'           => $cedula,
+                    'numerodiploma'    => $numerodiploma,
+                    'curso'            => $curso,
+                    'acta'             => $acta,
+                    'fecha_acta'       => $fecha_acta,
+                ],
+                ['%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s']
+            );
 
-            $highestRow = $newRow;
-            
+            if ($inserted === false) {
+                $errors[] = "Fila $index: " . $wpdb->last_error;
+                continue;
+            }
+
             $inserted_rows[] = [
-                'razon_social' => $razon_social,
-                'nit' => $nit,
-                'numerodiploma' => $numerodiploma,
+                'razon_social'   => $razon_social,
+                'nit'            => $nit,
+                'numerodiploma'  => $numerodiploma,
                 'nombre_completo' => trim("$nombre1 $nombre2 $apellido1 $apellido2"),
-                'curso' => $curso
+                'curso'          => $curso,
             ];
         }
 
-        // Guardar el archivo
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($existingSpreadsheet, 'Csv');
-        $writer->setDelimiter(';');
-        $writer->setEnclosure('');
-        $writer->setLineEnding("\r\n");
-        $writer->setSheetIndex(0);
-        $writer->save($output_file);
-
-        wp_send_json_success([
-            'message' => 'Datos agregados al archivo correctamente.',
+        $response = [
+            'message' => 'Importación completada en la base de datos.',
             'inserted' => count($inserted_rows),
             'duplicated' => count($duplicated_rows),
             'duplicated_list' => $duplicated_rows,
+            'errors' => $errors,
             'rows' => $inserted_rows,
-            'output_file' => $output_file
-        ]);
+        ];
+
+        if (!empty($errors)) {
+            wp_send_json_error($response);
+        } else {
+            wp_send_json_success($response);
+        }
     } catch (Exception $e) {
         wp_send_json_error(['message' => 'Error al procesar el archivo: ' . $e->getMessage()]);
     }

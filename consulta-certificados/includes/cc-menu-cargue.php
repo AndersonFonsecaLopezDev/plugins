@@ -7,6 +7,7 @@ if (!function_exists('cc_current_user_can_access_certificados') || !cc_current_u
   <div style="background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 40px; text-align: center; border: 1px solid #e2e4e7;">
     <h1 style="font-size: 28px; font-weight: 600; margin-bottom: 10px; color: #1d2327;">Cargue de Certificados</h1>
     <p style="color: #646970; font-size: 16px; margin-bottom: 30px;">Sube o actualiza el archivo de certificados (Excel o CSV) para alimentar la base de datos de egresados y cursos vencidos.</p>
+    <p style="color: #646970; font-size: 14px; margin-bottom: 20px;"><a href="#" onclick="alert('El archivo debe tener las siguientes columnas en orden:\nRAZON SOCIAL, NIT, RESOLUCION, FECHA RESOLUCION, APELLIDO1, APELLIDO2, NOMBRE1, NOMBRE2, CEDULA, NUMERODIPLOMA, CURSO, ACTA, FECHA_ACTA\n\nEjemplo de fila:\nACADEMIA AESS, 123456789, 001, 2023-01-01, GONZALEZ, PEREZ, JUAN, CARLOS, 12345678, DIP001, CURSO BASICO, ACT001, 2023-01-01')">Descargar Plantilla de Ejemplo</a></p>
     
     <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
       <div style="width: 100%; max-width: 500px; padding: 30px 20px; border: 2px dashed #007cba; border-radius: 8px; background: #f0f6fc; transition: all 0.3s ease;">

@@ -299,6 +299,8 @@ function getAllCertificates()
   $table = $wpdb->prefix . 'cc_certificados';
 
   $sql = "SELECT 
+    idCertificado AS 'ID',
+    estado AS 'ESTADO',
     razon_social AS 'RAZON SOCIAL',
     nit AS 'NIT',
     resolucion AS 'RESOLUCION',
@@ -312,7 +314,7 @@ function getAllCertificates()
     curso AS 'CURSO',
     acta AS 'ACTA',
     DATE_FORMAT(fecha_acta, '%Y-%m-%d') AS 'FECHA_ACTA'
-  FROM $table";
+  FROM $table WHERE estado = 'activo'";
 
   $response = $wpdb->get_results($sql, ARRAY_A);
   if ($wpdb->last_error) {
@@ -324,68 +326,58 @@ function getAllCertificates()
 }
 add_action('wp_ajax_get_all_certificates', 'getAllCertificates');
 
-function getAllCursosVencidos()
-{
-  if (!wp_verify_nonce($_POST['nonce'] ?? '', 'seg')) {
-    wp_send_json_error('Acceso no autorizado', 403);
-    wp_die();
-  }
+// Endpoints AJAX para editar y ocultar certificados
+add_action('wp_ajax_cc_toggle_certificate_status', 'cc_toggle_certificate_status');
+function cc_toggle_certificate_status() {
+    check_ajax_referer('cc_seg', 'nonce');
+    global $wpdb;
+    $id = intval($_POST['id'] ?? 0);
+    $status = sanitize_text_field($_POST['status'] ?? 'inactivo');
 
-  global $wpdb;
-  $certificados_table = $wpdb->prefix . 'cc_certificados';
-
-  $where = 'WHERE c.fecha_acta IS NOT NULL';
-  $params = [];
-
-  $fecha_desde = sanitize_text_field($_POST['fecha_desde'] ?? '');
-  $fecha_hasta = sanitize_text_field($_POST['fecha_hasta'] ?? '');
-
-  if (!empty($fecha_desde)) {
-    $where .= ' AND c.fecha_acta >= %s';
-    $params[] = $fecha_desde;
-  }
-
-  if (!empty($fecha_hasta)) {
-    $where .= ' AND c.fecha_acta <= %s';
-    $params[] = $fecha_hasta;
-  }
-
-  $sql = "SELECT c.apellido1, c.apellido2, c.nombre1, c.nombre2, c.cedula, c.curso, c.acta, c.fecha_acta FROM {$certificados_table} c {$where}";
-
-  if (!empty($params)) {
-    $rows = $wpdb->get_results($wpdb->prepare($sql, $params), ARRAY_A);
-  } else {
-    $rows = $wpdb->get_results($sql, ARRAY_A);
-  }
-
-  $response = [];
-  $fecha_actual = new DateTime();
-
-  foreach ($rows as $row) {
-    $fecha_emision = DateTime::createFromFormat('Y-m-d', $row['fecha_acta']);
-    if (!$fecha_emision) {
-      continue;
+    if ($id) {
+        $updated = $wpdb->update("{$wpdb->prefix}cc_certificados", ['estado' => $status], ['idCertificado' => $id]);
+        if ($updated !== false) {
+            wp_send_json_success('Estado actualizado correctamente.');
+        }
     }
-
-    $fecha_vencimiento = clone $fecha_emision;
-    $fecha_vencimiento->add(new DateInterval('P1Y'));
-
-    if ($fecha_actual > $fecha_vencimiento) {
-      $response[] = [
-        'nombre' => trim(($row['nombre1'] ?? '') . ' ' . ($row['nombre2'] ?? '') . ' ' . ($row['apellido1'] ?? '') . ' ' . ($row['apellido2'] ?? '')),
-        'curso' => $row['curso'],
-        'fecha_acta' => $row['fecha_acta'],
-        'fecha_vencimiento' => $fecha_vencimiento->format('Y-m-d'),
-        'estado' => 'Vencido',
-      ];
-    }
-  }
-
-  wp_send_json($response);
+    wp_send_json_error('Error al actualizar.');
 }
-add_action('wp_ajax_get_all_cursos_vencidos', 'getAllCursosVencidos');
 
-// function handle_import_excel()
+add_action('wp_ajax_cc_edit_certificate', 'cc_edit_certificate');
+function cc_edit_certificate() {
+    check_ajax_referer('cc_seg', 'nonce');
+    global $wpdb;
+    
+    $id = intval($_POST['idCertificado'] ?? 0);
+    if (!$id) wp_send_json_error('ID inválido');
+
+    $data = [
+        'razon_social' => sanitize_text_field($_POST['razon_social'] ?? ''),
+        'nit' => sanitize_text_field($_POST['nit'] ?? ''),
+        'resolucion' => sanitize_text_field($_POST['resolucion'] ?? ''),
+        'fecha_resolucion' => sanitize_text_field($_POST['fecha_resolucion'] ?? ''),
+        'apellido1' => sanitize_text_field($_POST['apellido1'] ?? ''),
+        'apellido2' => sanitize_text_field($_POST['apellido2'] ?? ''),
+        'nombre1' => sanitize_text_field($_POST['nombre1'] ?? ''),
+        'nombre2' => sanitize_text_field($_POST['nombre2'] ?? ''),
+        'cedula' => sanitize_text_field($_POST['cedula'] ?? ''),
+        'numerodiploma' => sanitize_text_field($_POST['numerodiploma'] ?? ''),
+        'curso' => sanitize_text_field($_POST['curso'] ?? ''),
+        'acta' => sanitize_text_field($_POST['acta'] ?? ''),
+        'fecha_acta' => sanitize_text_field($_POST['fecha_acta'] ?? ''),
+    ];
+
+    // Opcional: manejar validación de unicidad de numerodiploma si se cambia
+
+    $updated = $wpdb->update("{$wpdb->prefix}cc_certificados", $data, ['idCertificado' => $id]);
+    if ($updated !== false) {
+        wp_send_json_success('Certificado actualizado exitosamente.');
+    } else {
+        wp_send_json_error('No se realizaron cambios o ocurrió un error.');
+    }
+}
+
+
 // {
 //   check_ajax_referer('seg', 'nonce');
 

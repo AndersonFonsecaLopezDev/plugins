@@ -28,6 +28,7 @@ function Activar() {
         curso VARCHAR(255) DEFAULT NULL,
         acta VARCHAR(100) DEFAULT NULL,
         fecha_acta DATE DEFAULT NULL,
+        estado VARCHAR(20) DEFAULT 'activo',
         PRIMARY KEY (idCertificado),
         UNIQUE (numerodiploma)
     ) $charset_collate;";

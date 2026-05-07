@@ -85,6 +85,7 @@ function ru_enqueue_front_scripts() {
             'forzarPaso4' => isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && isset($_POST['email_activacion']) && isset($forzar_paso_4) && $forzar_paso_4,
             'mensajeActivacion' => isset($mensaje_activacion) ? $mensaje_activacion : '',
             'tipoMensajeActivacion' => isset($tipo_mensaje_activacion) ? $tipo_mensaje_activacion : '',
+            'ajaxUrl' => admin_url('admin-ajax.php')
         ];
         wp_localize_script('ru-first-page-js', 'ruData', $js_data);
     }
@@ -137,7 +138,7 @@ add_action('wp_ajax_get_user_details', function() {
     }
 
     $user = $wpdb->get_row($wpdb->prepare(
-        "SELECT ID, first_name, middle_name, last_name, second_last_name, national_id, email, phone_number, address, user_role FROM {$wpdb->prefix}aess_users WHERE ID = %d",
+        "SELECT ID, first_name, middle_name, last_name, second_last_name, national_id, email, phone_number, address, user_role, academico, profesion, estado_laboral, libreta_militar, experiencia, diploma, estatura, barrio FROM {$wpdb->prefix}aess_users WHERE ID = %d",
         $user_id
     ), ARRAY_A);
 
@@ -167,9 +168,17 @@ add_action('wp_ajax_ru_update_user', function() {
         'phone_number' => sanitize_text_field($_POST['phone_number'] ?? ''),
         'address' => sanitize_text_field($_POST['address'] ?? ''),
         'user_role' => sanitize_text_field($_POST['user_role'] ?? ''),
+        'academico' => sanitize_text_field($_POST['academico'] ?? ''),
+        'profesion' => sanitize_text_field($_POST['profesion'] ?? ''),
+        'estado_laboral' => sanitize_text_field($_POST['estado_laboral'] ?? ''),
+        'libreta_militar' => sanitize_text_field($_POST['libreta_militar'] ?? ''),
+        'experiencia' => sanitize_textarea_field($_POST['experiencia'] ?? ''),
+        'diploma' => sanitize_text_field($_POST['diploma'] ?? ''),
+        'estatura' => sanitize_text_field($_POST['estatura'] ?? ''),
+        'barrio' => sanitize_text_field($_POST['barrio'] ?? ''),
     ];
 
-    $format = ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'];
+    $format = ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'];
 
     $updated = $wpdb->update(
         "{$wpdb->prefix}aess_users",
@@ -259,3 +268,77 @@ add_action('wp_ajax_ru_import_users_csv', function() {
         'errors' => $errors
     ]);
 });
+
+// Endpoint AJAX: validar email existente
+add_action('wp_ajax_ru_check_email', 'ru_ajax_check_email');
+add_action('wp_ajax_nopriv_ru_check_email', 'ru_ajax_check_email');
+function ru_ajax_check_email() {
+    global $wpdb;
+    $email = sanitize_email($_POST['email'] ?? '');
+    if (!$email) wp_send_json_success(['exists' => false]);
+    
+    $exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}aess_users WHERE email = %s", $email));
+    wp_send_json_success(['exists' => (bool)$exists]);
+}
+
+// Endpoint AJAX: validar cédula existente
+add_action('wp_ajax_ru_check_cedula', 'ru_ajax_check_cedula');
+add_action('wp_ajax_nopriv_ru_check_cedula', 'ru_ajax_check_cedula');
+function ru_ajax_check_cedula() {
+    global $wpdb;
+    $cedula = sanitize_text_field($_POST['cedula'] ?? '');
+    if (!$cedula) wp_send_json_success(['exists' => false]);
+    
+    $exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}aess_users WHERE national_id = %s", $cedula));
+    wp_send_json_success(['exists' => (bool)$exists]);
+}
+
+// Endpoint AJAX: Cursos Vencidos en Bolsa de Empleo
+add_action('wp_ajax_get_all_cursos_vencidos', 'be_get_all_cursos_vencidos');
+function be_get_all_cursos_vencidos() {
+    check_ajax_referer('ru_seg', 'nonce');
+    global $wpdb;
+
+    $table = $wpdb->prefix . 'aess_users';
+    
+    $fecha_desde = isset($_POST['fecha_desde']) ? sanitize_text_field($_POST['fecha_desde']) : '';
+    $fecha_hasta = isset($_POST['fecha_hasta']) ? sanitize_text_field($_POST['fecha_hasta']) : '';
+    $ciudad = isset($_POST['ciudad']) ? sanitize_text_field($_POST['ciudad']) : '';
+
+    $where = " WHERE fecha_vencimiento_curso IS NOT NULL AND fecha_vencimiento_curso != '0000-00-00' AND fecha_vencimiento_curso < CURDATE()";
+
+    if (!empty($fecha_desde)) {
+        $where .= $wpdb->prepare(" AND fecha_acta_curso >= %s", $fecha_desde);
+    }
+    if (!empty($fecha_hasta)) {
+        $where .= $wpdb->prepare(" AND fecha_acta_curso <= %s", $fecha_hasta);
+    }
+    if (!empty($ciudad)) {
+        $where .= $wpdb->prepare(" AND city LIKE %s", '%' . $wpdb->esc_like($ciudad) . '%');
+    }
+
+    $sql = "SELECT ID, first_name, middle_name, last_name, second_last_name, 
+            curso_realizado, fecha_acta_curso, fecha_vencimiento_curso, 
+            email, phone_number, city 
+            FROM $table $where";
+
+    $results = $wpdb->get_results($sql, ARRAY_A);
+    $data = [];
+
+    foreach ($results as $row) {
+        $nombre = trim($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'] . ' ' . $row['second_last_name']);
+        
+        $data[] = [
+            'nombre' => $nombre,
+            'curso' => $row['curso_realizado'],
+            'fecha_acta' => $row['fecha_acta_curso'],
+            'fecha_vencimiento' => $row['fecha_vencimiento_curso'],
+            'correo' => $row['email'],
+            'telefono' => $row['phone_number'],
+            'ciudad' => $row['city'],
+            'estado' => 'Vencido'
+        ];
+    }
+
+    wp_send_json($data);
+}

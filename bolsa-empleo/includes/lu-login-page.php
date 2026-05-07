@@ -229,6 +229,7 @@ $login_email = isset($_GET['login_email']) ? sanitize_email(urldecode($_GET['log
     <?php else : ?>
         <form id="loginForm" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
         <input type="hidden" name="action" value="custom_login">
+        <input type="hidden" name="current_url" value="<?php echo esc_url((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>">
 
         <div class="form-group">
             <label for="email">Correo electrónico</label>

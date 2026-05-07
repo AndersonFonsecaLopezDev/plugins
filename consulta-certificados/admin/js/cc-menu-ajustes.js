@@ -2,8 +2,8 @@ jQuery(document).ready(function ($) {
     var importedDataTable;
     var previewedData = [];
 
-    function isCSV(fileName) {
-        return fileName.toLowerCase().endsWith('.csv');
+    function isExcel(fileName) {
+        return fileName.toLowerCase().endsWith('.xlsx');
     }
 
     function setResponseMessage(html, isError = false) {
@@ -33,40 +33,34 @@ jQuery(document).ready(function ($) {
 
         let fileInput = $('#excel_file')[0];
         if (fileInput.files.length === 0) {
-            setResponseMessage('Por favor selecciona un archivo CSV o Excel antes de previsualizar.', true);
+            setResponseMessage('Por favor selecciona un archivo Excel antes de previsualizar.', true);
             return;
         }
 
         let file = fileInput.files[0];
+        if (!isExcel(file.name)) {
+            setResponseMessage('Por favor selecciona un archivo Excel (.xlsx) válido.', true);
+            return;
+        }
+
         let reader = new FileReader();
 
         reader.onload = function (e) {
             let headers = [];
             let bodyData = [];
 
-            if (isCSV(file.name)) {
-                // Procesar CSV
-                let text = e.target.result;
-                let rows = text.split('\n').map(row => row.split(',').map(cell => cell.trim()));
+            // Procesar Excel
+            let data = new Uint8Array(e.target.result);
+            let workbook = XLSX.read(data, { type: 'array' });
 
-                if (rows.length > 0) {
-                    headers = rows[0];
-                    bodyData = rows.slice(1).filter(row => row.length > 1);
-                }
-            } else {
-                // Procesar Excel
-                let data = new Uint8Array(e.target.result);
-                let workbook = XLSX.read(data, { type: 'array' });
+            let firstSheetName = workbook.SheetNames[0];
+            let worksheet = workbook.Sheets[firstSheetName];
 
-                let firstSheetName = workbook.SheetNames[0];
-                let worksheet = workbook.Sheets[firstSheetName];
+            let jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-                let jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-                if (jsonData.length > 0) {
-                    headers = jsonData[0];
-                    bodyData = jsonData.slice(1).filter(row => row.length > 0);
-                }
+            if (jsonData.length > 0) {
+                headers = jsonData[0];
+                bodyData = jsonData.slice(1).filter(row => row.length > 0);
             }
 
             previewedData = { headers, bodyData };

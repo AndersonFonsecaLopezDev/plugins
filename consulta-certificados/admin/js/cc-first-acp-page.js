@@ -28,7 +28,9 @@ jQuery(document).ready(function ($) {
                 orderable: false,
                 searchable: false,
                 defaultContent: `
-                    <button class="btn btn-sm btn-secondary btn-download">Descargar</button>
+                    <button class="btn btn-sm btn-primary btn-edit"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-secondary btn-download"><i class="fas fa-download"></i></button>
+                    <button class="btn btn-sm btn-danger btn-hide"><i class="fas fa-eye-slash"></i></button>
                 `
             }
         ],
@@ -113,5 +115,66 @@ jQuery(document).ready(function ($) {
         setTimeout(function () {
             form.remove();
         }, 1000);
+    });
+
+    // Evento para editar certificado
+    $('#principalTable').on('click', '.btn-edit', function () {
+        var rowData = table.row($(this).closest('tr')).data();
+        
+        $('#edit_cert_id').val(rowData.ID);
+        $('#edit_razon_social').val(rowData['RAZON SOCIAL']);
+        $('#edit_nit').val(rowData.NIT);
+        $('#edit_resolucion').val(rowData.RESOLUCION);
+        $('#edit_fecha_resolucion').val(rowData['FECHA RESOLUCION']);
+        $('#edit_apellido1').val(rowData.APELLIDO1);
+        $('#edit_apellido2').val(rowData.APELLIDO2);
+        $('#edit_nombre1').val(rowData.NOMBRE1);
+        $('#edit_nombre2').val(rowData.NOMBRE2);
+        $('#edit_cedula').val(rowData.CEDULA);
+        $('#edit_numerodiploma').val(rowData.NUMERODIPLOMA);
+        $('#edit_curso').val(rowData.CURSO);
+        $('#edit_acta').val(rowData.ACTA);
+        $('#edit_fecha_acta').val(rowData.FECHA_ACTA);
+        $('#editCertFeedback').html('');
+
+        var editModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('editCertModal'));
+        editModal.show();
+    });
+
+    // Evento para guardar edición
+    $('#editCertForm').on('submit', function (event) {
+        event.preventDefault();
+        var formData = $(this).serializeArray();
+        formData.push({ name: 'action', value: 'cc_edit_certificate' });
+        formData.push({ name: 'nonce', value: personal_ajax_request.security });
+
+        $.post(personal_ajax_request.url, formData, function (response) {
+            if (response.success) {
+                $('#editCertFeedback').html('<div class="alert alert-success">' + response.data + '</div>');
+                table.ajax.reload(null, false);
+            } else {
+                $('#editCertFeedback').html('<div class="alert alert-danger">' + (response.data || 'Error al actualizar el certificado.') + '</div>');
+            }
+        }, 'json');
+    });
+
+    // Evento para ocultar certificado
+    $('#principalTable').on('click', '.btn-hide', function () {
+        var rowData = table.row($(this).closest('tr')).data();
+        
+        if (confirm('¿Estás seguro de que deseas ocultar (inactivar) este certificado?')) {
+            $.post(personal_ajax_request.url, {
+                action: 'cc_toggle_certificate_status',
+                nonce: personal_ajax_request.security,
+                id: rowData.ID,
+                status: 'inactivo'
+            }, function (response) {
+                if (response.success) {
+                    table.ajax.reload(null, false);
+                } else {
+                    alert(response.data || 'Error al ocultar.');
+                }
+            }, 'json');
+        }
     });
 });

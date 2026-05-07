@@ -126,9 +126,41 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
               <label class="form-label" for="edit_user_role">Rol</label>
               <input type="text" class="form-control" id="edit_user_role" name="user_role">
             </div>
+            <div class="col-md-6">
+              <label class="form-label" for="edit_academico">Nivel Académico</label>
+              <input type="text" class="form-control" id="edit_academico" name="academico">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="edit_profesion">Profesión</label>
+              <input type="text" class="form-control" id="edit_profesion" name="profesion">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="edit_estado_laboral">Estado Laboral</label>
+              <input type="text" class="form-control" id="edit_estado_laboral" name="estado_laboral">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="edit_libreta_militar">Libreta Militar</label>
+              <input type="text" class="form-control" id="edit_libreta_militar" name="libreta_militar">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="edit_diploma">Diploma</label>
+              <input type="text" class="form-control" id="edit_diploma" name="diploma">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="edit_estatura">Estatura</label>
+              <input type="text" class="form-control" id="edit_estatura" name="estatura">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="edit_barrio">Barrio</label>
+              <input type="text" class="form-control" id="edit_barrio" name="barrio">
+            </div>
             <div class="col-12">
               <label class="form-label" for="edit_address">Dirección</label>
               <textarea class="form-control" id="edit_address" name="address" rows="2"></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="edit_experiencia">Experiencia</label>
+              <textarea class="form-control" id="edit_experiencia" name="experiencia" rows="3"></textarea>
             </div>
           </div>
         </div>

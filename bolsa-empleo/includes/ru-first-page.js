@@ -92,8 +92,67 @@
       showToast('error', 'Error', 'Debes aceptar los términos y condiciones para continuar.');
       return;
     }
-    document.getElementById('userEmail').textContent = email;
-    goToStep(2);
+
+    // Verificar si el correo existe vía AJAX
+    var btn = document.querySelector('#step1 .btn-primary');
+    btn.disabled = true;
+    btn.textContent = 'Verificando...';
+
+    $.post(ruData.ajaxUrl, {
+      action: 'ru_check_email',
+      email: email
+    }, function(response) {
+      btn.disabled = false;
+      btn.textContent = 'Siguiente';
+      if (response.success && response.data.exists) {
+        showToast('error', 'Error', 'El correo electrónico ya está registrado.');
+      } else {
+        document.getElementById('userEmail').textContent = email;
+        goToStep(2);
+      }
+    }).fail(function() {
+      btn.disabled = false;
+      btn.textContent = 'Siguiente';
+      showToast('error', 'Error', 'Error de conexión. Inténtalo de nuevo.');
+    });
+  };
+
+  window.validateStep2 = function() {
+    // Forzar validación HTML5
+    var form = document.getElementById('registerForm');
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    var birthdate = document.getElementById('birthdate').value;
+    if (!validarEdad(birthdate)) {
+      return;
+    }
+
+    var cedula = document.getElementById('national_id').value;
+    var btn = document.querySelector('#step2 .btn-primary');
+    btn.disabled = true;
+    btn.textContent = 'Verificando...';
+
+    $.post(ruData.ajaxUrl, {
+      action: 'ru_check_cedula',
+      cedula: cedula
+    }, function(response) {
+      btn.disabled = false;
+      btn.textContent = 'Siguiente';
+      if (response.success && response.data.exists) {
+        showToast('error', 'Error', 'La cédula ingresada ya se encuentra registrada.');
+      } else {
+        goToStep(3);
+        // Desencadenar el submit real ya que pasamos las validaciones
+        document.getElementById('realSubmitBtn').click();
+      }
+    }).fail(function() {
+      btn.disabled = false;
+      btn.textContent = 'Siguiente';
+      showToast('error', 'Error', 'Error de conexión. Inténtalo de nuevo.');
+    });
   };
 
   window.goToStep = function(stepNumber) {

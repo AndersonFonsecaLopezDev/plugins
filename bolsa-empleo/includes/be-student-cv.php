@@ -35,6 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
         $estatura = sanitize_text_field($_POST['estatura'] ?? '');
         $barrio = sanitize_text_field($_POST['barrio'] ?? '');
         
+        $curso_realizado = sanitize_text_field($_POST['curso_realizado'] ?? '');
+        $fecha_acta_curso = sanitize_text_field($_POST['fecha_acta_curso'] ?? '');
+        $fecha_vencimiento_curso = sanitize_text_field($_POST['fecha_vencimiento_curso'] ?? '');
+
         $accion = sanitize_text_field($_POST['accion_cv'] ?? 'guardar');
         
         if ($accion === 'eliminar') {
@@ -54,6 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 'diploma' => $diploma,
                 'estatura' => $estatura,
                 'barrio' => $barrio,
+                'curso_realizado' => $curso_realizado,
+                'fecha_acta_curso' => $fecha_acta_curso ? $fecha_acta_curso : null,
+                'fecha_vencimiento_curso' => $fecha_vencimiento_curso ? $fecha_vencimiento_curso : null,
                 'cv_aprobado' => 0 // Vuelve a pendiente de aprobación
             ];
 
@@ -98,12 +105,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
         </div>
     <?php endif; ?>
 
-    <div class="mb-4 text-center">
-        <p style="font-size: 15px; color: #555;">Estado actual en la Bolsa de Empleo:</p>
+    <div class="mb-5 text-center">
+        <p style="font-size: 15px; color: #555; margin-bottom: 10px;">Estado actual en la Bolsa de Empleo:</p>
         <?php if ($user_data['cv_aprobado'] == 1): ?>
-            <span class="badge" style="background-color: #007017; font-size: 15px; padding: 10px 20px; border-radius: 8px;">Aprobado y Visible</span>
+            <span class="badge" style="background-color: #007017; font-size: 15px; padding: 10px 20px; border-radius: 8px; display: inline-block; margin-bottom: 20px;">Aprobado y Visible</span>
         <?php else: ?>
-            <span class="badge" style="background-color: #ffb900; color: #000; font-size: 15px; padding: 10px 20px; border-radius: 8px;">Pendiente / Oculto</span>
+            <span class="badge" style="background-color: #ffb900; color: #000; font-size: 15px; padding: 10px 20px; border-radius: 8px; display: inline-block; margin-bottom: 20px;">Pendiente / Oculto</span>
         <?php endif; ?>
     </div>
 
@@ -179,6 +186,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
             <div class="col-md-6 mb-3">
                 <label class="form-label">Cursos o Diplomas adicionales</label>
                 <input type="text" class="form-control" name="diploma" value="<?php echo esc_attr($user_data['diploma'] ?? ''); ?>" placeholder="Ej: Curso de Seguridad Privada vigente">
+            </div>
+
+            <div class="col-12 mt-3 mb-2">
+                <h6 style="color: #034C8C; font-weight: 600; border-bottom: 1px solid #eee; padding-bottom: 5px;">Último Curso de Seguridad Realizado</h6>
+            </div>
+            <div class="col-md-12 mb-3">
+                <label class="form-label">Nombre del Curso</label>
+                <select class="form-select select2-course" name="curso_realizado">
+                    <option value="">Seleccione un curso...</option>
+                    <option value="FUNDAMENTACION VIGILANCIA" <?php selected($user_data['curso_realizado'] ?? '', 'FUNDAMENTACION VIGILANCIA'); ?>>FUNDAMENTACION VIGILANCIA</option>
+                    <option value="REENTRENAMIENTO VIGILANCIA" <?php selected($user_data['curso_realizado'] ?? '', 'REENTRENAMIENTO VIGILANCIA'); ?>>REENTRENAMIENTO VIGILANCIA</option>
+                    <option value="ESPECIALIZACION VIGILANCIA" <?php selected($user_data['curso_realizado'] ?? '', 'ESPECIALIZACION VIGILANCIA'); ?>>ESPECIALIZACION VIGILANCIA</option>
+                    <option value="FUNDAMENTACION ESCOLTA" <?php selected($user_data['curso_realizado'] ?? '', 'FUNDAMENTACION ESCOLTA'); ?>>FUNDAMENTACION ESCOLTA</option>
+                    <option value="REENTRENAMIENTO ESCOLTA" <?php selected($user_data['curso_realizado'] ?? '', 'REENTRENAMIENTO ESCOLTA'); ?>>REENTRENAMIENTO ESCOLTA</option>
+                    <option value="ESPECIALIZACION ESCOLTA" <?php selected($user_data['curso_realizado'] ?? '', 'ESPECIALIZACION ESCOLTA'); ?>>ESPECIALIZACION ESCOLTA</option>
+                    <option value="FUNDAMENTACION SUPERVISOR" <?php selected($user_data['curso_realizado'] ?? '', 'FUNDAMENTACION SUPERVISOR'); ?>>FUNDAMENTACION SUPERVISOR</option>
+                    <option value="REENTRENAMIENTO SUPERVISOR" <?php selected($user_data['curso_realizado'] ?? '', 'REENTRENAMIENTO SUPERVISOR'); ?>>REENTRENAMIENTO SUPERVISOR</option>
+                    <option value="ESPECIALIZACION SUPERVISOR" <?php selected($user_data['curso_realizado'] ?? '', 'ESPECIALIZACION SUPERVISOR'); ?>>ESPECIALIZACION SUPERVISOR</option>
+                    <option value="FUNDAMENTACION OPERADOR MEDIOS TECNOLOGICOS" <?php selected($user_data['curso_realizado'] ?? '', 'FUNDAMENTACION OPERADOR MEDIOS TECNOLOGICOS'); ?>>FUNDAMENTACION OPERADOR MEDIOS TECNOLOGICOS</option>
+                    <option value="REENTRENAMIENTO OPERADOR MEDIOS TECNOLOGICOS" <?php selected($user_data['curso_realizado'] ?? '', 'REENTRENAMIENTO OPERADOR MEDIOS TECNOLOGICOS'); ?>>REENTRENAMIENTO OPERADOR MEDIOS TECNOLOGICOS</option>
+                    <option value="SEMINARIO" <?php selected($user_data['curso_realizado'] ?? '', 'SEMINARIO'); ?>>SEMINARIO</option>
+                    <option value="OTRO" <?php selected($user_data['curso_realizado'] ?? '', 'OTRO'); ?>>OTRO</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Fecha del Acta</label>
+                <input type="date" class="form-control" name="fecha_acta_curso" value="<?php echo esc_attr($user_data['fecha_acta_curso'] ?? ''); ?>">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Fecha de Vencimiento</label>
+                <input type="date" class="form-control" name="fecha_vencimiento_curso" value="<?php echo esc_attr($user_data['fecha_vencimiento_curso'] ?? ''); ?>">
             </div>
             <div class="col-12 mb-3">
                 <label class="form-label">Archivo de Hoja de Vida (PDF o Word)</label>

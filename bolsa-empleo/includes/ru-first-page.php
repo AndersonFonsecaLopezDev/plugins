@@ -410,7 +410,8 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
 
       <div class="btn-container">
         <button type="button" class="btn btn-secondary" onclick="goToStep(1)">Atrás</button>
-        <button type="submit" class="btn btn-primary">Siguiente</button>
+        <button type="button" class="btn btn-primary" onclick="validateStep2()">Siguiente</button>
+        <button type="submit" id="realSubmitBtn" style="display: none;"></button>
       </div>
     </div>
 

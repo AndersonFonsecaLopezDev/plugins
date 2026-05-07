@@ -244,9 +244,17 @@ jQuery(document).ready(function ($) {
                 $('#edit_phone_number').val(user.phone_number);
                 $('#edit_user_role').val(user.user_role);
                 $('#edit_address').val(user.address);
+                $('#edit_academico').val(user.academico);
+                $('#edit_profesion').val(user.profesion);
+                $('#edit_estado_laboral').val(user.estado_laboral);
+                $('#edit_libreta_militar').val(user.libreta_militar);
+                $('#edit_experiencia').val(user.experiencia);
+                $('#edit_diploma').val(user.diploma);
+                $('#edit_estatura').val(user.estatura);
+                $('#edit_barrio').val(user.barrio);
                 $('#editUserFeedback').html('');
 
-                var editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                var editModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('editUserModal'));
                 editModal.show();
             } else {
                 alert(response.data || 'No se pudo cargar la información del usuario.');

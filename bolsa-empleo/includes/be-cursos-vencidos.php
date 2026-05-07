@@ -10,15 +10,19 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
             <p class="text-muted mb-4">Listado de estudiantes cuyos cursos se encuentran vencidos según el registro histórico de certificados.</p>
             
             <form id="cursosVencidosFilterForm" class="row g-3 align-items-end">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="fecha_desde" class="form-label">Fecha acta desde</label>
                     <input type="date" class="form-control" id="fecha_desde" name="fecha_desde">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="fecha_hasta" class="form-label">Fecha acta hasta</label>
                     <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label for="ciudad_filtro" class="form-label">Ciudad</label>
+                    <input type="text" class="form-control" id="ciudad_filtro" name="ciudad_filtro" placeholder="Ej: Bogotá">
+                </div>
+                <div class="col-md-3">
                     <button type="button" id="applyFechaFilter" class="btn btn-primary w-100">Aplicar filtro</button>
                 </div>
             </form>
@@ -35,6 +39,9 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
                             <th>CURSO</th>
                             <th>FECHA ACTA</th>
                             <th>FECHA VENCIMIENTO</th>
+                            <th>CORREO</th>
+                            <th>TELÉFONO</th>
+                            <th>CIUDAD</th>
                             <th>ESTADO</th>
                         </tr>
                     </thead>
@@ -44,6 +51,9 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
                             <th>CURSO</th>
                             <th>FECHA ACTA</th>
                             <th>FECHA VENCIMIENTO</th>
+                            <th>CORREO</th>
+                            <th>TELÉFONO</th>
+                            <th>CIUDAD</th>
                             <th>ESTADO</th>
                         </tr>
                     </tfoot>
@@ -77,6 +87,7 @@ jQuery(document).ready(function($) {
                 d.nonce = personal_ajax_request.security;
                 d.fecha_desde = $('#fecha_desde').val();
                 d.fecha_hasta = $('#fecha_hasta').val();
+                d.ciudad = $('#ciudad_filtro').val();
             },
             dataSrc: ''
         },
@@ -90,6 +101,9 @@ jQuery(document).ready(function($) {
                     return '<strong style="color:red;">' + data + '</strong>';
                 }
             },
+            { data: 'correo' },
+            { data: 'telefono' },
+            { data: 'ciudad' },
             { 
                 data: 'estado',
                 render: function(data) {

@@ -26,6 +26,7 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
                     <button type="button" id="applyFechaFilter" class="btn btn-primary w-100">Aplicar filtro</button>
                 </div>
             </form>
+            <div id="filterSummary" class="px-3 pb-3" style="font-size: 0.95rem; color: #555;"></div>
         </div>
     </div>
 
@@ -115,7 +116,22 @@ jQuery(document).ready(function($) {
 
     $('#applyFechaFilter').on('click', function () {
         table.ajax.reload();
+        renderFilterSummary();
     });
+
+    function renderFilterSummary() {
+        var fechaDesde = $('#fecha_desde').val();
+        var fechaHasta = $('#fecha_hasta').val();
+        var ciudad = $('#ciudad_filtro').val().trim();
+        var summary = '<strong>Filtros aplicados:</strong> ';
+        var fragments = [];
+        if (fechaDesde) fragments.push('Fecha acta desde: ' + fechaDesde);
+        if (fechaHasta) fragments.push('Fecha acta hasta: ' + fechaHasta);
+        fragments.push('Ciudad: ' + (ciudad ? ciudad : 'Todas'));
+        $('#filterSummary').html(summary + fragments.join(' | '));
+    }
+
+    renderFilterSummary();
 
     // Agregar filtros por columna en el footer
     $('#cursosVencidosTable tfoot th').each(function (i) {

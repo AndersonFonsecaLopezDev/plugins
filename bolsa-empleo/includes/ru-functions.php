@@ -29,7 +29,9 @@ function generar_codigo_activacion($longitud = 6) {
 
 // Valida el código de activación para el email proporcionado
 function validar_codigo_activacion($email, $codigo_ingresado, $conn) {
-    $sql = "SELECT codigo_activacion FROM wp_aess_users WHERE email = ?";
+    global $wpdb;
+    $table = $wpdb->prefix . 'aess_users';
+    $sql = "SELECT codigo_activacion FROM {$table} WHERE email = ?";
     $stmt = $conn->prepare($sql);
     if ($stmt) {
         $stmt->bind_param("s", $email);
@@ -38,7 +40,7 @@ function validar_codigo_activacion($email, $codigo_ingresado, $conn) {
         $stmt->bind_result($codigo_guardado);
         if ($stmt->fetch()) {
             $stmt->close();
-            return $codigo_guardado === $codigo_ingresado;
+            return strcasecmp($codigo_guardado, $codigo_ingresado) === 0;
         }
         $stmt->close();
     }
@@ -138,7 +140,7 @@ add_action('wp_ajax_get_user_details', function() {
     }
 
     $user = $wpdb->get_row($wpdb->prepare(
-        "SELECT ID, first_name, middle_name, last_name, second_last_name, national_id, email, phone_number, address, user_role, academico, profesion, estado_laboral, libreta_militar, experiencia, diploma, estatura, barrio FROM {$wpdb->prefix}aess_users WHERE ID = %d",
+        "SELECT ID, first_name, middle_name, last_name, second_last_name, national_id, email, phone_number, address, departamento, city, user_role, academico, profesion, estado_laboral, libreta_militar, experiencia, diploma, estatura, barrio, curso_realizado, fecha_acta_curso, fecha_vencimiento_curso FROM {$wpdb->prefix}aess_users WHERE ID = %d",
         $user_id
     ), ARRAY_A);
 
@@ -166,6 +168,8 @@ add_action('wp_ajax_ru_update_user', function() {
         'national_id' => sanitize_text_field($_POST['national_id'] ?? ''),
         'email' => sanitize_email($_POST['email'] ?? ''),
         'phone_number' => sanitize_text_field($_POST['phone_number'] ?? ''),
+        'departamento' => sanitize_text_field($_POST['departamento'] ?? ''),
+        'city' => sanitize_text_field($_POST['city'] ?? ''),
         'address' => sanitize_text_field($_POST['address'] ?? ''),
         'user_role' => sanitize_text_field($_POST['user_role'] ?? ''),
         'academico' => sanitize_text_field($_POST['academico'] ?? ''),
@@ -178,7 +182,7 @@ add_action('wp_ajax_ru_update_user', function() {
         'barrio' => sanitize_text_field($_POST['barrio'] ?? ''),
     ];
 
-    $format = ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'];
+    $format = ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'];
 
     $updated = $wpdb->update(
         "{$wpdb->prefix}aess_users",

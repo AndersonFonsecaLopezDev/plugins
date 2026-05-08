@@ -14,16 +14,18 @@ global $wpdb;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recovery_email'])) {
     $email = sanitize_email($_POST['recovery_email']);
 
+    $table = $wpdb->prefix . 'aess_users';
     $user = $wpdb->get_row(
-        $wpdb->prepare("SELECT * FROM wp_aess_users WHERE email = %s", $email)
+        $wpdb->prepare("SELECT * FROM {$table} WHERE email = %s", $email)
     );
 
     if ($user) {
         $codigo_activacion = rand(100000, 999999);
 
         // Guardar código y expiración en BD
+        $table = $wpdb->prefix . 'aess_users';
         $wpdb->update(
-            'wp_aess_users',
+            $table,
             [
                 'reset_code' => $codigo_activacion,
                 'reset_code_expires' => date("Y-m-d H:i:s", strtotime("+1 hour")),
@@ -81,8 +83,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verification_code']))
     $email = $_SESSION['recovery_email'] ?? '';
 
     if ($email) {
+        $table = $wpdb->prefix . 'aess_users';
         $user = $wpdb->get_row(
-            $wpdb->prepare("SELECT * FROM wp_aess_users WHERE email = %s", $email)
+            $wpdb->prepare("SELECT * FROM {$table} WHERE email = %s", $email)
         );
 
         if ($user && $user->reset_code == $codigo && strtotime($user->reset_code_expires) > time()) {
@@ -105,8 +108,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_password']) && is
         // Encriptar la contraseña antes de guardarla
         $hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
 
+        $table = $wpdb->prefix . 'aess_users';
         $wpdb->update(
-            'wp_aess_users',
+            $table,
             [
                 'contrasena' => $hashed_password,
                 'reset_code' => null,

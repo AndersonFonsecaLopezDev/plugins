@@ -3,10 +3,16 @@ include_once "ru-functions.php";
 include_once "ru-password.php";
 require_once __DIR__ . '/ru-localitations.php';
 
+if (!session_id()) {
+    session_start();
+}
+
 // Inicializar arrays de departamentos y ciudades
 $departamentos = ru_get_departamentos_colombia();
 $ciudades = ru_get_ciudades_colombia();
 $terms_url = get_option('be_terms_url', '#');
+$login_url = get_option('be_login_url', site_url('/pagina-login'));
+$correo_usuario = $_SESSION['email_registro'] ?? '';
 
 // Función para guardar datos en la base de datos
 /**
@@ -194,7 +200,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mostrar_paso_verificacion = true;
         $correo_usuario = $resultado['email'];
         // Guardar el código de activación en sesión para validación posterior
-        session_start();
         $_SESSION['codigo_activacion'] = $resultado['codigo_activacion'];
         $_SESSION['email_registro'] = $resultado['email'];
         $avanzar_paso_3 = true;
@@ -211,17 +216,14 @@ if (isset($_POST['activar_cuenta']) && isset($_POST['codigo_activacion']) && iss
   global $wpdb;
   $email = trim($_POST['email_activacion']);
   $codigo = trim($_POST['codigo_activacion']);
-  $mensaje_activacion = '';
-  $tipo_mensaje_activacion = '';
-  $forzar_paso_4 = false;
-
+  $correo_usuario = $email;
   $table = $wpdb->prefix . 'aess_users';
   $row = $wpdb->get_row($wpdb->prepare("SELECT codigo_activacion, fecha_activacion FROM $table WHERE email = %s", $email), ARRAY_A);
   if ($row) {
     if ($row['fecha_activacion']) {
       $mensaje_activacion = 'La cuenta ya está activada.';
       $tipo_mensaje_activacion = 'info';
-    } elseif ($row['codigo_activacion'] === $codigo) {
+    } elseif (strcasecmp($row['codigo_activacion'], $codigo) === 0) {
       $fecha = date('Y-m-d H:i:s');
       // Actualizar fecha_activacion y email_verificado
       $wpdb->update($table, ['fecha_activacion' => $fecha, 'email_verificado' => 1], ['email' => $email], ['%s', '%d'], ['%s']);
@@ -295,6 +297,9 @@ if (isset($mensaje_activacion) && !empty($mensaje_activacion)) {
   <div class="login-container">
   <!-- Título principal antes de la barra de progreso -->
   <h1 class="text-center mb-4" style="color: var(--primary-color); font-weight: bold;">Registro</h1>
+  <div class="text-center mb-3">
+    <a href="<?php echo esc_url($login_url); ?>" class="btn btn-link">¿Ya tienes cuenta? Ir a inicio de sesión</a>
+  </div>
 
   <!-- Barra de pasos -->
   <div class="progress-steps">

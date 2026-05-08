@@ -4,6 +4,8 @@ if (!is_user_logged_in()) {
     return;
 }
 
+include_once plugin_dir_path(__FILE__) . 'ru-localitations.php';
+
 $current_user = wp_get_current_user();
 $email = $current_user->user_email;
 
@@ -18,6 +20,10 @@ if (!$user_data) {
 
 $mensaje = '';
 $tipo_mensaje = '';
+
+declare(strict_types=1);
+$departamentos = ru_get_departamentos_colombia();
+$ciudades = ru_get_ciudades_colombia();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
     // Validar nonce
@@ -49,7 +55,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
             $user_data['cv_aprobado'] = 0;
         } else {
             // Guardar cambios
-            $update_data = [
+            $departamento = sanitize_text_field($_POST['departamento'] ?? '');
+        $city = sanitize_text_field($_POST['city'] ?? '');
+        $phone_number = sanitize_text_field($_POST['phone_number'] ?? '');
+
+        $update_data = [
                 'academico' => $academico,
                 'profesion' => $profesion,
                 'estado_laboral' => $estado_laboral,
@@ -58,6 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 'diploma' => $diploma,
                 'estatura' => $estatura,
                 'barrio' => $barrio,
+                'departamento' => $departamento,
+                'city' => $city,
+                'phone_number' => $phone_number,
                 'curso_realizado' => $curso_realizado,
                 'fecha_acta_curso' => $fecha_acta_curso ? $fecha_acta_curso : null,
                 'fecha_vencimiento_curso' => $fecha_vencimiento_curso ? $fecha_vencimiento_curso : null,
@@ -133,11 +146,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
             </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label">Celular / Teléfono</label>
-                <input type="text" class="form-control" value="<?php echo esc_attr($user_data['phone_number']); ?>" disabled>
+                <input type="text" class="form-control" name="phone_number" value="<?php echo esc_attr($user_data['phone_number'] ?? ''); ?>">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Departamento</label>
+                <select class="form-select" name="departamento" id="departamento">
+                    <option value="">Selecciona un departamento</option>
+                    <?php foreach ($departamentos as $dep): ?>
+                        <option value="<?php echo esc_attr($dep); ?>" <?php selected($user_data['departamento'] ?? '', $dep); ?>><?php echo esc_html($dep); ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label">Ciudad de Residencia</label>
-                <input type="text" class="form-control" value="<?php echo esc_attr($user_data['city'] . ', ' . $user_data['departamento']); ?>" disabled>
+                <select class="form-select" name="city" id="city">
+                    <option value="">Selecciona una ciudad</option>
+                    <?php
+                        $selectedDepartamento = $user_data['departamento'] ?? '';
+                        $ciudadesPorDepartamento = $ciudades;
+                        if (!empty($selectedDepartamento) && isset($ciudadesPorDepartamento[$selectedDepartamento])) {
+                            foreach ($ciudadesPorDepartamento[$selectedDepartamento] as $ciudadOption) {
+                                echo '<option value="' . esc_attr($ciudadOption) . '" ' . selected($user_data['city'] ?? '', $ciudadOption, false) . '>' . esc_html($ciudadOption) . '</option>';
+                            }
+                        }
+                    ?>
+                </select>
             </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label">Barrio</label>
@@ -199,8 +232,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 <input type="text" class="form-control" name="diploma" value="<?php echo esc_attr($user_data['diploma'] ?? ''); ?>" placeholder="Ej: Curso de Seguridad Privada vigente">
             </div>
 
-            <div class="col-12 mt-3 mb-2">
-                <h6 style="color: #034C8C; font-weight: 600; border-bottom: 1px solid #eee; padding-bottom: 5px;">Último Curso de Seguridad Realizado</h6>
+            <div class="col-12 mt-4 mb-3">
+                <h6 style="color: #034C8C; font-weight: 600; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 1.5rem;">Último Curso de Seguridad Realizado</h6>
             </div>
             <div class="col-md-12 mb-3">
                 <label class="form-label">Nombre del Curso</label>

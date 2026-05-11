@@ -2,7 +2,7 @@
 /*
 Plugin Name: Consulta Certificados
 Description: Plugin para consultar informacion desde un archivo Excel.
-Version: 0.1
+Version: 1.0
 Author: Anderson Fonseca Lopez
 */
 

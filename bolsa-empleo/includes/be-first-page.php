@@ -144,7 +144,11 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
             </div>
             <div class="col-md-6">
               <div class="form-floating">
-                <input type="text" class="form-control" id="edit_user_role" name="user_role" placeholder="Rol">
+                <select class="form-select" id="edit_user_role" name="user_role">
+                  <option value="estudiante">Estudiante</option>
+                  <option value="secretario">Secretario</option>
+                  <option value="talento_humano">Talento Humano</option>
+                </select>
                 <label for="edit_user_role">Rol</label>
               </div>
             </div>

@@ -305,17 +305,17 @@ function be_get_all_cursos_vencidos() {
 
     $table = $wpdb->prefix . 'aess_users';
     
-    $fecha_desde = isset($_POST['fecha_desde']) ? sanitize_text_field($_POST['fecha_desde']) : '';
-    $fecha_hasta = isset($_POST['fecha_hasta']) ? sanitize_text_field($_POST['fecha_hasta']) : '';
+    $fecha_desde = isset($_POST['fecha_vencimiento_desde']) ? sanitize_text_field($_POST['fecha_vencimiento_desde']) : '';
+    $fecha_hasta = isset($_POST['fecha_vencimiento_hasta']) ? sanitize_text_field($_POST['fecha_vencimiento_hasta']) : '';
     $ciudad = isset($_POST['ciudad']) ? sanitize_text_field($_POST['ciudad']) : '';
 
     $where = " WHERE fecha_vencimiento_curso IS NOT NULL AND fecha_vencimiento_curso != '0000-00-00' AND fecha_vencimiento_curso < CURDATE()";
 
     if (!empty($fecha_desde)) {
-        $where .= $wpdb->prepare(" AND fecha_acta_curso >= %s", $fecha_desde);
+        $where .= $wpdb->prepare(" AND fecha_vencimiento_curso >= %s", $fecha_desde);
     }
     if (!empty($fecha_hasta)) {
-        $where .= $wpdb->prepare(" AND fecha_acta_curso <= %s", $fecha_hasta);
+        $where .= $wpdb->prepare(" AND fecha_vencimiento_curso <= %s", $fecha_hasta);
     }
     if (!empty($ciudad)) {
         $where .= $wpdb->prepare(" AND city LIKE %s", '%' . $wpdb->esc_like($ciudad) . '%');

@@ -37,6 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recovery_email'])) {
 
         // Guardar en sesión
         $_SESSION['recovery_email'] = $email;
+        $_SESSION['reset_code'] = (string) $codigo_activacion;
+        $_SESSION['reset_code_expires'] = date("Y-m-d H:i:s", strtotime("+1 hour"));
 
         // Enviar correo
         $asunto = "Código de recuperación de tu cuenta";
@@ -80,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recovery_email'])) {
 // Paso 2: Usuario ingresa el código
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verification_code'])) {
     $codigo = sanitize_text_field($_POST['verification_code']);
-    $email = $_SESSION['recovery_email'] ?? '';
+    $email = !empty($_POST['recovery_email']) ? sanitize_email($_POST['recovery_email']) : ($_SESSION['recovery_email'] ?? '');
 
     if ($email) {
         $table = $wpdb->prefix . 'aess_users';
@@ -88,7 +90,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verification_code']))
             $wpdb->prepare("SELECT * FROM {$table} WHERE email = %s", $email)
         );
 
-        if ($user && $user->reset_code == $codigo && strtotime($user->reset_code_expires) > time()) {
+        $codeValid = false;
+        $expiresValid = false;
+
+        if ($user) {
+            $codeValid = trim((string) $user->reset_code) === trim($codigo);
+            $expiresValid = !empty($user->reset_code_expires) && strtotime($user->reset_code_expires) > time();
+        }
+
+        if (!$codeValid && isset($_SESSION['reset_code'])) {
+            $codeValid = trim($_SESSION['reset_code']) === trim($codigo);
+            $expiresValid = !empty($_SESSION['reset_code_expires']) && strtotime($_SESSION['reset_code_expires']) > time();
+        }
+
+        if ($codeValid && $expiresValid) {
             $goToStep = 3;
         } else {
             $mensaje = 'El código es inválido o ha expirado.';
@@ -345,6 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_password']) && is
         <!-- Paso 2: Ingresar código -->
         <form id="step2" class="recovery-step <?php echo (isset($goToStep) && $goToStep == 2) ? 'active' : ''; ?>"
             method="post">
+            <input type="hidden" name="recovery_email" value="<?php echo esc_attr($_SESSION['recovery_email'] ?? ''); ?>">
             <div class="form-group">
                 <label for="verification-code">Código de verificación</label>
                 <input type="text" id="verification-code" name="verification_code" class="input-field"

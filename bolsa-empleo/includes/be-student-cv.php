@@ -21,7 +21,6 @@ if (!$user_data) {
 $mensaje = '';
 $tipo_mensaje = '';
 
-declare(strict_types=1);
 $departamentos = ru_get_departamentos_colombia();
 $ciudades = ru_get_ciudades_colombia();
 
@@ -185,10 +184,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 <select class="form-select" name="academico">
                     <option value="">Selecciona una opción</option>
                     <option value="Bachiller" <?php selected($user_data['academico'] ?? '', 'Bachiller'); ?>>Bachiller</option>
+                    <option value="Quinto" <?php selected($user_data['academico'] ?? '', 'Quinto'); ?>>Quinto</option>
+                    <option value="Noveno" <?php selected($user_data['academico'] ?? '', 'Noveno'); ?>>Noveno</option>
                     <option value="Técnico" <?php selected($user_data['academico'] ?? '', 'Técnico'); ?>>Técnico</option>
                     <option value="Tecnólogo" <?php selected($user_data['academico'] ?? '', 'Tecnólogo'); ?>>Tecnólogo</option>
                     <option value="Profesional" <?php selected($user_data['academico'] ?? '', 'Profesional'); ?>>Profesional</option>
-                    <option value="Posgrado" <?php selected($user_data['academico'] ?? '', 'Posgrado'); ?>>Posgrado</option>
+                    <option value="No aplica" <?php selected($user_data['academico'] ?? '', 'No aplica'); ?>>No aplica</option>
                 </select>
             </div>
             <div class="col-md-6 mb-3">
@@ -211,7 +212,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 <select class="form-select" name="estado_laboral">
                     <option value="Buscando Empleo" <?php selected($user_data['estado_laboral'] ?? '', 'Buscando Empleo'); ?>>Buscando Empleo</option>
                     <option value="Empleado" <?php selected($user_data['estado_laboral'] ?? '', 'Empleado'); ?>>Empleado actualmente</option>
-                    <option value="Independiente" <?php selected($user_data['estado_laboral'] ?? '', 'Independiente'); ?>>Independiente</option>
                 </select>
             </div>
             <div class="col-md-6 mb-3">
@@ -233,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
             </div>
 
             <div class="col-12 mt-4 mb-3">
-                <h6 style="color: #034C8C; font-weight: 600; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 1.5rem;">Último Curso de Seguridad Realizado</h6>
+                <h6 style="color: #034C8C; font-weight: 600; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 2.5rem;">Último Curso de Seguridad Realizado</h6>
             </div>
             <div class="col-md-12 mb-3">
                 <label class="form-label">Nombre del Curso</label>
@@ -251,12 +251,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 </select>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Fecha del Acta</label>
-                <input type="date" class="form-control" name="fecha_acta_curso" value="<?php echo esc_attr($user_data['fecha_acta_curso'] ?? ''); ?>">
+                <label class="form-label">Fecha del Diploma</label>
+                <input type="date" class="form-control" name="fecha_acta_curso" id="fecha_diploma" value="<?php echo esc_attr($user_data['fecha_acta_curso'] ?? ''); ?>">
             </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label">Fecha de Vencimiento</label>
-                <input type="date" class="form-control" name="fecha_vencimiento_curso" value="<?php echo esc_attr($user_data['fecha_vencimiento_curso'] ?? ''); ?>">
+                <input type="date" class="form-control" name="fecha_vencimiento_curso" id="fecha_vencimiento" value="<?php echo esc_attr($user_data['fecha_vencimiento_curso'] ?? ''); ?>" readonly>
             </div>
             <div class="col-12 mb-3">
                 <label class="form-label">Archivo de Hoja de Vida (PDF o Word)</label>
@@ -637,6 +637,34 @@ document.addEventListener('DOMContentLoaded', function() {
             progressBar.style.width = '100%';
             progressText.textContent = '100%';
         });
+    }
+});
+
+// Función para calcular fecha de vencimiento automáticamente
+document.getElementById('fecha_diploma').addEventListener('change', function() {
+    const fechaDiploma = new Date(this.value);
+    if (this.value) {
+        // Validar que no sea futura
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        if (fechaDiploma > hoy) {
+            alert('La fecha del diploma no puede ser superior al día actual.');
+            this.value = '';
+            document.getElementById('fecha_vencimiento').value = '';
+            return;
+        }
+        
+        // Calcular un año después
+        const fechaVencimiento = new Date(fechaDiploma);
+        fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 1);
+        
+        // Formatear a YYYY-MM-DD
+        const year = fechaVencimiento.getFullYear();
+        const month = String(fechaVencimiento.getMonth() + 1).padStart(2, '0');
+        const day = String(fechaVencimiento.getDate()).padStart(2, '0');
+        document.getElementById('fecha_vencimiento').value = `${year}-${month}-${day}`;
+    } else {
+        document.getElementById('fecha_vencimiento').value = '';
     }
 });
 </script>

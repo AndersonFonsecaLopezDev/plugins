@@ -11,11 +11,11 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
             
             <form id="cursosVencidosFilterForm" class="row g-3 align-items-end">
                 <div class="col-md-3">
-                    <label for="fecha_desde" class="form-label">Fecha acta desde</label>
+                    <label for="fecha_desde" class="form-label">Fecha vencimiento desde</label>
                     <input type="date" class="form-control" id="fecha_desde" name="fecha_desde">
                 </div>
                 <div class="col-md-3">
-                    <label for="fecha_hasta" class="form-label">Fecha acta hasta</label>
+                    <label for="fecha_hasta" class="form-label">Fecha vencimiento hasta</label>
                     <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta">
                 </div>
                 <div class="col-md-3">
@@ -86,8 +86,8 @@ jQuery(document).ready(function($) {
             data: function (d) {
                 d.action = 'get_all_cursos_vencidos';
                 d.nonce = personal_ajax_request.ru_security;
-                d.fecha_desde = $('#fecha_desde').val();
-                d.fecha_hasta = $('#fecha_hasta').val();
+                d.fecha_vencimiento_desde = $('#fecha_desde').val();
+                d.fecha_vencimiento_hasta = $('#fecha_hasta').val();
                 d.ciudad = $('#ciudad_filtro').val();
             },
             dataSrc: ''
@@ -125,8 +125,8 @@ jQuery(document).ready(function($) {
         var ciudad = $('#ciudad_filtro').val().trim();
         var summary = '<strong>Filtros aplicados:</strong> ';
         var fragments = [];
-        if (fechaDesde) fragments.push('Fecha acta desde: ' + fechaDesde);
-        if (fechaHasta) fragments.push('Fecha acta hasta: ' + fechaHasta);
+        if (fechaDesde) fragments.push('Fecha vencimiento desde: ' + fechaDesde);
+        if (fechaHasta) fragments.push('Fecha vencimiento hasta: ' + fechaHasta);
         fragments.push('Ciudad: ' + (ciudad ? ciudad : 'Todas'));
         $('#filterSummary').html(summary + fragments.join(' | '));
     }

@@ -667,4 +667,39 @@ document.getElementById('fecha_diploma').addEventListener('change', function() {
         document.getElementById('fecha_vencimiento').value = '';
     }
 });
+
+(function() {
+    const ciudadesPorDepartamento = <?php echo json_encode($ciudades); ?>;
+    const departamentoSelect = document.getElementById('departamento');
+    const ciudadSelect = document.getElementById('city');
+
+    if (!departamentoSelect || !ciudadSelect) {
+        return;
+    }
+
+    function actualizarCiudades() {
+        const departamento = departamentoSelect.value;
+        const ciudades = ciudadesPorDepartamento[departamento] || [];
+        const ciudadActual = ciudadSelect.value;
+        ciudadSelect.innerHTML = '';
+
+        if (ciudades.length > 0) {
+            ciudadSelect.disabled = false;
+            ciudadSelect.appendChild(new Option('Selecciona una ciudad', ''));
+            ciudades.forEach(function(ciudad) {
+                const option = new Option(ciudad, ciudad);
+                if (ciudad === ciudadActual) {
+                    option.selected = true;
+                }
+                ciudadSelect.appendChild(option);
+            });
+        } else {
+            ciudadSelect.disabled = false;
+            ciudadSelect.appendChild(new Option('Primero selecciona un departamento', ''));
+        }
+    }
+
+    departamentoSelect.addEventListener('change', actualizarCiudades);
+    actualizarCiudades();
+})();
 </script>

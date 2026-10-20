@@ -349,14 +349,18 @@ function beGetCv() {
   
   $sql = "SELECT 
     ID,
+    DATE_FORMAT(fecha_creacion, '%Y-%m-%d %H:%i') AS 'Fecha_Inscripcion',
     first_name AS 'Nombres',
     last_name AS 'Apellidos',
+    modalidad AS 'Modalidad',
+    sede AS 'Sede',
     gender AS 'Genero',
-    birth_date AS 'Edad',
+    IF(birth_date IS NOT NULL AND birth_date != '0000-00-00', TIMESTAMPDIFF(YEAR, birth_date, CURDATE()), '') AS 'Edad',
     city AS 'Ciudad',
     phone_number AS 'Celular',
     email AS 'Correo',
     curso_realizado AS 'Curso',
+    ciclo_curso AS 'Ciclo',
     fecha_acta_curso AS 'Fecha_Acta',
     fecha_vencimiento_curso AS 'Vencimiento',
     academico AS 'Academico',
@@ -372,7 +376,7 @@ function beGetCv() {
     national_id AS 'Cedula',
     cv_file AS 'Archivo_CV',
     cv_aprobado AS 'Aprobado'
-FROM $table $where_clause;";
+FROM $table $where_clause ORDER BY ID DESC;";
 
   $response = $wpdb->get_results($sql);
   

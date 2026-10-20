@@ -141,7 +141,7 @@ add_action('wp_ajax_get_user_details', function() {
     }
 
     $user = $wpdb->get_row($wpdb->prepare(
-        "SELECT ID, first_name, middle_name, last_name, second_last_name, national_id, email, phone_number, address, departamento, city, user_role, academico, profesion, estado_laboral, libreta_militar, experiencia, diploma, estatura, barrio, curso_realizado, fecha_acta_curso, fecha_vencimiento_curso FROM {$wpdb->prefix}aess_users WHERE ID = %d",
+        "SELECT ID, first_name, middle_name, last_name, second_last_name, national_id, email, phone_number, address, departamento, city, user_role, academico, profesion, estado_laboral, libreta_militar, experiencia, diploma, estatura, barrio, modalidad, sede, curso_realizado, ciclo_curso, fecha_acta_curso, fecha_vencimiento_curso, DATE_FORMAT(fecha_creacion, '%Y-%m-%d %H:%i') as fecha_creacion FROM {$wpdb->prefix}aess_users WHERE ID = %d",
         $user_id
     ), ARRAY_A);
 
@@ -181,9 +181,19 @@ add_action('wp_ajax_ru_update_user', function() {
         'diploma' => sanitize_text_field($_POST['diploma'] ?? ''),
         'estatura' => sanitize_text_field($_POST['estatura'] ?? ''),
         'barrio' => sanitize_text_field($_POST['barrio'] ?? ''),
+        'modalidad' => sanitize_text_field($_POST['modalidad'] ?? ''),
+        'sede' => sanitize_text_field($_POST['sede'] ?? ''),
+        'curso_realizado' => sanitize_text_field($_POST['curso_realizado'] ?? ''),
+        'ciclo_curso' => sanitize_text_field($_POST['ciclo_curso'] ?? ''),
+        'fecha_acta_curso' => !empty($_POST['fecha_acta_curso']) ? sanitize_text_field($_POST['fecha_acta_curso']) : null,
+        'fecha_vencimiento_curso' => !empty($_POST['fecha_vencimiento_curso']) ? sanitize_text_field($_POST['fecha_vencimiento_curso']) : null,
     ];
 
-    $format = ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'];
+    $format = [
+        '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
+        '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
+        '%s', '%s', '%s', '%s', '%s'
+    ];
 
     $updated = $wpdb->update(
         "{$wpdb->prefix}aess_users",

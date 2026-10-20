@@ -1,21 +1,27 @@
 jQuery(document).ready(function ($) {
 
-    $.ajax({
-        type: "POST",
-        url: personal_ajax_request.url,
-        data: {
-            action: "get_cvs",
-            nonce: personal_ajax_request.security,
-        },
-        success: function (response) {
-            console.log(response);
-        },
-        error: function (XMLHttpRequest, textStatus, errorThrown) {
-            console.log("Status: " + textStatus); alert("Error: " + errorThrown);
+    // Crear fila de filtros en thead antes de inicializar DataTables
+    $('#principalTable thead tr')
+        .clone(true)
+        .addClass('filters-row')
+        .appendTo('#principalTable thead');
+
+    $('#principalTable thead tr.filters-row th').each(function (i) {
+        var title = $('#principalTable thead tr:eq(0) th').eq(i).text().trim();
+        if (i === 0 || title === 'Acciones' || !title) {
+            $(this).html('');
+        } else {
+            $(this).html('<input type="text" placeholder="' + title + '" />');
         }
     });
 
     var table = $('#principalTable').DataTable({
+        orderCellsTop: true,
+        pageLength: 10,
+        lengthMenu: [10, 25, 50, 100],
+        scrollX: true,
+        scrollY: '60vh',
+        scrollCollapse: true,
         ajax: {
             type: "POST",
             url: personal_ajax_request.url,
@@ -27,21 +33,35 @@ jQuery(document).ready(function ($) {
         },
         columns: [
             { data: 'ID' },
+            { data: 'Fecha_Inscripcion' },
             { data: 'Nombres' },
             { data: 'Apellidos' },
+            { data: 'Modalidad' },
+            { data: 'Sede' },
             { data: 'Genero' },
             { data: 'Edad' },
             { data: 'Ciudad' },
             { data: 'Celular' },
             { data: 'Correo' },
             { data: 'Curso' },
+            { data: 'Ciclo' },
             { data: 'Fecha_Acta' },
             { data: 'Vencimiento' },
             { data: 'Academico' },
             { data: 'Profesion' },
             { data: 'Estado' },
-            { data: 'Libreta_militar'},
-            { data: 'Experiencia' },
+            { data: 'Libreta_militar' },
+            {
+                data: 'Experiencia',
+                className: 'col-experiencia',
+                render: function(data, type, row) {
+                    if (type !== 'display') {
+                        return data || '';
+                    }
+                    if (!data) return '<span style="color:gray">N/A</span>';
+                    return '<div class="experiencia-clamp" title="Clic para expandir/contraer">' + $('<div>').text(data).html() + '</div>';
+                }
+            },
             { data: 'Diploma' },
             { data: 'Estatura' },
             { data: 'Barrio' },
@@ -87,11 +107,6 @@ jQuery(document).ready(function ($) {
         language: {
             url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/es-MX.json',
         },
-        scrollX: true,
-        fixedColumns: true,
-        fixedHeader: {
-            header: true,
-        },
         layout: {
             topStart: {
                 buttons: [
@@ -116,78 +131,17 @@ jQuery(document).ready(function ($) {
         select: true
     });
 
-    // Setup - add a text input to each footer cell
-    $('#principalTable tfoot th').each(function (i) {
-        var title = $('#principalTable thead th')
-            .eq($(this).index())
-            .text();
-        $(this).html(
-            '<input type="text" placeholder="' + title + '" data-index="' + i + '" />'
-        );
-    });
-
-    // Filter event handler
-    $('#principalTable tfoot th input').on('keyup', function () {
-        table
-            .column($(this).data('index'))
-            .search(this.value)
-            .draw();
-    });
-
-    // Handle form submission event 
-    $('#cvForm').on('submit', function (e) {
-
-        // Default export is a4 paper, portrait, using millimeters for units
-        const doc = new jsPDF();
-
-        var rowInPdf = 10;
-
-        doc.setFontSize(22);
-        doc.text('Hojas de vida', 10, rowInPdf);
-        rowInPdf += 10;
-
-        doc.setFontSize(16);
-
-        var rowsSelected = 0;
-        $(table.rows({
-            selected: true
-        }).$('input[type="checkbox"]').map(function () {
-            if ($(this).prop("checked")) {
-                rowsSelected++;
-                var rowCounter = 0;
-
-
-                $(this).closest('tr').find('td').each(function () {
-                    // This will be the text of each <td>
-
-                    if (titleColumns[rowCounter] !== '') {
-                        doc.text(titleColumns[rowCounter] + ": " + $(this).text(), 10, rowInPdf);
-                    }
-
-                    rowCounter += 1;
-                    rowInPdf += 10;
-                });
-
-                doc.addPage();
-                rowInPdf = 10;
-            }
-        }));
-
-        if (rowsSelected === 0) {
-            $.bootstrapGrowl("<b>No hay información</b><br>Seleccione una o múltiples filas de la tabla e intente de nuevo", {
-                type: 'danger',
-                width: 'auto',
-                allow_dismiss: false
-            });
-        } else {
-            $.bootstrapGrowl("Pdf generado con éxito", {
-                type: 'success'
-            });
-            doc.save("Hojas de vida - AESS.pdf");
-
+    // Delegación para filtros en encabezados fijos
+    $(table.table().header()).on('keyup change clear', '.filters-row input', function () {
+        var colIdx = $(this).closest('th').index();
+        if (table.column(colIdx).search() !== this.value) {
+            table.column(colIdx).search(this.value).draw();
         }
+    });
 
-        e.preventDefault(); // Prevent actual form submission
+    // Delegación para expandir/contraer experiencia
+    $('#principalTable tbody').on('click', '.experiencia-clamp', function () {
+        $(this).toggleClass('expanded');
     });
 
     // Delegación de eventos para botones de aprobación
@@ -255,7 +209,10 @@ jQuery(document).ready(function ($) {
                 $('#edit_diploma').val(user.diploma);
                 $('#edit_estatura').val(user.estatura);
                 $('#edit_barrio').val(user.barrio);
-                $('#edit_curso_realizado').val(user.curso_realizado);
+                $('#edit_modalidad').val(user.modalidad || '');
+                $('#edit_sede').val(user.sede || '');
+                $('#edit_curso_realizado').val(user.curso_realizado || '');
+                $('#edit_ciclo_curso').val(user.ciclo_curso || '');
                 $('#edit_fecha_acta_curso').val(user.fecha_acta_curso);
                 $('#edit_fecha_vencimiento_curso').val(user.fecha_vencimiento_curso);
                 $('#editUserFeedback').html('');

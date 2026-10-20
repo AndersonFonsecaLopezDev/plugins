@@ -25,14 +25,18 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
           <thead>
             <tr>
               <th></th> <!-- Reservado para el ID -->
+              <th>Fecha Inscripción</th>
               <th>Nombres</th>
               <th>Apellidos</th>
+              <th>Modalidad</th>
+              <th>Sede</th>
               <th>Género</th>
               <th>Edad</th>
               <th>Ciudad</th>
               <th>Celular</th>
               <th>Correo</th>
               <th>Curso</th>
+              <th>Ciclo</th>
               <th>Fecha Acta</th>
               <th>Vencimiento</th>
               <th>Académico</th>
@@ -56,14 +60,18 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
           <tfoot>
             <tr>
               <th></th> <!-- Reservado para el ID -->
+              <th>Fecha Inscripción</th>
               <th>Nombres</th>
               <th>Apellidos</th>
+              <th>Modalidad</th>
+              <th>Sede</th>
               <th>Género</th>
               <th>Edad</th>
               <th>Ciudad</th>
               <th>Celular</th>
               <th>Correo</th>
               <th>Curso</th>
+              <th>Ciclo</th>
               <th>Fecha Acta</th>
               <th>Vencimiento</th>
               <th>Académico</th>
@@ -196,8 +204,52 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
             </div>
             <div class="col-md-6">
               <div class="form-floating">
-                <input type="text" class="form-control" id="edit_curso_realizado" name="curso_realizado" placeholder="Último Curso">
+                <select class="form-select" id="edit_modalidad" name="modalidad">
+                  <option value="">Selecciona modalidad</option>
+                  <option value="Presencial">Presencial</option>
+                  <option value="Virtual">Virtual</option>
+                </select>
+                <label for="edit_modalidad">Modalidad</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_sede" name="sede" placeholder="Sede">
+                <label for="edit_sede">Sede</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating">
+                <select class="form-select" id="edit_curso_realizado" name="curso_realizado">
+                  <option value="">Seleccione un curso...</option>
+                  <?php 
+                  $cursos_str = get_option('be_cursos_disponibles', 'Vigilancia, Supervisor, Escoltas, Medios tecnológicos, Polígono');
+                  $cursos_arr = array_map('trim', explode(',', $cursos_str));
+                  foreach ($cursos_arr as $c) {
+                      if (!empty($c)) {
+                          echo '<option value="' . esc_attr($c) . '">' . esc_html($c) . '</option>';
+                      }
+                  }
+                  ?>
+                </select>
                 <label for="edit_curso_realizado">Último Curso</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating">
+                <select class="form-select" id="edit_ciclo_curso" name="ciclo_curso">
+                  <option value="">Seleccione un ciclo...</option>
+                  <?php 
+                  $ciclos_str = get_option('be_ciclos_disponibles', 'Fundamentación, Reentrenamiento, Especialización, Profundización, Polígono');
+                  $ciclos_arr = array_map('trim', explode(',', $ciclos_str));
+                  foreach ($ciclos_arr as $ciclo) {
+                      if (!empty($ciclo)) {
+                          echo '<option value="' . esc_attr($ciclo) . '">' . esc_html($ciclo) . '</option>';
+                      }
+                  }
+                  ?>
+                </select>
+                <label for="edit_ciclo_curso">Ciclo del Curso</label>
               </div>
             </div>
             <div class="col-md-6">

@@ -2,7 +2,7 @@
 /*
 Plugin Name: Bolsa de empleo
 Description: Plugin para consultar informacion de las hojas de vida
-Version: 1.0
+Version: 1.2
 Author: Anderson Fonseca Lopez
 */
 

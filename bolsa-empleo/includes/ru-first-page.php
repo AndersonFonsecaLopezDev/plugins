@@ -42,6 +42,11 @@ function guardar_usuario_en_bd($datos)
     $contrasena = hash_password($contrasena);
     $codigo_activacion = strtoupper(bin2hex(random_bytes(3)));
 
+    $modalidad = trim($datos['modalidad'] ?? '');
+    $sede = trim($datos['sede'] ?? '');
+    $curso_realizado = trim($datos['curso_realizado'] ?? '');
+    $ciclo_curso = trim($datos['ciclo_curso'] ?? '');
+
     $table = $wpdb->prefix . 'aess_users';
 
     // Verificar si el correo o cédula ya existen
@@ -74,10 +79,14 @@ function guardar_usuario_en_bd($datos)
       'address' => $address,
       'user_role' => $user_role,
       'contrasena' => $contrasena,
-      'codigo_activacion' => $codigo_activacion
+      'codigo_activacion' => $codigo_activacion,
+      'modalidad' => $modalidad,
+      'sede' => $sede,
+      'curso_realizado' => $curso_realizado,
+      'ciclo_curso' => $ciclo_curso
     ];
     $format = [
-      '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'
+      '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'
     ];
     $inserted = $wpdb->insert($table, $data, $format);
     
@@ -165,7 +174,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     'address',
     'phone_number',
     'email',
-    'password'
+    'password',
+    'modalidad',
+    'sede'
   ];
   $missing_fields = [];
   foreach ($required_fields as $field) {
@@ -176,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if (count($missing_fields)) {
     $friendly_fields = array_map(function ($field) {
-      return str_replace(["_", "national_id", "first_name", "last_name", "phone_number"], [" ", "cédula", "nombre", "apellido", "teléfono"], $field);
+      return str_replace(["_", "national_id", "first_name", "last_name", "phone_number", "modalidad", "sede"], [" ", "cédula", "nombre", "apellido", "teléfono", "modalidad", "sede"], $field);
     }, $missing_fields);
 
     $mensaje = 'Faltan datos requeridos: ' . implode(', ', $friendly_fields);
@@ -432,7 +443,50 @@ if (isset($mensaje_activacion) && !empty($mensaje_activacion)) {
 
       <div class="mb-3">
         <label for="phone_number" class="form-label">Teléfono *</label>
-        <input type="tel" class="form-control" id="phone_number" name="phone_number" placeholder="Ingresa tu número de teléfono">
+        <input type="tel" class="form-control" id="phone_number" name="phone_number" placeholder="Ingresa tu número de teléfono" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="modalidad" class="form-label">Modalidad *</label>
+        <select class="form-select" id="modalidad" name="modalidad" required>
+          <option value="">Selecciona modalidad</option>
+          <option value="Presencial">Presencial</option>
+          <option value="Virtual">Virtual</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="sede" class="form-label">Sede de la Academia *</label>
+        <input type="text" id="sede" name="sede" class="form-control" placeholder="Escribe la sede o agencia donde te inscribes (Ej: Armenia, Pereira, Ibagué...)" required>
+        <small class="form-text text-muted d-block mt-1">¿No conoces las sedes? <a href="https://academiadeseguridadaessltda.com/agencias/" target="_blank" rel="noopener noreferrer">Consulta nuestras sedes y agencias aquí</a>.</small>
+      </div>
+
+      <div class="mb-3">
+        <label for="curso_realizado" class="form-label">Curso de Seguridad</label>
+        <select class="form-select" id="curso_realizado" name="curso_realizado">
+          <option value="">Selecciona un curso</option>
+          <?php 
+          $cursos_str = get_option('be_cursos_disponibles', 'Vigilancia, Supervisor, Escoltas, Medios tecnológicos, Polígono');
+          $cursos_arr = array_map('trim', explode(',', $cursos_str));
+          foreach ($cursos_arr as $c): 
+            if (!empty($c)): ?>
+            <option value="<?php echo esc_attr($c); ?>"><?php echo esc_html($c); ?></option>
+          <?php endif; endforeach; ?>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="ciclo_curso" class="form-label">Ciclo del Curso</label>
+        <select class="form-select" id="ciclo_curso" name="ciclo_curso" disabled>
+          <option value="">Primero selecciona un curso</option>
+          <?php 
+          $ciclos_str = get_option('be_ciclos_disponibles', 'Fundamentación, Reentrenamiento, Especialización, Profundización, Polígono');
+          $ciclos_arr = array_map('trim', explode(',', $ciclos_str));
+          foreach ($ciclos_arr as $ciclo): 
+            if (!empty($ciclo)): ?>
+            <option value="<?php echo esc_attr($ciclo); ?>"><?php echo esc_html($ciclo); ?></option>
+          <?php endif; endforeach; ?>
+        </select>
       </div>
 
       <div class="btn-container">

@@ -41,9 +41,10 @@ function be_plugin_activate() {
         phone_number varchar(50) DEFAULT '',
         email varchar(100) NOT NULL,
         address varchar(255) DEFAULT '',
-        estatura varchar(10) DEFAULT '' NOT NULL,
-        barrio varchar(100) DEFAULT '' NOT NULL,
+        modalidad varchar(50) DEFAULT '' NOT NULL,
+        sede varchar(150) DEFAULT '' NOT NULL,
         curso_realizado varchar(200) DEFAULT '' NOT NULL,
+        ciclo_curso varchar(100) DEFAULT '' NOT NULL,
         fecha_acta_curso date DEFAULT NULL,
         fecha_vencimiento_curso date DEFAULT NULL,
         codigo_activacion varchar(20) DEFAULT '' NOT NULL,
@@ -59,6 +60,7 @@ function be_plugin_activate() {
         diploma varchar(255) DEFAULT '',
         estatura varchar(50) DEFAULT '',
         barrio varchar(255) DEFAULT '',
+        cv_file varchar(255) DEFAULT '',
         cv_aprobado tinyint(1) DEFAULT 0,
         fecha_creacion datetime DEFAULT CURRENT_TIMESTAMP,
         reset_code varchar(10) DEFAULT '',
@@ -68,4 +70,8 @@ function be_plugin_activate() {
     ) $charset_collate;";
 
     dbDelta($sql);
+
+    if (function_exists('be_maybe_upgrade_database')) {
+        be_maybe_upgrade_database();
+    }
 }

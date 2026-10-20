@@ -212,6 +212,25 @@
     document.querySelectorAll('input[required], select[required], textarea[required]').forEach(function(input){
       input.setAttribute('data-original-required', 'true');
     });
+
+    // Cascada Curso -> Ciclo
+    var cursoSelect = document.getElementById('curso_realizado');
+    var cicloSelect = document.getElementById('ciclo_curso');
+    if (cursoSelect && cicloSelect) {
+      function syncCiclo() {
+        if (cursoSelect.value) {
+          cicloSelect.disabled = false;
+          if (cicloSelect.options[0]) cicloSelect.options[0].textContent = 'Selecciona un ciclo';
+        } else {
+          cicloSelect.disabled = true;
+          cicloSelect.value = '';
+          if (cicloSelect.options[0]) cicloSelect.options[0].textContent = 'Primero selecciona un curso';
+        }
+      }
+      cursoSelect.addEventListener('change', syncCiclo);
+      document.addEventListener('ruShowStep2', syncCiclo);
+      syncCiclo();
+    }
   });
 
   // Validar el formulario antes de enviar
@@ -219,7 +238,7 @@
     var form = document.getElementById('registerForm');
     if (!form) return;
     form.addEventListener('submit', function(e) {
-      document.querySelectorAll('#registerForm input').forEach(function(input){ input.disabled = false; });
+      document.querySelectorAll('#registerForm input, #registerForm select, #registerForm textarea').forEach(function(input){ input.disabled = false; });
       var birthdate = document.getElementById('birthdate');
       if (birthdate && birthdate.value) {
         if (!validarEdad(birthdate.value)) {

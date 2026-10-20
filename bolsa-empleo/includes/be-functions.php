@@ -58,6 +58,7 @@ function be_register_settings() {
         'be_access_bolsa_secretario' => 'absint',
         'be_access_bolsa_talento_humano' => 'absint',
         'be_cursos_disponibles' => 'sanitize_text_field',
+        'be_ciclos_disponibles' => 'sanitize_text_field',
         'be_profesiones_disponibles' => 'sanitize_text_field',
         'be_politicas' => 'sanitize_textarea_field',
     ];
@@ -69,6 +70,48 @@ function be_register_settings() {
     }
 }
 add_action('admin_init', 'be_register_settings');
+
+function be_maybe_upgrade_database() {
+    $current_version = get_option('be_db_version', '1.0');
+    if (version_compare($current_version, '1.2', '<')) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'aess_users';
+        
+        $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
+        if ($table_exists === $table) {
+            $required_columns = [
+                'academico' => 'VARCHAR(255) DEFAULT \'\'',
+                'profesion' => 'VARCHAR(255) DEFAULT \'\'',
+                'estado_laboral' => 'VARCHAR(100) DEFAULT \'\'',
+                'libreta_militar' => 'VARCHAR(100) DEFAULT \'\'',
+                'experiencia' => 'TEXT',
+                'diploma' => 'VARCHAR(255) DEFAULT \'\'',
+                'estatura' => 'VARCHAR(50) DEFAULT \'\'',
+                'barrio' => 'VARCHAR(255) DEFAULT \'\'',
+                'cv_aprobado' => 'TINYINT(1) DEFAULT 0',
+                'cv_file' => 'VARCHAR(255) DEFAULT \'\'',
+                'curso_realizado' => 'VARCHAR(200) DEFAULT \'\' NOT NULL',
+                'ciclo_curso' => 'VARCHAR(100) DEFAULT \'\' NOT NULL',
+                'fecha_acta_curso' => 'DATE DEFAULT NULL',
+                'fecha_vencimiento_curso' => 'DATE DEFAULT NULL',
+                'modalidad' => 'VARCHAR(50) DEFAULT \'\' NOT NULL',
+                'sede' => 'VARCHAR(150) DEFAULT \'\' NOT NULL',
+            ];
+
+            $existing_columns = $wpdb->get_col("SHOW COLUMNS FROM {$table}");
+            if (!empty($existing_columns)) {
+                foreach ($required_columns as $col => $def) {
+                    if (!in_array($col, $existing_columns, true)) {
+                        $wpdb->query("ALTER TABLE {$table} ADD COLUMN {$col} {$def}");
+                    }
+                }
+            }
+        }
+        update_option('be_db_version', '1.2');
+    }
+}
+add_action('admin_init', 'be_maybe_upgrade_database');
+add_action('init', 'be_maybe_upgrade_database');
 
 function be_setup_plugin_defaults() {
     // Asegurar que los roles siempre existan.
@@ -117,12 +160,23 @@ function be_setup_plugin_defaults() {
         'be_access_bolsa_estudiante' => 1,
         'be_access_bolsa_secretario' => 1,
         'be_access_bolsa_talento_humano' => 1,
+        'be_cursos_disponibles' => 'Vigilancia, Supervisor, Escoltas, Medios tecnológicos, Polígono',
+        'be_ciclos_disponibles' => 'Fundamentación, Reentrenamiento, Especialización, Profundización, Polígono',
     ];
 
     foreach ($defaults as $name => $value) {
         if (get_option($name) === false) {
             add_option($name, $value);
         }
+    }
+
+    // Actualizar cursos si tenían el valor antiguo
+    $curr_cursos = get_option('be_cursos_disponibles');
+    if (empty($curr_cursos) || $curr_cursos === 'Vigilante, Escolta, Supervisor, Operador de Medios Tecnológicos') {
+        update_option('be_cursos_disponibles', 'Vigilancia, Supervisor, Escoltas, Medios tecnológicos, Polígono');
+    }
+    if (get_option('be_ciclos_disponibles') === false) {
+        update_option('be_ciclos_disponibles', 'Fundamentación, Reentrenamiento, Especialización, Profundización, Polígono');
     }
 }
 add_action('init', 'be_setup_plugin_defaults');
@@ -287,14 +341,6 @@ function beGetCv() {
 
   $table = $wpdb->prefix . 'aess_users';
   
-  // ASEGURAR QUE LAS COLUMNAS EXISTAN (Por si no se reactivó el plugin)
-  $required_columns = ['academico' => 'VARCHAR(255)', 'profesion' => 'VARCHAR(255)', 'estado_laboral' => 'VARCHAR(100)', 'libreta_militar' => 'VARCHAR(100)', 'experiencia' => 'TEXT', 'diploma' => 'VARCHAR(255)', 'estatura' => 'VARCHAR(50)', 'barrio' => 'VARCHAR(255)', 'cv_aprobado' => 'TINYINT(1) DEFAULT 0', 'cv_file' => 'VARCHAR(255) DEFAULT \'\''];
-  foreach ($required_columns as $col => $def) {
-      if (empty($wpdb->get_results("SHOW COLUMNS FROM {$table} LIKE '{$col}'"))) {
-          $wpdb->query("ALTER TABLE {$table} ADD COLUMN {$col} {$def}");
-      }
-  }
-
   // Condicional de rol: si es talento_humano, solo ve los aprobados.
   $where_clause = "";
   if (current_user_can('talento_humano') && !current_user_can('secretario')) {

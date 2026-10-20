@@ -39,8 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
         $diploma = sanitize_text_field($_POST['diploma'] ?? '');
         $estatura = sanitize_text_field($_POST['estatura'] ?? '');
         $barrio = sanitize_text_field($_POST['barrio'] ?? '');
-        
+        $modalidad = sanitize_text_field($_POST['modalidad'] ?? '');
+        $sede = sanitize_text_field($_POST['sede'] ?? '');
         $curso_realizado = sanitize_text_field($_POST['curso_realizado'] ?? '');
+        $ciclo_curso = sanitize_text_field($_POST['ciclo_curso'] ?? '');
         $fecha_acta_curso = sanitize_text_field($_POST['fecha_acta_curso'] ?? '');
         $fecha_vencimiento_curso = sanitize_text_field($_POST['fecha_vencimiento_curso'] ?? '');
 
@@ -55,10 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
         } else {
             // Guardar cambios
             $departamento = sanitize_text_field($_POST['departamento'] ?? '');
-        $city = sanitize_text_field($_POST['city'] ?? '');
-        $phone_number = sanitize_text_field($_POST['phone_number'] ?? '');
+            $city = sanitize_text_field($_POST['city'] ?? '');
+            $phone_number = sanitize_text_field($_POST['phone_number'] ?? '');
 
-        $update_data = [
+            $update_data = [
                 'academico' => $academico,
                 'profesion' => $profesion,
                 'estado_laboral' => $estado_laboral,
@@ -70,7 +72,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 'departamento' => $departamento,
                 'city' => $city,
                 'phone_number' => $phone_number,
+                'modalidad' => $modalidad,
+                'sede' => $sede,
                 'curso_realizado' => $curso_realizado,
+                'ciclo_curso' => $ciclo_curso,
                 'fecha_acta_curso' => $fecha_acta_curso ? $fecha_acta_curso : null,
                 'fecha_vencimiento_curso' => $fecha_vencimiento_curso ? $fecha_vencimiento_curso : null,
                 'cv_aprobado' => 0 // Vuelve a pendiente de aprobación
@@ -175,6 +180,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 <label class="form-label">Barrio</label>
                 <input type="text" class="form-control" name="barrio" value="<?php echo esc_attr($user_data['barrio'] ?? ''); ?>">
             </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Modalidad *</label>
+                <select class="form-select" name="modalidad" required>
+                    <option value="">Selecciona modalidad</option>
+                    <option value="Presencial" <?php selected($user_data['modalidad'] ?? '', 'Presencial'); ?>>Presencial</option>
+                    <option value="Virtual" <?php selected($user_data['modalidad'] ?? '', 'Virtual'); ?>>Virtual</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Sede de la Academia *</label>
+                <input type="text" class="form-control" name="sede" value="<?php echo esc_attr($user_data['sede'] ?? ''); ?>" placeholder="Escribe la sede o agencia donde te inscribes" required>
+                <small class="form-text text-muted d-block mt-1">¿No conoces las sedes? <a href="https://academiadeseguridadaessltda.com/agencias/" target="_blank" rel="noopener noreferrer">Consulta nuestras sedes y agencias aquí</a>.</small>
+            </div>
         </div>
 
         <h5 class="section-title mt-4">Perfil Profesional</h5>
@@ -235,17 +253,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
             <div class="col-12 mt-4 mb-3">
                 <h6 style="color: #034C8C; font-weight: 600; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 2.5rem;">Último Curso de Seguridad Realizado</h6>
             </div>
-            <div class="col-md-12 mb-3">
+            <div class="col-md-6 mb-3">
                 <label class="form-label">Nombre del Curso</label>
-                <select class="form-select select2-course" name="curso_realizado">
+                <select class="form-select select2-course" name="curso_realizado" id="cv_curso_realizado">
                     <option value="">Seleccione un curso...</option>
                     <?php 
-                    $cursos_str = get_option('be_cursos_disponibles', 'Vigilante, Escolta, Supervisor, Operador de Medios Tecnológicos');
+                    $cursos_str = get_option('be_cursos_disponibles', 'Vigilancia, Supervisor, Escoltas, Medios tecnológicos, Polígono');
                     $cursos_arr = array_map('trim', explode(',', $cursos_str));
                     foreach ($cursos_arr as $c) {
                         if (empty($c)) continue;
                         $sel = (($user_data['curso_realizado'] ?? '') === $c) ? 'selected' : '';
                         echo '<option value="' . esc_attr($c) . '" ' . $sel . '>' . esc_html($c) . '</option>';
+                    }
+                    ?>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Ciclo del Curso</label>
+                <select class="form-select" name="ciclo_curso" id="cv_ciclo_curso">
+                    <option value="">Seleccione un ciclo...</option>
+                    <?php 
+                    $ciclos_str = get_option('be_ciclos_disponibles', 'Fundamentación, Reentrenamiento, Especialización, Profundización, Polígono');
+                    $ciclos_arr = array_map('trim', explode(',', $ciclos_str));
+                    foreach ($ciclos_arr as $ciclo) {
+                        if (empty($ciclo)) continue;
+                        $sel = (($user_data['ciclo_curso'] ?? '') === $ciclo) ? 'selected' : '';
+                        echo '<option value="' . esc_attr($ciclo) . '" ' . $sel . '>' . esc_html($ciclo) . '</option>';
                     }
                     ?>
                 </select>
@@ -701,5 +734,22 @@ document.getElementById('fecha_diploma').addEventListener('change', function() {
 
     departamentoSelect.addEventListener('change', actualizarCiudades);
     actualizarCiudades();
+})();
+
+(function() {
+    const cursoSelect = document.getElementById('cv_curso_realizado');
+    const cicloSelect = document.getElementById('cv_ciclo_curso');
+    if (cursoSelect && cicloSelect) {
+        function syncCiclo() {
+            if (cursoSelect.value) {
+                cicloSelect.disabled = false;
+            } else {
+                cicloSelect.disabled = true;
+                cicloSelect.value = '';
+            }
+        }
+        cursoSelect.addEventListener('change', syncCiclo);
+        syncCiclo();
+    }
 })();
 </script>

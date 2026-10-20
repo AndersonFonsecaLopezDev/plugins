@@ -59,7 +59,8 @@ function ru_enqueue_front_scripts() {
     $shortcodes = [
         'registro-usuarios',
         'login-usuarios',
-        'lu_forgot_password'
+        'lu_forgot_password',
+        'mi_hoja_de_vida'
     ];
 
     $has_shortcode = false;

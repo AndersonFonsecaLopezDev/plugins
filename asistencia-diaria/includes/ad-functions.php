@@ -3,6 +3,9 @@
 <?php
 // Endpoint AJAX: guarda el estado de una asistencia individual
 add_action('wp_ajax_ad_guardar_estado_asistencia', function() {
+  if (!current_user_can('manage_options') && !current_user_can('secretario')) {
+    wp_send_json_error('No autorizado', 403);
+  }
   global $wpdb;
   $asistencia_id = intval($_POST['asistencia_id'] ?? 0);
   $nuevo_estado = $_POST['nuevo_estado'] ?? '';
@@ -32,7 +35,7 @@ function ad_Add_My_Admin_Link()
     'asistencia-diaria',              // SLUG (clave única)
     'ad_render_admin_page',           // Función callback que imprime la página
     'dashicons-list-view',
-    1
+    28
   );
 
 
@@ -67,6 +70,9 @@ function cargar_bootstrap_en_admin($hook) {
 add_action('admin_enqueue_scripts', 'cargar_bootstrap_en_admin');
 // Endpoint AJAX: obtiene estudiantes filtrados para el histórico
 add_action('wp_ajax_ad_get_estudiantes_historico', function() {
+  if (!current_user_can('manage_options') && !current_user_can('secretario')) {
+    wp_send_json_error('No autorizado', 403);
+  }
   global $wpdb;
   $grupo_id = intval($_POST['grupo_id'] ?? 0);
   $filtro_nombre = trim($_POST['filtro_nombre'] ?? '');
@@ -92,6 +98,9 @@ add_action('wp_ajax_ad_get_estudiantes_historico', function() {
 });
 
 add_action('wp_ajax_ad_get_asistencias_estudiante', function() {
+  if (!current_user_can('manage_options') && !current_user_can('secretario')) {
+    wp_send_json_error('No autorizado', 403);
+  }
   global $wpdb;
   $user_id = intval($_POST['user_id'] ?? 0);
   $grupo_id = intval($_POST['grupo_id'] ?? 0);
@@ -114,6 +123,9 @@ add_action('wp_ajax_ad_get_asistencias_estudiante', function() {
 
 // Endpoint AJAX: guarda en lote los estados modificados de asistencias
 add_action('wp_ajax_ad_guardar_estado_asistencia_lote', function() {
+  if (!current_user_can('manage_options') && !current_user_can('secretario')) {
+    wp_send_json_error('No autorizado', 403);
+  }
   global $wpdb;
   $cambios = isset($_POST['cambios']) ? $_POST['cambios'] : [];
   $estados_validos = ['asistió','faltó','tarde','justificado'];

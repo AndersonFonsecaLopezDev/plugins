@@ -26,7 +26,7 @@
       </tr>
       <tr valign="top">
       <th scope="row" style="padding: 12px 15px; background: #f5f5f5; font-weight: 600;">URL de Recuperación de Contraseña</th>
-      <td style="padding: 12px 15px;"><input type="text" name="be_forgot_password_url" value="<?php echo esc_attr(get_option('be_forgot_password_url', site_url('/recuperacion-contasena'))); ?>" class="regular-text" placeholder="Ej: /recuperacion-contrasena" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;" /></td>
+      <td style="padding: 12px 15px;"><input type="text" name="be_forgot_password_url" value="<?php echo esc_attr(get_option('be_forgot_password_url', site_url('/recuperacion-contrasena'))); ?>" class="regular-text" placeholder="Ej: /recuperacion-contrasena" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;" /></td>
       </tr>
       <tr valign="top">
       <th scope="row" style="padding: 12px 15px; background: #f5f5f5; font-weight: 600;">URL de Términos y Condiciones</th>
@@ -54,12 +54,12 @@
     <table class="form-table" style="width: 100%;">
       <tr valign="top">
       <th scope="row" style="padding: 12px 15px; background: #f5f5f5; font-weight: 600;">Correo Remitente (Email)</th>
-      <td style="padding: 12px 15px;"><input type="email" name="be_email_remitente" value="<?php echo esc_attr(get_option('be_email_remitente', 'juansepulveda8010@gmail.com')); ?>" class="regular-text" required placeholder="ejemplo@gmail.com" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;" />
+      <td style="padding: 12px 15px;"><input type="email" name="be_email_remitente" value="<?php echo esc_attr(get_option('be_email_remitente', '')); ?>" class="regular-text" required placeholder="ejemplo@gmail.com" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;" />
       <p class="description" style="color: #646970; font-size: 13px; margin-top: 6px;">Correo desde el que se enviarán los emails de activación y recuperación de contraseña.</p></td>
       </tr>
       <tr valign="top">
       <th scope="row" style="padding: 12px 15px; background: #f5f5f5; font-weight: 600;">Contraseña de Correo</th>
-      <td style="padding: 12px 15px;"><input type="password" name="be_email_password" value="<?php echo esc_attr(get_option('be_email_password', 'ukwv yeqq gphc jzkk')); ?>" class="regular-text" required placeholder="Contraseña de aplicación" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;" />
+      <td style="padding: 12px 15px;"><input type="password" name="be_email_password" value="<?php echo esc_attr(get_option('be_email_password', '')); ?>" class="regular-text" placeholder="Contraseña de aplicación" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;" />
       <p class="description" style="color: #646970; font-size: 13px; margin-top: 6px;">Para Gmail, usa una <a href="https://myaccount.google.com/apppasswords" target="_blank">contraseña de aplicación</a>.</p></td>
       </tr>
       <tr valign="top">
@@ -72,8 +72,13 @@
     <table class="form-table" style="width: 100%;">
       <tr valign="top">
       <th scope="row" style="padding: 12px 15px; background: #f5f5f5; font-weight: 600;">Cursos Disponibles</th>
-      <td style="padding: 12px 15px;"><textarea name="be_cursos_disponibles" rows="3" class="large-text" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;"><?php echo esc_textarea(get_option('be_cursos_disponibles', 'Vigilante, Escolta, Supervisor, Operador de Medios Tecnológicos')); ?></textarea>
+      <td style="padding: 12px 15px;"><textarea name="be_cursos_disponibles" rows="3" class="large-text" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;"><?php echo esc_textarea(get_option('be_cursos_disponibles', 'Vigilancia, Supervisor, Escoltas, Medios tecnológicos, Polígono')); ?></textarea>
       <p class="description" style="color: #646970; font-size: 13px; margin-top: 6px;">Lista de cursos separados por coma para el dropdown en la hoja de vida.</p></td>
+      </tr>
+      <tr valign="top">
+      <th scope="row" style="padding: 12px 15px; background: #f5f5f5; font-weight: 600;">Ciclos Disponibles</th>
+      <td style="padding: 12px 15px;"><textarea name="be_ciclos_disponibles" rows="3" class="large-text" style="width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;"><?php echo esc_textarea(get_option('be_ciclos_disponibles', 'Fundamentación, Reentrenamiento, Especialización, Profundización, Polígono')); ?></textarea>
+      <p class="description" style="color: #646970; font-size: 13px; margin-top: 6px;">Lista de ciclos separados por coma para el dropdown en la hoja de vida.</p></td>
       </tr>
       <tr valign="top">
       <th scope="row" style="padding: 12px 15px; background: #f5f5f5; font-weight: 600;">Profesiones Disponibles</th>

@@ -17,7 +17,7 @@ function cc_Add_My_Admin_Link()
     plugin_dir_path(__FILE__) . 'cc-first-acp-page.php', // The 'slug' - file to display when clicking the link
     null, // Funcion del sitio
     plugin_dir_url(__FILE__) . '../admin/img/icon.png', // Icono del menu
-    1
+    27
   );
   // Agregar submenu de Cargue
   add_submenu_page(
@@ -295,6 +295,11 @@ function getAllCertificates()
     wp_die();
   }
 
+  if (!cc_current_user_can_access_certificados()) {
+    wp_send_json_error('Acceso no autorizado', 403);
+    wp_die();
+  }
+
   global $wpdb;
   $table = $wpdb->prefix . 'cc_certificados';
 
@@ -330,6 +335,9 @@ add_action('wp_ajax_get_all_certificates', 'getAllCertificates');
 add_action('wp_ajax_cc_toggle_certificate_status', 'cc_toggle_certificate_status');
 function cc_toggle_certificate_status() {
     check_ajax_referer('seg', 'nonce');
+    if (!current_user_can('secretario') && !current_user_can('manage_options')) {
+        wp_send_json_error('No autorizado', 403);
+    }
     global $wpdb;
     $id = intval($_POST['id'] ?? 0);
     $status = sanitize_text_field($_POST['status'] ?? 'inactivo');
@@ -346,6 +354,9 @@ function cc_toggle_certificate_status() {
 add_action('wp_ajax_cc_edit_certificate', 'cc_edit_certificate');
 function cc_edit_certificate() {
     check_ajax_referer('seg', 'nonce');
+    if (!current_user_can('secretario') && !current_user_can('manage_options')) {
+        wp_send_json_error('No autorizado', 403);
+    }
     global $wpdb;
     
     $id = intval($_POST['idCertificado'] ?? 0);
@@ -485,6 +496,11 @@ function cc_edit_certificate() {
 function handle_import_excel() {
     if (!check_ajax_referer('seg', 'nonce', false)) {
         wp_send_json_error(['message' => 'Nonce inválido. Recarga la página e intenta de nuevo.']);
+        wp_die();
+    }
+
+    if (!current_user_can('secretario') && !current_user_can('manage_options')) {
+        wp_send_json_error(['message' => 'No autorizado']);
         wp_die();
     }
 

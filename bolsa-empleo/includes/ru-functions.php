@@ -124,6 +124,9 @@ add_action('admin_enqueue_scripts', function($hook) {
 // Endpoint AJAX: devuelve la lista de usuarios para DataTables
 add_action('wp_ajax_get_all_users', function() {
     check_ajax_referer('ru_seg', 'nonce');
+    if (!current_user_can('secretario') && !current_user_can('manage_options')) {
+        wp_send_json_error('No autorizado', 403);
+    }
     global $wpdb;
     $usuarios = $wpdb->get_results(
         "SELECT ID, last_name, second_last_name, first_name, middle_name, national_id, email, phone_number, user_role, address FROM {$wpdb->prefix}aess_users",
@@ -134,6 +137,9 @@ add_action('wp_ajax_get_all_users', function() {
 
 add_action('wp_ajax_get_user_details', function() {
     check_ajax_referer('ru_seg', 'nonce');
+    if (!current_user_can('secretario') && !current_user_can('manage_options')) {
+        wp_send_json_error('No autorizado', 403);
+    }
     global $wpdb;
     $user_id = intval($_POST['id'] ?? 0);
     if (!$user_id) {
@@ -154,6 +160,9 @@ add_action('wp_ajax_get_user_details', function() {
 
 add_action('wp_ajax_ru_update_user', function() {
     check_ajax_referer('ru_seg', 'nonce');
+    if (!current_user_can('secretario') && !current_user_can('manage_options')) {
+        wp_send_json_error('No autorizado', 403);
+    }
     global $wpdb;
 
     $user_id = intval($_POST['id'] ?? 0);
@@ -219,6 +228,9 @@ add_action('wp_ajax_ru_import_users_csv', function() {
     }
     
     check_ajax_referer('ru_seg', 'nonce');
+    if (!current_user_can('secretario') && !current_user_can('manage_options')) {
+        wp_send_json_error(['message' => 'No autorizado'], 403);
+    }
     if (!isset($_FILES['file'])) {
         wp_send_json_error(['message' => 'No se recibió ningún archivo.']);
     }
@@ -311,13 +323,19 @@ function ru_ajax_check_cedula() {
 // Endpoint AJAX: Cursos Vencidos en Bolsa de Empleo
 add_action('wp_ajax_get_all_cursos_vencidos', 'be_get_all_cursos_vencidos');
 function be_get_all_cursos_vencidos() {
-    check_ajax_referer('ru_seg', 'nonce');
+    $nonce = $_POST['nonce'] ?? '';
+    if (!wp_verify_nonce($nonce, 'ru_seg') && !wp_verify_nonce($nonce, 'seg')) {
+        wp_send_json_error('Error de seguridad (nonce inválido)', 403);
+    }
+    if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
+        wp_send_json_error('No autorizado', 403);
+    }
     global $wpdb;
 
     $table = $wpdb->prefix . 'aess_users';
     
-    $fecha_desde = isset($_POST['fecha_vencimiento_desde']) ? sanitize_text_field($_POST['fecha_vencimiento_desde']) : '';
-    $fecha_hasta = isset($_POST['fecha_vencimiento_hasta']) ? sanitize_text_field($_POST['fecha_vencimiento_hasta']) : '';
+    $fecha_desde = !empty($_POST['fecha_vencimiento_desde']) ? sanitize_text_field($_POST['fecha_vencimiento_desde']) : (!empty($_POST['fecha_desde']) ? sanitize_text_field($_POST['fecha_desde']) : '');
+    $fecha_hasta = !empty($_POST['fecha_vencimiento_hasta']) ? sanitize_text_field($_POST['fecha_vencimiento_hasta']) : (!empty($_POST['fecha_hasta']) ? sanitize_text_field($_POST['fecha_hasta']) : '');
     $ciudad = isset($_POST['ciudad']) ? sanitize_text_field($_POST['ciudad']) : '';
 
     $where = " WHERE fecha_vencimiento_curso IS NOT NULL AND fecha_vencimiento_curso != '0000-00-00' AND fecha_vencimiento_curso < CURDATE()";
@@ -357,4 +375,19 @@ function be_get_all_cursos_vencidos() {
 
     wp_send_json($data);
 }
+
+// Endpoint AJAX: Guardar cursos disponibles
+add_action('wp_ajax_be_save_cursos_disponibles', function() {
+    check_ajax_referer('ru_seg', 'nonce');
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('No autorizado', 403);
+    }
+    $cursos = sanitize_text_field($_POST['cursos'] ?? '');
+    update_option('be_cursos_disponibles', $cursos);
+    if (!empty($_POST['ciclos'])) {
+        $ciclos = sanitize_text_field($_POST['ciclos']);
+        update_option('be_ciclos_disponibles', $ciclos);
+    }
+    wp_send_json_success('Cursos guardados con éxito.');
+});
 

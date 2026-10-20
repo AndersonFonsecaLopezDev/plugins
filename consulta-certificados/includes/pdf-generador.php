@@ -58,12 +58,14 @@ try {
     $fecha_obj = new DateTime(); // Fallback a hoy
 }
 
-setlocale(LC_TIME, 'es_ES.UTF-8', 'spanish');
-
-$ciudad = "Armenia";
-
-// Formatear como: "julio 21 de 2025"
-$fecha_formateada = strftime("%B %d de %Y", $fecha_obj->getTimestamp());
+$meses_es = [
+    1 => 'enero', 2 => 'febrero', 3 => 'marzo', 4 => 'abril',
+    5 => 'mayo', 6 => 'junio', 7 => 'julio', 8 => 'agosto',
+    9 => 'septiembre', 10 => 'octubre', 11 => 'noviembre', 12 => 'diciembre'
+];
+$mes_num = (int)$fecha_obj->format('n');
+$mes_nombre = $meses_es[$mes_num] ?? 'enero';
+$fecha_formateada = $mes_nombre . " " . $fecha_obj->format('d') . " de " . $fecha_obj->format('Y');
 $texto_ciudad_fecha = $ciudad . ", " . ucfirst($fecha_formateada);
 
 

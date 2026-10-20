@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recovery_email'])) {
                 'reset_code' => $codigo_activacion,
                 'reset_code_expires' => date("Y-m-d H:i:s", strtotime("+1 hour")),
             ],
-            ['id' => $user->id],
+            ['ID' => $user->ID],
             ['%d', '%s'],
             ['%d']
         );
@@ -135,6 +135,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_password']) && is
             ['%s', '%s', '%s'],
             ['%s']
         );
+
+        $wp_user = get_user_by('email', $email);
+        if ($wp_user) {
+            wp_set_password($new_password, $wp_user->ID);
+        }
 
         $mensaje = 'Tu contraseña ha sido cambiada con éxito. Ahora puedes iniciar sesión.';
         $tipo_mensaje = 'success';

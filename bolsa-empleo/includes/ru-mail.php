@@ -9,8 +9,8 @@ function enviar_correo($para, $asunto, $mensaje_html, $nombre_para = '') {
 
     try {
         // Obtener configuración desde las opciones de WordPress
-        $email_remitente = get_option('be_email_remitente', 'juansepulveda8010@gmail.com');
-        $email_password = get_option('be_email_password', 'ukwv yeqq gphc jzkk');
+        $email_remitente = get_option('be_email_remitente', '');
+        $email_password = get_option('be_email_password', '');
         $nombre_remitente = get_option('be_email_nombre_remitente', 'Academia Aess');
         
         $mail->isSMTP();

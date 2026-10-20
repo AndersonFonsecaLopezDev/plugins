@@ -88,14 +88,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 }
                 
                 $uploadedfile = $_FILES['cv_file_upload'];
-                $upload_overrides = array('test_form' => false);
-                $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
-
-                if ($movefile && !isset($movefile['error'])) {
-                    $update_data['cv_file'] = $movefile['url'];
-                } else {
-                    $mensaje = 'Error al subir el archivo: ' . $movefile['error'];
+                
+                // Validar tamaño máximo (10 MB)
+                $max_size = 10 * 1024 * 1024;
+                if ($uploadedfile['size'] > $max_size) {
+                    $mensaje = 'El archivo supera el tamaño máximo permitido de 10 MB.';
                     $tipo_mensaje = 'danger';
+                } else {
+                    $upload_overrides = [
+                        'test_form' => false,
+                        'mimes' => [
+                            'pdf'  => 'application/pdf',
+                            'doc'  => 'application/msword',
+                            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        ]
+                    ];
+                    $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
+
+                    if ($movefile && !isset($movefile['error'])) {
+                        $update_data['cv_file'] = $movefile['url'];
+                    } else {
+                        $mensaje = 'Error al subir el archivo: ' . ($movefile['error'] ?? 'Tipo de archivo no permitido. Solo se aceptan PDF o Word.');
+                        $tipo_mensaje = 'danger';
+                    }
                 }
             }
             

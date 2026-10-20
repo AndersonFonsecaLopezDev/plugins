@@ -15,7 +15,7 @@ function be_Add_My_Admin_Link()
     plugin_dir_path(__FILE__) . 'be-first-page.php', // The 'slug' - file to display when clicking the link
     null, // Funcion del sitio
     plugin_dir_url(__FILE__) . '../admin/img/icon.png', // Icono del menu
-    1
+    26
   );
   // Agregar submenu de Cursos Vencidos (solo para secretario y admin)
   add_submenu_page(
@@ -152,10 +152,10 @@ function be_setup_plugin_defaults() {
         'be_login_redirect_url' => home_url('/'),
         'be_login_url' => site_url('/pagina-login'),
         'be_register_url' => site_url('/pagina-registro'),
-        'be_forgot_password_url' => site_url('/recuperacion-contasena'),
+        'be_forgot_password_url' => site_url('/recuperacion-contrasena'),
         'be_terms_url' => '#',
-        'be_email_remitente' => 'juansepulveda8010@gmail.com',
-        'be_email_password' => 'ukwv yeqq gphc jzkk',
+        'be_email_remitente' => '',
+        'be_email_password' => '',
         'be_email_nombre_remitente' => 'Academia Aess',
         'be_access_bolsa_estudiante' => 1,
         'be_access_bolsa_secretario' => 1,

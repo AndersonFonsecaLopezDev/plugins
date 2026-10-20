@@ -259,6 +259,7 @@ function be_hide_admin_bar($show)
 }
 add_filter('show_admin_bar', 'be_hide_admin_bar');
 add_action('wp_ajax_nopriv_be_ajax_login', 'be_ajax_login_handler');
+add_action('wp_ajax_be_ajax_login', 'be_ajax_login_handler');
 function be_ajax_login_handler() {
     if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'ru_seg')) {
         wp_send_json_error('Sesión inválida, por favor recarga la página.');
@@ -271,24 +272,76 @@ function be_ajax_login_handler() {
         wp_send_json_error('Correo y contraseña son requeridos.');
     }
 
-    $user = get_user_by('email', $email);
+    global $wpdb;
+    $table = $wpdb->prefix . 'aess_users';
+    $user = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE email = %s", $email));
+
     if (!$user) {
-        wp_send_json_error('No existe un usuario con ese correo.');
+        wp_send_json_error('Usuario o contraseña incorrectos.');
     }
 
-    $creds = [
-        'user_login'    => $user->user_login,
-        'user_password' => $password,
-        'remember'      => true
-    ];
-
-    $user_verify = wp_signon($creds, false);
-
-    if (is_wp_error($user_verify)) {
-        wp_send_json_error('Contraseña incorrecta.');
+    if (!function_exists('verify_password')) {
+        include_once plugin_dir_path(__FILE__) . 'ru-password.php';
     }
 
-    // Determine redirect
-    $redirect_url = get_option('be_login_redirect_url', site_url('/mi-hoja-de-vida'));
+    if (!verify_password($password, $user->contrasena)) {
+        wp_send_json_error('Usuario o contraseña incorrectos.');
+    }
+
+    if ((int) $user->email_verificado !== 1) {
+        wp_send_json_error('Debes verificar tu correo antes de iniciar sesión.');
+    }
+
+    // Asegurar que el usuario exista en wp_users
+    $wp_user = get_user_by('email', $email);
+    $desired_role = strtolower(trim($user->user_role ?: 'estudiante'));
+    if (!in_array($desired_role, ['secretario', 'talento_humano', 'estudiante'], true)) {
+        $desired_role = 'estudiante';
+    }
+
+    if (!$wp_user) {
+        $username_base = sanitize_user(strpos($email, '@') !== false ? strstr($email, '@', true) : $email, true);
+        if (empty($username_base)) {
+            $username_base = 'user' . time();
+        }
+        $username = $username_base;
+        $suffix = 1;
+        while (username_exists($username)) {
+            $username = $username_base . $suffix;
+            $suffix++;
+        }
+        $user_id = wp_create_user($username, $password, $email);
+        if (is_wp_error($user_id)) {
+            wp_send_json_error('Error al sincronizar la cuenta con WordPress.');
+        }
+        $wp_user_obj = new WP_User($user_id);
+        $wp_user_obj->set_role($desired_role);
+        $wp_user = get_user_by('id', $user_id);
+    } else {
+        $is_admin_role = in_array('administrator', (array) $wp_user->roles, true);
+        if (!$is_admin_role) {
+            $wp_user_obj = new WP_User($wp_user->ID);
+            if (!in_array($desired_role, (array) $wp_user->roles, true)) {
+                $wp_user_obj->set_role($desired_role);
+            }
+        }
+        wp_set_password($password, $wp_user->ID);
+    }
+
+    // Iniciar sesión
+    wp_set_current_user($wp_user->ID);
+    wp_set_auth_cookie($wp_user->ID, true);
+    do_action('wp_login', $wp_user->user_login, $wp_user);
+
+    // Determinar redirección
+    if (in_array($desired_role, ['secretario', 'talento_humano'], true) || in_array('administrator', (array) $wp_user->roles, true)) {
+        $redirect_url = admin_url();
+    } else {
+        $redirect_url = get_option('be_login_redirect_url');
+        if (empty($redirect_url)) {
+            $redirect_url = site_url('/mi-hoja-de-vida');
+        }
+    }
+
     wp_send_json_success(['redirect_url' => $redirect_url]);
 }

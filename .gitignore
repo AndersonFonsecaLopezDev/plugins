@@ -8,7 +8,11 @@ node_modules/
 .idea/
 .vscode/
 consulta-certificados.zip
-consulta-certificados.zip
 bolsa-empleo.zip
 bolsa-empleo.7z
 consulta-certificados 22.zip
+
+# Sensitive database dumps and datasets
+*.sql
+*.csv
+!bolsa-empleo/includes/plantilla_usuarios.csv

@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 $register_url = get_option('be_register_url', site_url('/pagina-registro'));
-$forgot_password_url = get_option('be_forgot_password_url', site_url('/recuperacion-contasena'));
+$forgot_password_url = get_option('be_forgot_password_url', site_url('/recuperacion-contrasena'));
 $login_error = isset($_GET['login_error']) ? sanitize_text_field(urldecode($_GET['login_error'])) : '';
 $login_email = isset($_GET['login_email']) ? sanitize_email(urldecode($_GET['login_email'])) : '';
 ?>

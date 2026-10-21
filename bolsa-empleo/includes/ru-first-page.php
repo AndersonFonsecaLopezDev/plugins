@@ -165,6 +165,11 @@ $mensaje = '';
 $tipo_mensaje = '';
 $mostrar_paso_verificacion = false;
 $correo_usuario = '';
+$forzar_paso_4 = false;
+$avanzar_paso_3 = false;
+$mensaje_activacion = '';
+$tipo_mensaje_activacion = '';
+$login_url = get_option('be_login_url', site_url('/pagina-login'));
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // Validar campos requeridos
@@ -270,14 +275,13 @@ if (isset($mensaje_activacion) && !empty($mensaje_activacion)) {
           timeout: 5000
         });
       }
-      ' . ($forzar_paso_4 ? 'goToStep(4);' : '') . '
+      ' . (!empty($forzar_paso_4) ? 'goToStep(4);' : '') . '
     });
   </script>';
 }
 ?>
 
 <?php if (isset($tipo_mensaje_activacion) && $tipo_mensaje_activacion === 'success'): ?>
-  <?php $login_url = get_option('be_login_url', site_url('/pagina-login')); ?>
   <div class="alert alert-success text-center mt-5" id="final-success">
     <h2>¡Cuenta activada correctamente!</h2>
     <p>Tu registro ha finalizado con éxito. Puedes cerrar esta ventana o ir a la página de inicio de sesión cuando esté disponible.</p>

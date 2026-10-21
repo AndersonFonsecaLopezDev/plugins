@@ -11,6 +11,11 @@ $email = $current_user->user_email;
 
 global $wpdb;
 $table = $wpdb->prefix . 'aess_users';
+if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table)) !== $table) {
+    if (function_exists('be_create_tables')) {
+        be_create_tables();
+    }
+}
 $user_data = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE email = %s", $email), ARRAY_A);
 
 if (!$user_data) {

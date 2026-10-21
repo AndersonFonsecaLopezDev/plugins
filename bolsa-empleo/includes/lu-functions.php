@@ -83,6 +83,11 @@ function lu_procesar_login_form()
 
     // 1. Buscar en tu tabla personalizada
     $table = $wpdb->prefix . 'aess_users';
+    if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table)) !== $table) {
+        if (function_exists('be_create_tables')) {
+            be_create_tables();
+        }
+    }
     $user = $wpdb->get_row(
         $wpdb->prepare("SELECT * FROM $table WHERE email = %s", $email)
     );
@@ -274,6 +279,11 @@ function be_ajax_login_handler() {
 
     global $wpdb;
     $table = $wpdb->prefix . 'aess_users';
+    if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table)) !== $table) {
+        if (function_exists('be_create_tables')) {
+            be_create_tables();
+        }
+    }
     $user = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE email = %s", $email));
 
     if (!$user) {

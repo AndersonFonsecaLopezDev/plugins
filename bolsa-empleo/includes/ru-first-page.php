@@ -48,6 +48,11 @@ function guardar_usuario_en_bd($datos)
     $ciclo_curso = trim($datos['ciclo_curso'] ?? '');
 
     $table = $wpdb->prefix . 'aess_users';
+    if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table)) !== $table) {
+        if (function_exists('be_create_tables')) {
+            be_create_tables();
+        }
+    }
 
     // Verificar si el correo o cédula ya existen
     $exists = $wpdb->get_row($wpdb->prepare(

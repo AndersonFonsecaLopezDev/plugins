@@ -71,39 +71,103 @@ function be_register_settings() {
 }
 add_action('admin_init', 'be_register_settings');
 
+function be_create_tables() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'aess_users';
+    $charset_collate = $wpdb->get_charset_collate();
+
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+
+    $sql = "CREATE TABLE $table_name (
+        ID bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+        first_name varchar(100) NOT NULL,
+        middle_name varchar(100) DEFAULT '',
+        last_name varchar(100) NOT NULL,
+        second_last_name varchar(100) DEFAULT '',
+        national_id varchar(50) NOT NULL,
+        gender varchar(50) DEFAULT '',
+        birth_date date DEFAULT NULL,
+        departamento varchar(100) DEFAULT '',
+        city varchar(100) DEFAULT '',
+        phone_number varchar(50) DEFAULT '',
+        email varchar(100) NOT NULL,
+        address varchar(255) DEFAULT '',
+        modalidad varchar(50) DEFAULT '' NOT NULL,
+        sede varchar(150) DEFAULT '' NOT NULL,
+        curso_realizado varchar(200) DEFAULT '' NOT NULL,
+        ciclo_curso varchar(100) DEFAULT '' NOT NULL,
+        fecha_acta_curso date DEFAULT NULL,
+        fecha_vencimiento_curso date DEFAULT NULL,
+        codigo_activacion varchar(20) DEFAULT '' NOT NULL,
+        fecha_activacion datetime DEFAULT NULL,
+        email_verificado tinyint(1) DEFAULT 0,
+        academico varchar(255) DEFAULT '',
+        profesion varchar(255) DEFAULT '',
+        estado_laboral varchar(100) DEFAULT '',
+        user_role varchar(50) DEFAULT 'estudiante',
+        contrasena varchar(255) NOT NULL,
+        libreta_militar varchar(100) DEFAULT '',
+        experiencia text,
+        diploma varchar(255) DEFAULT '',
+        estatura varchar(50) DEFAULT '',
+        barrio varchar(255) DEFAULT '',
+        cv_file varchar(255) DEFAULT '',
+        cv_aprobado tinyint(1) DEFAULT 0,
+        fecha_creacion datetime DEFAULT CURRENT_TIMESTAMP,
+        reset_code varchar(10) DEFAULT '',
+        reset_code_expires datetime DEFAULT NULL,
+        PRIMARY KEY  (ID),
+        UNIQUE KEY email (email)
+    ) $charset_collate;";
+
+    dbDelta($sql);
+
+    // Verificación de respaldo directa: si dbDelta no creó la tabla, forzar creación con $wpdb->query
+    $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table_name));
+    if ($table_exists !== $table_name) {
+        $wpdb->query($sql);
+    }
+}
+
 function be_maybe_upgrade_database() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'aess_users';
+    
+    // 1. Si la tabla NO existe en la base de datos de esta instancia, crearla de inmediato
+    $table_exists = ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table)) === $table);
+    if (!$table_exists) {
+        be_create_tables();
+        update_option('be_db_version', '1.2');
+        return;
+    }
+
+    // 2. Si ya existe, verificar si requiere migración de columnas nuevas
     $current_version = get_option('be_db_version', '1.0');
     if (version_compare($current_version, '1.2', '<')) {
-        global $wpdb;
-        $table = $wpdb->prefix . 'aess_users';
-        
-        $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
-        if ($table_exists === $table) {
-            $required_columns = [
-                'academico' => 'VARCHAR(255) DEFAULT \'\'',
-                'profesion' => 'VARCHAR(255) DEFAULT \'\'',
-                'estado_laboral' => 'VARCHAR(100) DEFAULT \'\'',
-                'libreta_militar' => 'VARCHAR(100) DEFAULT \'\'',
-                'experiencia' => 'TEXT',
-                'diploma' => 'VARCHAR(255) DEFAULT \'\'',
-                'estatura' => 'VARCHAR(50) DEFAULT \'\'',
-                'barrio' => 'VARCHAR(255) DEFAULT \'\'',
-                'cv_aprobado' => 'TINYINT(1) DEFAULT 0',
-                'cv_file' => 'VARCHAR(255) DEFAULT \'\'',
-                'curso_realizado' => 'VARCHAR(200) DEFAULT \'\' NOT NULL',
-                'ciclo_curso' => 'VARCHAR(100) DEFAULT \'\' NOT NULL',
-                'fecha_acta_curso' => 'DATE DEFAULT NULL',
-                'fecha_vencimiento_curso' => 'DATE DEFAULT NULL',
-                'modalidad' => 'VARCHAR(50) DEFAULT \'\' NOT NULL',
-                'sede' => 'VARCHAR(150) DEFAULT \'\' NOT NULL',
-            ];
+        $required_columns = [
+            'academico' => 'VARCHAR(255) DEFAULT \'\'',
+            'profesion' => 'VARCHAR(255) DEFAULT \'\'',
+            'estado_laboral' => 'VARCHAR(100) DEFAULT \'\'',
+            'libreta_militar' => 'VARCHAR(100) DEFAULT \'\'',
+            'experiencia' => 'TEXT',
+            'diploma' => 'VARCHAR(255) DEFAULT \'\'',
+            'estatura' => 'VARCHAR(50) DEFAULT \'\'',
+            'barrio' => 'VARCHAR(255) DEFAULT \'\'',
+            'cv_aprobado' => 'TINYINT(1) DEFAULT 0',
+            'cv_file' => 'VARCHAR(255) DEFAULT \'\'',
+            'curso_realizado' => 'VARCHAR(200) DEFAULT \'\' NOT NULL',
+            'ciclo_curso' => 'VARCHAR(100) DEFAULT \'\' NOT NULL',
+            'fecha_acta_curso' => 'DATE DEFAULT NULL',
+            'fecha_vencimiento_curso' => 'DATE DEFAULT NULL',
+            'modalidad' => 'VARCHAR(50) DEFAULT \'\' NOT NULL',
+            'sede' => 'VARCHAR(150) DEFAULT \'\' NOT NULL',
+        ];
 
-            $existing_columns = $wpdb->get_col("SHOW COLUMNS FROM {$table}");
-            if (!empty($existing_columns)) {
-                foreach ($required_columns as $col => $def) {
-                    if (!in_array($col, $existing_columns, true)) {
-                        $wpdb->query("ALTER TABLE {$table} ADD COLUMN {$col} {$def}");
-                    }
+        $existing_columns = $wpdb->get_col("SHOW COLUMNS FROM {$table}");
+        if (!empty($existing_columns)) {
+            foreach ($required_columns as $col => $def) {
+                if (!in_array($col, $existing_columns, true)) {
+                    $wpdb->query("ALTER TABLE {$table} ADD COLUMN {$col} {$def}");
                 }
             }
         }

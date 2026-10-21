@@ -16,3 +16,5 @@ consulta-certificados 22.zip
 *.sql
 *.csv
 !bolsa-empleo/includes/plantilla_usuarios.csv
+email-log.txt
+*-log.txt

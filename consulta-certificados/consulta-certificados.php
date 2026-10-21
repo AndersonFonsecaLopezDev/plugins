@@ -2,7 +2,7 @@
 /*
 Plugin Name: Consulta Certificados
 Description: Plugin para consultar informacion desde un archivo Excel.
-Version: 1.0
+Version: 1.2
 Author: Anderson Fonseca Lopez
 */
 
@@ -30,12 +30,27 @@ function Activar() {
         fecha_acta DATE DEFAULT NULL,
         estado VARCHAR(20) DEFAULT 'activo',
         PRIMARY KEY (idCertificado),
-        UNIQUE (numerodiploma)
+        UNIQUE KEY numerodiploma (numerodiploma)
     ) $charset_collate;";
 
     dbDelta($sql);
+
+    // Verificación de respaldo directa
+    $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table_name));
+    if ($exists !== $table_name) {
+        $wpdb->query($sql);
+    }
 }
 
+function cc_maybe_create_table() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'cc_certificados';
+    if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table_name)) !== $table_name) {
+        Activar();
+    }
+}
+add_action('admin_init', 'cc_maybe_create_table');
+add_action('init', 'cc_maybe_create_table');
 
 function Desactivar() {
     flush_rewrite_rules();

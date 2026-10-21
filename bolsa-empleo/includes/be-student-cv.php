@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
 
 <div class="login-container cv-container">
     <!-- Título principal -->
-    <h1 class="text-center mb-4 form-title">Mi Hoja de Vida</h1>
+    <h1 class="text-center mb-4 form-title">Mi hoja de vida</h1>
     
     <?php if ($mensaje): ?>
         <div class="alert alert-<?php echo esc_attr($tipo_mensaje === 'danger' ? 'danger' : 'success'); ?> alert-dismissible fade show">
@@ -143,21 +143,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
     <?php endif; ?>
 
     <div class="mb-5 text-center">
-        <p style="font-size: 15px; color: #555; margin-bottom: 10px;">Estado actual en la Bolsa de Empleo:</p>
+        <p style="font-size: 15px; color: #555; margin-bottom: 10px;">Estado actual en la bolsa de empleo:</p>
         <?php if ($user_data['cv_aprobado'] == 1): ?>
-            <span class="badge" style="background-color: #007017; font-size: 15px; padding: 10px 20px; border-radius: 8px; display: inline-block; margin-bottom: 20px;">Aprobado y Visible</span>
+            <span class="badge" style="background-color: #007017; font-size: 15px; padding: 10px 20px; border-radius: 8px; display: inline-block; margin-bottom: 20px;">Aprobado y visible</span>
         <?php else: ?>
-            <span class="badge" style="background-color: #ffb900; color: #000; font-size: 15px; padding: 10px 20px; border-radius: 8px; display: inline-block; margin-bottom: 20px;">Pendiente / Oculto</span>
+            <span class="badge" style="background-color: #ffb900; color: #000; font-size: 15px; padding: 10px 20px; border-radius: 8px; display: inline-block; margin-bottom: 20px;">Pendiente u oculto</span>
         <?php endif; ?>
     </div>
 
     <form method="post" action="" enctype="multipart/form-data">
         <?php wp_nonce_field('update_cv_action', 'cv_nonce'); ?>
         
-        <h5 class="section-title">Información Personal</h5>
+        <h5 class="section-title">Información personal</h5>
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label">Nombre Completo</label>
+                <label class="form-label">Nombre completo</label>
                 <input type="text" class="form-control" value="<?php echo esc_attr($user_data['first_name'] . ' ' . $user_data['middle_name'] . ' ' . $user_data['last_name'] . ' ' . $user_data['second_last_name']); ?>" disabled>
             </div>
             <div class="col-md-6 mb-3">
@@ -165,11 +165,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 <input type="text" class="form-control" value="<?php echo esc_attr($user_data['national_id']); ?>" disabled>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Correo Electrónico</label>
+                <label class="form-label">Correo electrónico</label>
                 <input type="email" class="form-control" value="<?php echo esc_attr($user_data['email']); ?>" disabled>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Celular / Teléfono</label>
+                <label class="form-label">Celular / teléfono</label>
                 <input type="text" class="form-control" name="phone_number" value="<?php echo esc_attr($user_data['phone_number'] ?? ''); ?>">
             </div>
             <div class="col-md-6 mb-3">
@@ -182,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 </select>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Ciudad de Residencia</label>
+                <label class="form-label">Ciudad de residencia</label>
                 <select class="form-select" name="city" id="city">
                     <option value="">Selecciona una ciudad</option>
                     <?php
@@ -209,16 +209,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 </select>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Sede de la Academia *</label>
+                <label class="form-label">Sede de la academia *</label>
                 <input type="text" class="form-control" name="sede" value="<?php echo esc_attr($user_data['sede'] ?? ''); ?>" placeholder="Escribe la sede o agencia donde te inscribes" required>
                 <small class="form-text text-muted d-block mt-1">¿No conoces las sedes? <a href="https://academiadeseguridadaessltda.com/agencias/" target="_blank" rel="noopener noreferrer">Consulta nuestras sedes y agencias aquí</a>.</small>
             </div>
         </div>
 
-        <h5 class="section-title mt-4">Perfil Profesional</h5>
+        <h5 class="section-title mt-4">Perfil profesional</h5>
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label">Nivel Académico</label>
+                <label class="form-label">Nivel académico</label>
                 <select class="form-select" name="academico">
                     <option value="">Selecciona una opción</option>
                     <option value="Bachiller" <?php selected($user_data['academico'] ?? '', 'Bachiller'); ?>>Bachiller</option>
@@ -231,7 +231,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 </select>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Profesión u Oficio</label>
+                <label class="form-label">Profesión u oficio</label>
                 <select class="form-select" name="profesion">
                     <option value="">Selecciona una profesión</option>
                     <?php 
@@ -246,18 +246,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 </select>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Estado Laboral Actual</label>
+                <label class="form-label">Estado laboral actual</label>
                 <select class="form-select" name="estado_laboral">
-                    <option value="Buscando Empleo" <?php selected($user_data['estado_laboral'] ?? '', 'Buscando Empleo'); ?>>Buscando Empleo</option>
+                    <option value="Buscando Empleo" <?php selected($user_data['estado_laboral'] ?? '', 'Buscando Empleo'); ?>>Buscando empleo</option>
                     <option value="Empleado" <?php selected($user_data['estado_laboral'] ?? '', 'Empleado'); ?>>Empleado actualmente</option>
                 </select>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Libreta Militar</label>
+                <label class="form-label">Libreta militar</label>
                 <select class="form-select" name="libreta_militar">
                     <option value="No aplica" <?php selected($user_data['libreta_militar'] ?? '', 'No aplica'); ?>>No aplica</option>
-                    <option value="Primera Clase" <?php selected($user_data['libreta_militar'] ?? '', 'Primera Clase'); ?>>Primera Clase</option>
-                    <option value="Segunda Clase" <?php selected($user_data['libreta_militar'] ?? '', 'Segunda Clase'); ?>>Segunda Clase</option>
+                    <option value="Primera Clase" <?php selected($user_data['libreta_militar'] ?? '', 'Primera Clase'); ?>>Primera clase</option>
+                    <option value="Segunda Clase" <?php selected($user_data['libreta_militar'] ?? '', 'Segunda Clase'); ?>>Segunda clase</option>
                     <option value="En trámite" <?php selected($user_data['libreta_militar'] ?? '', 'En trámite'); ?>>En trámite</option>
                 </select>
             </div>
@@ -266,15 +266,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 <input type="text" class="form-control" name="estatura" value="<?php echo esc_attr($user_data['estatura'] ?? ''); ?>" placeholder="Ej: 175">
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Cursos o Diplomas adicionales</label>
+                <label class="form-label">Cursos o diplomas adicionales</label>
                 <input type="text" class="form-control" name="diploma" value="<?php echo esc_attr($user_data['diploma'] ?? ''); ?>" placeholder="Ej: Curso de Seguridad Privada vigente">
             </div>
 
             <div class="col-12 mt-4 mb-3">
-                <h6 style="color: #034C8C; font-weight: 600; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 2.5rem;">Último Curso de Seguridad Realizado</h6>
+                <h6 style="color: #034C8C; font-weight: 600; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 2.5rem;">Último curso de seguridad realizado</h6>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Nombre del Curso</label>
+                <label class="form-label">Nombre del curso</label>
                 <select class="form-select select2-course" name="curso_realizado" id="cv_curso_realizado">
                     <option value="">Seleccione un curso...</option>
                     <?php 
@@ -289,7 +289,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 </select>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Ciclo del Curso</label>
+                <label class="form-label">Ciclo del curso</label>
                 <select class="form-select" name="ciclo_curso" id="cv_ciclo_curso">
                     <option value="">Seleccione un ciclo...</option>
                     <?php 
@@ -304,18 +304,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 </select>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Fecha del Diploma</label>
+                <label class="form-label">Fecha del diploma</label>
                 <input type="date" class="form-control" name="fecha_acta_curso" id="fecha_diploma" value="<?php echo esc_attr($user_data['fecha_acta_curso'] ?? ''); ?>">
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Fecha de Vencimiento</label>
+                <label class="form-label">Fecha de vencimiento</label>
                 <input type="date" class="form-control" name="fecha_vencimiento_curso" id="fecha_vencimiento" value="<?php echo esc_attr($user_data['fecha_vencimiento_curso'] ?? ''); ?>" readonly>
             </div>
             <div class="col-12 mb-3">
-                <label class="form-label">Archivo de Hoja de Vida (PDF o Word)</label>
+                <label class="form-label">Archivo de hoja de vida (PDF o Word)</label>
                 <?php if (!empty($user_data['cv_file'])): ?>
                     <div style="margin-bottom: 10px;">
-                        <a href="<?php echo esc_url($user_data['cv_file']); ?>" target="_blank" class="btn btn-outline-primary" style="padding: 6px 12px; font-size: 14px;">📄 Ver Archivo Actual</a>
+                        <a href="<?php echo esc_url($user_data['cv_file']); ?>" target="_blank" class="btn btn-outline-primary" style="padding: 6px 12px; font-size: 14px;">📄 Ver archivo actual</a>
                     </div>
                 <?php endif; ?>
                 <div class="file-upload-wrapper">
@@ -326,7 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                             <polyline points="17 8 12 3 7 8"></polyline>
                             <line x1="12" y1="3" x2="12" y2="15"></line>
                         </svg>
-                        <span class="file-text">Arrastra tu CV aquí o haz clic para seleccionar</span>
+                        <span class="file-text">Arrastra tu hoja de vida aquí o haz clic para seleccionar</span>
                         <span class="file-hint">PDF o Word (máx. 10MB)</span>
                     </label>
                     <div class="file-name-display" id="fileNameDisplay"></div>
@@ -338,17 +338,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">Sube un archivo solo si deseas reemplazar el actual.</small>
             </div>
             <div class="col-12 mb-3">
-                <label class="form-label">Experiencia Laboral</label>
+                <label class="form-label">Experiencia laboral</label>
                 <textarea class="form-control" name="experiencia" rows="4" placeholder="Describe brevemente tu experiencia laboral..."><?php echo esc_textarea($user_data['experiencia'] ?? ''); ?></textarea>
             </div>
         </div>
 
         <div class="btn-container d-flex flex-wrap" style="gap: 15px; margin-top: 30px;">
             <button type="submit" name="accion_cv" value="eliminar" class="btn btn-secondary" onclick="return confirm('¿Estás seguro de que deseas retirar tu hoja de vida de la bolsa de empleo? Tu perfil pasará a estado oculto.');" style="flex: 1; min-width: 250px;">
-                Ocultar/Retirar de Bolsa
+                Ocultar o retirar de la bolsa
             </button>
             <button type="submit" name="update_cv" value="1" class="btn btn-primary" style="flex: 1; min-width: 250px;">
-                Guardar y Enviar CV
+                Guardar cambios y enviar hoja de vida
             </button>
         </div>
     </form>

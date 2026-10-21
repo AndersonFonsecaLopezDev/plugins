@@ -25,7 +25,7 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
           <thead>
             <tr>
               <th></th> <!-- Reservado para el ID -->
-              <th>Fecha Inscripción</th>
+              <th>Fecha de inscripción</th>
               <th>Nombres</th>
               <th>Apellidos</th>
               <th>Modalidad</th>
@@ -37,12 +37,12 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
               <th>Correo</th>
               <th>Curso</th>
               <th>Ciclo</th>
-              <th>Fecha Acta</th>
+              <th>Fecha de acta</th>
               <th>Vencimiento</th>
               <th>Académico</th>
-              <th>Profesion</th>
+              <th>Profesión</th>
               <th>Estado</th>
-              <th>Libreta_militar</th>
+              <th>Libreta militar</th>
               <th>Experiencia</th>
               <th>Diploma</th>
               <th>Estatura</th>
@@ -50,7 +50,7 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
               <th>Dirección</th>
               <th>Departamento</th>
               <th>Cédula</th>
-              <th>Archivo CV</th>
+              <th>Archivo de hoja de vida</th>
               <th>Aprobado</th>
               <th>Acciones</th>
             </tr>
@@ -60,7 +60,7 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
           <tfoot>
             <tr>
               <th></th> <!-- Reservado para el ID -->
-              <th>Fecha Inscripción</th>
+              <th>Fecha de inscripción</th>
               <th>Nombres</th>
               <th>Apellidos</th>
               <th>Modalidad</th>
@@ -72,12 +72,12 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
               <th>Correo</th>
               <th>Curso</th>
               <th>Ciclo</th>
-              <th>Fecha Acta</th>
+              <th>Fecha de acta</th>
               <th>Vencimiento</th>
               <th>Académico</th>
-              <th>Profesion</th>
+              <th>Profesión</th>
               <th>Estado</th>
-              <th>Libreta_militar</th>
+              <th>Libreta militar</th>
               <th>Experiencia</th>
               <th>Diploma</th>
               <th>Estatura</th>
@@ -85,7 +85,7 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
               <th>Dirección</th>
               <th>Departamento</th>
               <th>Cédula</th>
-              <th>Archivo CV</th>
+              <th>Archivo de hoja de vida</th>
               <th>Aprobado</th>
               <th>Acciones</th>
             </tr>
@@ -162,8 +162,8 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
             </div>
             <div class="col-md-6">
               <div class="form-floating">
-                <input type="text" class="form-control" id="edit_academico" name="academico" placeholder="Nivel Académico">
-                <label for="edit_academico">Nivel Académico</label>
+                <input type="text" class="form-control" id="edit_academico" name="academico" placeholder="Nivel académico">
+                <label for="edit_academico">Nivel académico</label>
               </div>
             </div>
             <div class="col-md-6">
@@ -174,14 +174,14 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
             </div>
             <div class="col-md-6">
               <div class="form-floating">
-                <input type="text" class="form-control" id="edit_estado_laboral" name="estado_laboral" placeholder="Estado Laboral">
-                <label for="edit_estado_laboral">Estado Laboral</label>
+                <input type="text" class="form-control" id="edit_estado_laboral" name="estado_laboral" placeholder="Estado laboral">
+                <label for="edit_estado_laboral">Estado laboral</label>
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-floating">
-                <input type="text" class="form-control" id="edit_libreta_militar" name="libreta_militar" placeholder="Libreta Militar">
-                <label for="edit_libreta_militar">Libreta Militar</label>
+                <input type="text" class="form-control" id="edit_libreta_militar" name="libreta_militar" placeholder="Libreta militar">
+                <label for="edit_libreta_militar">Libreta militar</label>
               </div>
             </div>
             <div class="col-md-6">
@@ -232,7 +232,7 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
                   }
                   ?>
                 </select>
-                <label for="edit_curso_realizado">Último Curso</label>
+                <label for="edit_curso_realizado">Último curso</label>
               </div>
             </div>
             <div class="col-md-6">
@@ -249,19 +249,19 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
                   }
                   ?>
                 </select>
-                <label for="edit_ciclo_curso">Ciclo del Curso</label>
+                <label for="edit_ciclo_curso">Ciclo del curso</label>
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-floating">
-                <input type="date" class="form-control" id="edit_fecha_acta_curso" name="fecha_acta_curso" placeholder="Fecha Acta Curso">
-                <label for="edit_fecha_acta_curso">Fecha Acta Curso</label>
+                <input type="date" class="form-control" id="edit_fecha_acta_curso" name="fecha_acta_curso" placeholder="Fecha de acta">
+                <label for="edit_fecha_acta_curso">Fecha de acta</label>
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-floating">
-                <input type="date" class="form-control" id="edit_fecha_vencimiento_curso" name="fecha_vencimiento_curso" placeholder="Vencimiento Curso">
-                <label for="edit_fecha_vencimiento_curso">Vencimiento Curso</label>
+                <input type="date" class="form-control" id="edit_fecha_vencimiento_curso" name="fecha_vencimiento_curso" placeholder="Vencimiento del curso">
+                <label for="edit_fecha_vencimiento_curso">Vencimiento del curso</label>
               </div>
             </div>
             <div class="col-12">

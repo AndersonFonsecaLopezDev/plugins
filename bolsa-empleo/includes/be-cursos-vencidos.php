@@ -6,7 +6,7 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
 <div class="wrap">
     <div class="card shadow-sm mb-4" style="max-width: 100%;">
         <div class="card-body">
-            <h1 class="card-title mb-2">Cursos Vencidos (Más de 1 año)</h1>
+            <h1 class="card-title mb-2">Cursos vencidos (más de 1 año)</h1>
             <p class="text-muted mb-4">Listado de estudiantes cuyos cursos se encuentran vencidos según el registro histórico de certificados.</p>
             
             <form id="cursosVencidosFilterForm" class="row g-3 align-items-end">
@@ -36,26 +36,26 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
                 <table class="table table-bordered table-hover display nowrap" id="cursosVencidosTable" style="width:100%">
                     <thead>
                         <tr>
-                            <th>NOMBRE COMPLETO</th>
-                            <th>CURSO</th>
-                            <th>FECHA ACTA</th>
-                            <th>FECHA VENCIMIENTO</th>
-                            <th>CORREO</th>
-                            <th>TELÉFONO</th>
-                            <th>CIUDAD</th>
-                            <th>ESTADO</th>
+                            <th>Nombre completo</th>
+                            <th>Curso</th>
+                            <th>Fecha de acta</th>
+                            <th>Fecha de vencimiento</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Ciudad</th>
+                            <th>Estado</th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr>
-                            <th>NOMBRE COMPLETO</th>
-                            <th>CURSO</th>
-                            <th>FECHA ACTA</th>
-                            <th>FECHA VENCIMIENTO</th>
-                            <th>CORREO</th>
-                            <th>TELÉFONO</th>
-                            <th>CIUDAD</th>
-                            <th>ESTADO</th>
+                            <th>Nombre completo</th>
+                            <th>Curso</th>
+                            <th>Fecha de acta</th>
+                            <th>Fecha de vencimiento</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Ciudad</th>
+                            <th>Estado</th>
                         </tr>
                     </tfoot>
                     <tbody></tbody>

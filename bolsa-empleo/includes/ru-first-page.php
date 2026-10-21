@@ -362,7 +362,7 @@ if (isset($mensaje_activacion) && !empty($mensaje_activacion)) {
       </div>
 
       <div class="mb-3">
-        <label for="repeatPassword" class="form-label">Repetir Contraseña *</label>
+        <label for="repeatPassword" class="form-label">Repetir contraseña *</label>
         <div class="input-group">
           <input type="password" class="form-control" id="repeatPassword" name="repeatPassword" placeholder="Repite tu contraseña" required>
           <button type="button" class="btn btn-outline-secondary toggle-password" onclick="togglePassword('repeatPassword')">👁️</button>
@@ -465,13 +465,13 @@ if (isset($mensaje_activacion) && !empty($mensaje_activacion)) {
       </div>
 
       <div class="mb-3">
-        <label for="sede" class="form-label">Sede de la Academia *</label>
+        <label for="sede" class="form-label">Sede de la academia *</label>
         <input type="text" id="sede" name="sede" class="form-control" placeholder="Escribe la sede o agencia donde te inscribes (Ej: Armenia, Pereira, Ibagué...)" required>
         <small class="form-text text-muted d-block mt-1">¿No conoces las sedes? <a href="https://academiadeseguridadaessltda.com/agencias/" target="_blank" rel="noopener noreferrer">Consulta nuestras sedes y agencias aquí</a>.</small>
       </div>
 
       <div class="mb-3">
-        <label for="curso_realizado" class="form-label">Curso de Seguridad</label>
+        <label for="curso_realizado" class="form-label">Curso de seguridad</label>
         <select class="form-select" id="curso_realizado" name="curso_realizado">
           <option value="">Selecciona un curso</option>
           <?php 
@@ -485,7 +485,7 @@ if (isset($mensaje_activacion) && !empty($mensaje_activacion)) {
       </div>
 
       <div class="mb-3">
-        <label for="ciclo_curso" class="form-label">Ciclo del Curso</label>
+        <label for="ciclo_curso" class="form-label">Ciclo del curso</label>
         <select class="form-select" id="ciclo_curso" name="ciclo_curso" disabled>
           <option value="">Primero selecciona un curso</option>
           <?php 
@@ -530,7 +530,7 @@ if (isset($mensaje_activacion) && !empty($mensaje_activacion)) {
       <input type="hidden" name="email_activacion" value="<?php echo htmlspecialchars($correo_usuario); ?>">
       <div class="btn-container">
         <button type="button" class="btn btn-secondary" onclick="goToStep(3)">Atrás</button>
-        <button type="submit" class="btn btn-primary" name="activar_cuenta" value="1">Finalizar Registro</button>
+        <button type="submit" class="btn btn-primary" name="activar_cuenta" value="1">Finalizar registro</button>
       </div>
     </div>
   </form>

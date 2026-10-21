@@ -3,6 +3,8 @@
 Plugin Name: Consulta Certificados
 Description: Plugin para consultar informacion desde un archivo Excel.
 Version: 1.2
+Requires at least: 5.8
+Requires PHP: 7.4
 Author: Anderson Fonseca Lopez
 */
 

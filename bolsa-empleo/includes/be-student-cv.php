@@ -48,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
         $sede = sanitize_text_field($_POST['sede'] ?? '');
         $curso_realizado = sanitize_text_field($_POST['curso_realizado'] ?? '');
         $ciclo_curso = sanitize_text_field($_POST['ciclo_curso'] ?? '');
+        $cual_ciclo = sanitize_text_field($_POST['cual_ciclo'] ?? '');
         $fecha_acta_curso = sanitize_text_field($_POST['fecha_acta_curso'] ?? '');
         $fecha_vencimiento_curso = sanitize_text_field($_POST['fecha_vencimiento_curso'] ?? '');
 
@@ -81,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                 'sede' => $sede,
                 'curso_realizado' => $curso_realizado,
                 'ciclo_curso' => $ciclo_curso,
+                'cual_ciclo' => $cual_ciclo,
                 'fecha_acta_curso' => $fecha_acta_curso ? $fecha_acta_curso : null,
                 'fecha_vencimiento_curso' => $fecha_vencimiento_curso ? $fecha_vencimiento_curso : null,
                 'cv_aprobado' => 0 // Vuelve a pendiente de aprobación
@@ -302,6 +304,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cv'])) {
                     }
                     ?>
                 </select>
+            </div>
+            <div class="col-md-6 mb-3" id="cv_cual_ciclo_container" style="display: none;">
+                <label class="form-label" for="cv_cual_ciclo">¿Cuál especialización o profundización?</label>
+                <input type="text" class="form-control" name="cual_ciclo" id="cv_cual_ciclo" value="<?php echo esc_attr($user_data['cual_ciclo'] ?? ''); ?>" placeholder="Especifique cuál...">
             </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label">Fecha del diploma</label>
@@ -759,6 +765,30 @@ document.getElementById('fecha_diploma').addEventListener('change', function() {
 (function() {
     const cursoSelect = document.getElementById('cv_curso_realizado');
     const cicloSelect = document.getElementById('cv_ciclo_curso');
+    const cualContainer = document.getElementById('cv_cual_ciclo_container');
+    const cualInput = document.getElementById('cv_cual_ciclo');
+
+    function isEspecializacionOProfundizacion(val) {
+        if (!val) return false;
+        const norm = val.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return norm.indexOf('especializ') !== -1 || norm.indexOf('profundiz') !== -1;
+    }
+
+    function syncCualCiclo() {
+        if (!cualContainer || !cualInput) return;
+        if (isEspecializacionOProfundizacion(cicloSelect ? cicloSelect.value : '')) {
+            cualContainer.style.display = 'block';
+            cualInput.required = true;
+        } else {
+            cualContainer.style.display = 'none';
+            cualInput.required = false;
+        }
+    }
+
+    if (cicloSelect) {
+        cicloSelect.addEventListener('change', syncCualCiclo);
+    }
+
     if (cursoSelect && cicloSelect) {
         function syncCiclo() {
             if (cursoSelect.value) {
@@ -767,9 +797,11 @@ document.getElementById('fecha_diploma').addEventListener('change', function() {
                 cicloSelect.disabled = true;
                 cicloSelect.value = '';
             }
+            syncCualCiclo();
         }
         cursoSelect.addEventListener('change', syncCiclo);
         syncCiclo();
+        syncCualCiclo();
     }
 })();
 </script>

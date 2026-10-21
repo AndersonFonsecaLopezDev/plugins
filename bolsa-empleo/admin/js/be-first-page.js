@@ -213,6 +213,8 @@ jQuery(document).ready(function ($) {
                 $('#edit_sede').val(user.sede || '');
                 $('#edit_curso_realizado').val(user.curso_realizado || '');
                 $('#edit_ciclo_curso').val(user.ciclo_curso || '');
+                $('#edit_cual_ciclo').val(user.cual_ciclo || '');
+                syncEditCualCiclo();
                 $('#edit_fecha_acta_curso').val(user.fecha_acta_curso);
                 $('#edit_fecha_vencimiento_curso').val(user.fecha_vencimiento_curso);
                 $('#editUserFeedback').html('');
@@ -224,6 +226,23 @@ jQuery(document).ready(function ($) {
             }
         }, 'json');
     }
+
+    function isEspecializacionOProfundizacion(val) {
+        if (!val) return false;
+        var norm = val.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return norm.indexOf('especializ') !== -1 || norm.indexOf('profundiz') !== -1;
+    }
+
+    function syncEditCualCiclo() {
+        var val = $('#edit_ciclo_curso').val();
+        if (isEspecializacionOProfundizacion(val)) {
+            $('#edit_cual_ciclo_container').show();
+        } else {
+            $('#edit_cual_ciclo_container').hide();
+        }
+    }
+
+    $('#edit_ciclo_curso').on('change', syncEditCualCiclo);
 
     $('#editUserForm').on('submit', function (event) {
         event.preventDefault();

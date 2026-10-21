@@ -213,9 +213,36 @@
       input.setAttribute('data-original-required', 'true');
     });
 
-    // Cascada Curso -> Ciclo
+    // Cascada Curso -> Ciclo y Ciclo -> ¿Cuál?
     var cursoSelect = document.getElementById('curso_realizado');
     var cicloSelect = document.getElementById('ciclo_curso');
+    var cualContainer = document.getElementById('cual_ciclo_container');
+    var cualInput = document.getElementById('cual_ciclo');
+
+    function isEspecializacionOProfundizacion(val) {
+      if (!val) return false;
+      var norm = val.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      return norm.indexOf('especializ') !== -1 || norm.indexOf('profundiz') !== -1;
+    }
+
+    function syncCualCiclo() {
+      if (!cualContainer || !cualInput) return;
+      if (isEspecializacionOProfundizacion(cicloSelect ? cicloSelect.value : '')) {
+        cualContainer.style.display = 'block';
+        cualInput.required = true;
+        cualInput.setAttribute('data-original-required', 'true');
+      } else {
+        cualContainer.style.display = 'none';
+        cualInput.required = false;
+        cualInput.removeAttribute('data-original-required');
+        cualInput.value = '';
+      }
+    }
+
+    if (cicloSelect) {
+      cicloSelect.addEventListener('change', syncCualCiclo);
+    }
+
     if (cursoSelect && cicloSelect) {
       function syncCiclo() {
         if (cursoSelect.value) {
@@ -226,9 +253,13 @@
           cicloSelect.value = '';
           if (cicloSelect.options[0]) cicloSelect.options[0].textContent = 'Primero selecciona un curso';
         }
+        syncCualCiclo();
       }
       cursoSelect.addEventListener('change', syncCiclo);
-      document.addEventListener('ruShowStep2', syncCiclo);
+      document.addEventListener('ruShowStep2', function() {
+        syncCiclo();
+        syncCualCiclo();
+      });
       syncCiclo();
     }
   });

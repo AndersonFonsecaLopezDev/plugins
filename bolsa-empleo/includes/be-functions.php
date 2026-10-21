@@ -96,6 +96,7 @@ function be_create_tables() {
         sede varchar(150) DEFAULT '' NOT NULL,
         curso_realizado varchar(200) DEFAULT '' NOT NULL,
         ciclo_curso varchar(100) DEFAULT '' NOT NULL,
+        cual_ciclo varchar(150) DEFAULT '' NOT NULL,
         fecha_acta_curso date DEFAULT NULL,
         fecha_vencimiento_curso date DEFAULT NULL,
         codigo_activacion varchar(20) DEFAULT '' NOT NULL,
@@ -137,13 +138,13 @@ function be_maybe_upgrade_database() {
     $table_exists = ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table)) === $table);
     if (!$table_exists) {
         be_create_tables();
-        update_option('be_db_version', '1.2');
+        update_option('be_db_version', '1.3');
         return;
     }
 
     // 2. Si ya existe, verificar si requiere migración de columnas nuevas
     $current_version = get_option('be_db_version', '1.0');
-    if (version_compare($current_version, '1.2', '<')) {
+    if (version_compare($current_version, '1.3', '<')) {
         $required_columns = [
             'academico' => 'VARCHAR(255) DEFAULT \'\'',
             'profesion' => 'VARCHAR(255) DEFAULT \'\'',
@@ -157,6 +158,7 @@ function be_maybe_upgrade_database() {
             'cv_file' => 'VARCHAR(255) DEFAULT \'\'',
             'curso_realizado' => 'VARCHAR(200) DEFAULT \'\' NOT NULL',
             'ciclo_curso' => 'VARCHAR(100) DEFAULT \'\' NOT NULL',
+            'cual_ciclo' => 'VARCHAR(150) DEFAULT \'\' NOT NULL',
             'fecha_acta_curso' => 'DATE DEFAULT NULL',
             'fecha_vencimiento_curso' => 'DATE DEFAULT NULL',
             'modalidad' => 'VARCHAR(50) DEFAULT \'\' NOT NULL',
@@ -171,7 +173,7 @@ function be_maybe_upgrade_database() {
                 }
             }
         }
-        update_option('be_db_version', '1.2');
+        update_option('be_db_version', '1.3');
     }
 }
 add_action('admin_init', 'be_maybe_upgrade_database');
@@ -424,7 +426,7 @@ function beGetCv() {
     phone_number AS 'Celular',
     email AS 'Correo',
     curso_realizado AS 'Curso',
-    ciclo_curso AS 'Ciclo',
+    IF((ciclo_curso LIKE '%specializ%' OR ciclo_curso LIKE '%rofundiz%') AND cual_ciclo IS NOT NULL AND cual_ciclo != '', CONCAT(ciclo_curso, ' (', cual_ciclo, ')'), ciclo_curso) AS 'Ciclo',
     fecha_acta_curso AS 'Fecha_Acta',
     fecha_vencimiento_curso AS 'Vencimiento',
     academico AS 'Academico',

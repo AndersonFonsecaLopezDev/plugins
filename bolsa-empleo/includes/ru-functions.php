@@ -147,7 +147,7 @@ add_action('wp_ajax_get_user_details', function() {
     }
 
     $user = $wpdb->get_row($wpdb->prepare(
-        "SELECT ID, first_name, middle_name, last_name, second_last_name, national_id, email, phone_number, address, departamento, city, user_role, academico, profesion, estado_laboral, libreta_militar, experiencia, diploma, estatura, barrio, modalidad, sede, curso_realizado, ciclo_curso, fecha_acta_curso, fecha_vencimiento_curso, DATE_FORMAT(fecha_creacion, '%Y-%m-%d %H:%i') as fecha_creacion FROM {$wpdb->prefix}aess_users WHERE ID = %d",
+        "SELECT ID, first_name, middle_name, last_name, second_last_name, national_id, email, phone_number, address, departamento, city, user_role, academico, profesion, estado_laboral, libreta_militar, experiencia, diploma, estatura, barrio, modalidad, sede, curso_realizado, ciclo_curso, cual_ciclo, fecha_acta_curso, fecha_vencimiento_curso, DATE_FORMAT(fecha_creacion, '%Y-%m-%d %H:%i') as fecha_creacion FROM {$wpdb->prefix}aess_users WHERE ID = %d",
         $user_id
     ), ARRAY_A);
 
@@ -170,39 +170,58 @@ add_action('wp_ajax_ru_update_user', function() {
         wp_send_json_error('Usuario inválido');
     }
 
-    $user_data = [
-        'first_name' => sanitize_text_field($_POST['first_name'] ?? ''),
-        'middle_name' => sanitize_text_field($_POST['middle_name'] ?? ''),
-        'last_name' => sanitize_text_field($_POST['last_name'] ?? ''),
-        'second_last_name' => sanitize_text_field($_POST['second_last_name'] ?? ''),
-        'national_id' => sanitize_text_field($_POST['national_id'] ?? ''),
-        'email' => sanitize_email($_POST['email'] ?? ''),
-        'phone_number' => sanitize_text_field($_POST['phone_number'] ?? ''),
-        'departamento' => sanitize_text_field($_POST['departamento'] ?? ''),
-        'city' => sanitize_text_field($_POST['city'] ?? ''),
-        'address' => sanitize_text_field($_POST['address'] ?? ''),
-        'user_role' => sanitize_text_field($_POST['user_role'] ?? ''),
-        'academico' => sanitize_text_field($_POST['academico'] ?? ''),
-        'profesion' => sanitize_text_field($_POST['profesion'] ?? ''),
-        'estado_laboral' => sanitize_text_field($_POST['estado_laboral'] ?? ''),
-        'libreta_militar' => sanitize_text_field($_POST['libreta_militar'] ?? ''),
-        'experiencia' => sanitize_textarea_field($_POST['experiencia'] ?? ''),
-        'diploma' => sanitize_text_field($_POST['diploma'] ?? ''),
-        'estatura' => sanitize_text_field($_POST['estatura'] ?? ''),
-        'barrio' => sanitize_text_field($_POST['barrio'] ?? ''),
-        'modalidad' => sanitize_text_field($_POST['modalidad'] ?? ''),
-        'sede' => sanitize_text_field($_POST['sede'] ?? ''),
-        'curso_realizado' => sanitize_text_field($_POST['curso_realizado'] ?? ''),
-        'ciclo_curso' => sanitize_text_field($_POST['ciclo_curso'] ?? ''),
-        'fecha_acta_curso' => !empty($_POST['fecha_acta_curso']) ? sanitize_text_field($_POST['fecha_acta_curso']) : null,
-        'fecha_vencimiento_curso' => !empty($_POST['fecha_vencimiento_curso']) ? sanitize_text_field($_POST['fecha_vencimiento_curso']) : null,
+    $fields = [
+        'first_name' => 'text',
+        'middle_name' => 'text',
+        'last_name' => 'text',
+        'second_last_name' => 'text',
+        'national_id' => 'text',
+        'email' => 'email',
+        'phone_number' => 'text',
+        'departamento' => 'text',
+        'city' => 'text',
+        'address' => 'text',
+        'user_role' => 'text',
+        'academico' => 'text',
+        'profesion' => 'text',
+        'estado_laboral' => 'text',
+        'libreta_militar' => 'text',
+        'experiencia' => 'textarea',
+        'diploma' => 'text',
+        'estatura' => 'text',
+        'barrio' => 'text',
+        'modalidad' => 'text',
+        'sede' => 'text',
+        'curso_realizado' => 'text',
+        'ciclo_curso' => 'text',
+        'cual_ciclo' => 'text',
+        'fecha_acta_curso' => 'date',
+        'fecha_vencimiento_curso' => 'date',
     ];
 
-    $format = [
-        '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
-        '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
-        '%s', '%s', '%s', '%s', '%s'
-    ];
+    $user_data = [];
+    $format = [];
+    foreach ($fields as $field => $type) {
+        if (array_key_exists($field, $_POST)) {
+            if ($type === 'email') {
+                $user_data[$field] = sanitize_email($_POST[$field]);
+                $format[] = '%s';
+            } elseif ($type === 'textarea') {
+                $user_data[$field] = sanitize_textarea_field($_POST[$field]);
+                $format[] = '%s';
+            } elseif ($type === 'date') {
+                $user_data[$field] = !empty($_POST[$field]) ? sanitize_text_field($_POST[$field]) : null;
+                $format[] = '%s';
+            } else {
+                $user_data[$field] = sanitize_text_field($_POST[$field]);
+                $format[] = '%s';
+            }
+        }
+    }
+
+    if (empty($user_data)) {
+        wp_send_json_error('No hay datos para actualizar.');
+    }
 
     $updated = $wpdb->update(
         "{$wpdb->prefix}aess_users",

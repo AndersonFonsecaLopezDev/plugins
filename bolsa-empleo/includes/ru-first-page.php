@@ -46,6 +46,7 @@ function guardar_usuario_en_bd($datos)
     $sede = trim($datos['sede'] ?? '');
     $curso_realizado = trim($datos['curso_realizado'] ?? '');
     $ciclo_curso = trim($datos['ciclo_curso'] ?? '');
+    $cual_ciclo = trim($datos['cual_ciclo'] ?? '');
 
     $table = $wpdb->prefix . 'aess_users';
     if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table)) !== $table) {
@@ -88,10 +89,11 @@ function guardar_usuario_en_bd($datos)
       'modalidad' => $modalidad,
       'sede' => $sede,
       'curso_realizado' => $curso_realizado,
-      'ciclo_curso' => $ciclo_curso
+      'ciclo_curso' => $ciclo_curso,
+      'cual_ciclo' => $cual_ciclo
     ];
     $format = [
-      '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'
+      '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s'
     ];
     $inserted = $wpdb->insert($table, $data, $format);
     
@@ -195,9 +197,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
 
+  // Si el ciclo es especialización o profundización, cual_ciclo es requerido
+  $ciclo_check = mb_strtolower(trim($_POST['ciclo_curso'] ?? ''), 'UTF-8');
+  if ((strpos($ciclo_check, 'especializ') !== false || strpos($ciclo_check, 'profundiz') !== false) && empty(trim($_POST['cual_ciclo'] ?? ''))) {
+    $missing_fields[] = 'cual_ciclo';
+  }
+
   if (count($missing_fields)) {
     $friendly_fields = array_map(function ($field) {
-      return str_replace(["_", "national_id", "first_name", "last_name", "phone_number", "modalidad", "sede"], [" ", "cédula", "nombre", "apellido", "teléfono", "modalidad", "sede"], $field);
+      return str_replace(["_", "national_id", "first_name", "last_name", "phone_number", "modalidad", "sede", "cual_ciclo"], [" ", "cédula", "nombre", "apellido", "teléfono", "modalidad", "sede", "¿cuál especialización o profundización?"], $field);
     }, $missing_fields);
 
     $mensaje = 'Faltan datos requeridos: ' . implode(', ', $friendly_fields);
@@ -496,6 +504,11 @@ if (isset($mensaje_activacion) && !empty($mensaje_activacion)) {
             <option value="<?php echo esc_attr($ciclo); ?>"><?php echo esc_html($ciclo); ?></option>
           <?php endif; endforeach; ?>
         </select>
+      </div>
+
+      <div class="mb-3" id="cual_ciclo_container" style="display: none;">
+        <label for="cual_ciclo" class="form-label">¿Cuál especialización o profundización? <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="cual_ciclo" name="cual_ciclo" placeholder="Especifique cuál...">
       </div>
 
       <div class="btn-container">

@@ -252,6 +252,12 @@ if (!current_user_can('access_bolsa') && !current_user_can('manage_options')) {
                 <label for="edit_ciclo_curso">Ciclo del curso</label>
               </div>
             </div>
+            <div class="col-md-6" id="edit_cual_ciclo_container" style="display: none;">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="edit_cual_ciclo" name="cual_ciclo" placeholder="¿Cuál especialización o profundización?">
+                <label for="edit_cual_ciclo">¿Cuál especialización o profundización?</label>
+              </div>
+            </div>
             <div class="col-md-6">
               <div class="form-floating">
                 <input type="date" class="form-control" id="edit_fecha_acta_curso" name="fecha_acta_curso" placeholder="Fecha de acta">

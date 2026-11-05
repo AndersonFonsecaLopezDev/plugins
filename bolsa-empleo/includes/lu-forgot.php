@@ -10,147 +10,217 @@ $tipo_mensaje = '';
 
 global $wpdb;
 
-// Paso 1: Usuario envía su correo
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recovery_email'])) {
-    $email = sanitize_email($_POST['recovery_email']);
+// Control de pasos: 1 = Ingresar correo, 2 = Ingresar código, 3 = Nueva contraseña
+$goToStep = 1;
 
-    $table = $wpdb->prefix . 'aess_users';
-    $user = $wpdb->get_row(
-        $wpdb->prepare("SELECT * FROM {$table} WHERE email = %s", $email)
-    );
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $step = intval($_POST['recovery_step'] ?? 0);
 
-    if ($user) {
-        $codigo_activacion = rand(100000, 999999);
+    // Fallback de compatibilidad si no viene recovery_step explícito
+    if ($step <= 0) {
+        if (isset($_POST['new_password']) && isset($_POST['confirm_password'])) {
+            $step = 3;
+        } elseif (isset($_POST['verification_code'])) {
+            $step = 2;
+        } elseif (isset($_POST['recovery_email'])) {
+            $step = 1;
+        }
+    }
 
-        // Guardar código y expiración en BD
-        $table = $wpdb->prefix . 'aess_users';
-        $wpdb->update(
-            $table,
-            [
-                'reset_code' => $codigo_activacion,
-                'reset_code_expires' => date("Y-m-d H:i:s", strtotime("+1 hour")),
-            ],
-            ['ID' => $user->ID],
-            ['%d', '%s'],
-            ['%d']
-        );
+    if ($step === 1) {
+        // Paso 1: Usuario solicita código a su correo
+        $email = sanitize_email($_POST['recovery_email'] ?? '');
 
-        // Guardar en sesión
-        $_SESSION['recovery_email'] = $email;
-        $_SESSION['reset_code'] = (string) $codigo_activacion;
-        $_SESSION['reset_code_expires'] = date("Y-m-d H:i:s", strtotime("+1 hour"));
-
-        // Enviar correo
-        $asunto = "Código de recuperación de tu cuenta";
-        $mensaje_html = '
-        <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-          <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-            <div style="background-color: #0d4c92; color: #ffffff; padding: 15px; text-align: center; font-size: 20px; font-weight: bold;">
-              Código de Recuperación
-            </div>
-            <div style="padding: 20px; color: #333; line-height: 1.5;">
-              <p>Hola,</p>
-              <p>Has solicitado recuperar tu contraseña. Tu código de verificación es:</p>
-              <p style="text-align: center; font-size: 24px; font-weight: bold; background: #f0f0f0; padding: 10px; border-radius: 6px; color: #0d4c92;">
-                ' . htmlspecialchars($codigo_activacion) . '
-              </p>
-              <p>Este código expira en 1 hora. Ingresa este código en la página para continuar con el proceso.</p>
-            </div>
-            <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #777;">
-              <span style="color:#d4af37;">AESS</span> · Este mensaje fue enviado automáticamente, por favor no respondas.
-            </div>
-          </div>
-        </div>';
-
-        $mail_sent = enviar_correo_login($email, $asunto, $mensaje_html);
-        if ($mail_sent) {
-            $mensaje = 'Hemos enviado un código de recuperación a tu correo. Revisa tu bandeja de entrada.';
-            $tipo_mensaje = 'success';
-            $goToStep = 2;
-        } else {
-            $mensaje = 'No se pudo enviar el correo de recuperación. Revisa el log de correo.';
+        if (empty($email)) {
+            $mensaje = 'Por favor ingresa tu correo electrónico.';
             $tipo_mensaje = 'error';
             $goToStep = 1;
-        }
-    } else {
-        $mensaje = 'El correo no está registrado en nuestra base de datos.';
-        $tipo_mensaje = 'error';
-        $goToStep = 1;
-    }
-}
-
-// Paso 2: Usuario ingresa el código
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verification_code'])) {
-    $codigo = sanitize_text_field($_POST['verification_code']);
-    $email = !empty($_POST['recovery_email']) ? sanitize_email($_POST['recovery_email']) : ($_SESSION['recovery_email'] ?? '');
-
-    if ($email) {
-        $table = $wpdb->prefix . 'aess_users';
-        $user = $wpdb->get_row(
-            $wpdb->prepare("SELECT * FROM {$table} WHERE email = %s", $email)
-        );
-
-        $codeValid = false;
-        $expiresValid = false;
-
-        if ($user) {
-            $codeValid = trim((string) $user->reset_code) === trim($codigo);
-            $expiresValid = !empty($user->reset_code_expires) && strtotime($user->reset_code_expires) > time();
-        }
-
-        if (!$codeValid && isset($_SESSION['reset_code'])) {
-            $codeValid = trim($_SESSION['reset_code']) === trim($codigo);
-            $expiresValid = !empty($_SESSION['reset_code_expires']) && strtotime($_SESSION['reset_code_expires']) > time();
-        }
-
-        if ($codeValid && $expiresValid) {
-            $goToStep = 3;
         } else {
-            $mensaje = 'El código es inválido o ha expirado.';
+            $table = $wpdb->prefix . 'aess_users';
+            $user = $wpdb->get_row(
+                $wpdb->prepare("SELECT * FROM {$table} WHERE email = %s", $email)
+            );
+
+            if ($user) {
+                $codigo_activacion = (string) rand(100000, 999999);
+                $expiracion = date("Y-m-d H:i:s", time() + 3600);
+
+                // Guardar código y expiración en BD
+                $wpdb->update(
+                    $table,
+                    [
+                        'reset_code' => $codigo_activacion,
+                        'reset_code_expires' => $expiracion,
+                    ],
+                    ['ID' => $user->ID],
+                    ['%s', '%s'],
+                    ['%d']
+                );
+
+                // Guardar en sesión
+                $_SESSION['recovery_email'] = $email;
+                $_SESSION['reset_code'] = $codigo_activacion;
+                $_SESSION['reset_code_expires'] = $expiracion;
+                $_SESSION['reset_code_expires_ts'] = time() + 3600;
+                unset($_SESSION['recovery_verified']);
+
+                // Enviar correo
+                $asunto = "Código de recuperación de tu cuenta";
+                $mensaje_html = '
+                <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+                  <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="background-color: #0d4c92; color: #ffffff; padding: 15px; text-align: center; font-size: 20px; font-weight: bold;">
+                      Código de recuperación
+                    </div>
+                    <div style="padding: 20px; color: #333; line-height: 1.5;">
+                      <p>Hola,</p>
+                      <p>Has solicitado recuperar tu contraseña. Tu código de verificación es:</p>
+                      <p style="text-align: center; font-size: 24px; font-weight: bold; background: #f0f0f0; padding: 10px; border-radius: 6px; color: #0d4c92;">
+                        ' . htmlspecialchars($codigo_activacion) . '
+                      </p>
+                      <p>Este código expira en 1 hora. Ingresa este código en la página para continuar con el proceso.</p>
+                    </div>
+                    <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #777;">
+                      <span style="color:#d4af37;">AESS</span> · Este mensaje fue enviado automáticamente, por favor no respondas.
+                    </div>
+                  </div>
+                </div>';
+
+                $mail_sent = enviar_correo_login($email, $asunto, $mensaje_html);
+                if ($mail_sent) {
+                    $mensaje = 'Hemos enviado un código de recuperación a tu correo. Revisa tu bandeja de entrada.';
+                    $tipo_mensaje = 'success';
+                    $goToStep = 2;
+                } else {
+                    $mensaje = 'No se pudo enviar el correo de recuperación. Revisa el log de correo.';
+                    $tipo_mensaje = 'error';
+                    $goToStep = 1;
+                }
+            } else {
+                $mensaje = 'El correo no está registrado en nuestra base de datos.';
+                $tipo_mensaje = 'error';
+                $goToStep = 1;
+            }
+        }
+    } elseif ($step === 2) {
+        // Paso 2: Usuario ingresa el código
+        $codigo = preg_replace('/\s+/', '', sanitize_text_field($_POST['verification_code'] ?? ''));
+        $email = !empty($_POST['recovery_email']) ? sanitize_email($_POST['recovery_email']) : ($_SESSION['recovery_email'] ?? '');
+
+        if (empty($email)) {
+            $mensaje = 'Sesión inválida o expirada. Por favor solicita el código nuevamente.';
+            $tipo_mensaje = 'error';
+            $goToStep = 1;
+        } elseif (empty($codigo)) {
+            $mensaje = 'Por favor ingresa el código de verificación.';
             $tipo_mensaje = 'error';
             $goToStep = 2;
+        } else {
+            $table = $wpdb->prefix . 'aess_users';
+            $user = $wpdb->get_row(
+                $wpdb->prepare("SELECT * FROM {$table} WHERE email = %s", $email)
+            );
+
+            $codeValid = false;
+            $expiresValid = false;
+
+            if ($user && !empty($user->reset_code)) {
+                $codeValid = (trim((string) $user->reset_code) === $codigo);
+                $expiresValid = !empty($user->reset_code_expires) && strtotime($user->reset_code_expires) > (time() - 300);
+            }
+
+            if (!$codeValid && isset($_SESSION['reset_code'])) {
+                $codeValid = (trim((string) $_SESSION['reset_code']) === $codigo);
+                $expiresValid = !empty($_SESSION['reset_code_expires']) && strtotime($_SESSION['reset_code_expires']) > (time() - 300);
+                if (!$expiresValid && !empty($_SESSION['reset_code_expires_ts'])) {
+                    $expiresValid = ($_SESSION['reset_code_expires_ts'] > (time() - 300));
+                }
+            }
+
+            if ($codeValid && $expiresValid) {
+                $_SESSION['recovery_email'] = $email;
+                $_SESSION['recovery_verified'] = true;
+                $mensaje = 'Código verificado con éxito. Ingresa tu nueva contraseña.';
+                $tipo_mensaje = 'success';
+                $goToStep = 3;
+            } else {
+                $mensaje = 'El código ingresado es incorrecto o ha expirado. Por favor verifica el número recibido.';
+                $tipo_mensaje = 'error';
+                $goToStep = 2;
+            }
+        }
+    } elseif ($step === 3) {
+        // Paso 3: Guardar nueva contraseña
+        $email = !empty($_SESSION['recovery_email']) ? sanitize_email($_SESSION['recovery_email']) : '';
+        $verified = !empty($_SESSION['recovery_verified']);
+
+        if (empty($email) || !$verified) {
+            $mensaje = 'La sesión de recuperación ha expirado o no es válida. Por favor inicia el proceso de nuevo.';
+            $tipo_mensaje = 'error';
+            $goToStep = 1;
+        } else {
+            $new_password = sanitize_text_field($_POST['new_password'] ?? '');
+            $confirm_password = sanitize_text_field($_POST['confirm_password'] ?? '');
+
+            if (empty($new_password)) {
+                $mensaje = 'Debes ingresar una nueva contraseña.';
+                $tipo_mensaje = 'error';
+                $goToStep = 3;
+            } elseif (strlen($new_password) < 6) {
+                $mensaje = 'La contraseña debe tener al menos 6 caracteres.';
+                $tipo_mensaje = 'error';
+                $goToStep = 3;
+            } elseif ($new_password !== $confirm_password) {
+                $mensaje = 'Las contraseñas no coinciden. Por favor verifica que sean idénticas.';
+                $tipo_mensaje = 'error';
+                $goToStep = 3;
+            } else {
+                if (!function_exists('hash_password')) {
+                    include_once __DIR__ . '/ru-password.php';
+                }
+                $hashed_password = function_exists('hash_password') ? hash_password($new_password) : password_hash($new_password, PASSWORD_DEFAULT);
+
+                $table = $wpdb->prefix . 'aess_users';
+                $wpdb->update(
+                    $table,
+                    [
+                        'contrasena' => $hashed_password,
+                        'reset_code' => '',
+                        'reset_code_expires' => null,
+                    ],
+                    ['email' => $email],
+                    ['%s', '%s', '%s'],
+                    ['%s']
+                );
+
+                $wp_user = get_user_by('email', $email);
+                if ($wp_user) {
+                    wp_set_password($new_password, $wp_user->ID);
+                }
+
+                $mensaje = 'Tu contraseña ha sido cambiada con éxito. Ya puedes iniciar sesión.';
+                $tipo_mensaje = 'success';
+
+                // Limpiar sesión
+                unset($_SESSION['recovery_email']);
+                unset($_SESSION['reset_code']);
+                unset($_SESSION['reset_code_expires']);
+                unset($_SESSION['reset_code_expires_ts']);
+                unset($_SESSION['recovery_verified']);
+
+                $goToStep = 1;
+            }
         }
     }
-}
-
-// Paso 3: Guardar nueva contraseña
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_password']) && isset($_POST['confirm_password'])) {
-    $email = $_SESSION['recovery_email'] ?? '';
-    $new_password = sanitize_text_field($_POST['new_password']);
-    $confirm_password = sanitize_text_field($_POST['confirm_password']);
-
-    if ($email && $new_password === $confirm_password) {
-        // Encriptar la contraseña antes de guardarla
-        $hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
-
-        $table = $wpdb->prefix . 'aess_users';
-        $wpdb->update(
-            $table,
-            [
-                'contrasena' => $hashed_password,
-                'reset_code' => null,
-                'reset_code_expires' => null,
-            ],
-            ['email' => $email],
-            ['%s', '%s', '%s'],
-            ['%s']
-        );
-
-        $wp_user = get_user_by('email', $email);
-        if ($wp_user) {
-            wp_set_password($new_password, $wp_user->ID);
+} else {
+    // Solicitud GET: determinar paso según parámetros o sesión
+    if (isset($_GET['step']) && in_array(intval($_GET['step']), [1, 2, 3], true)) {
+        $goToStep = intval($_GET['step']);
+        if ($goToStep === 3 && empty($_SESSION['recovery_verified'])) {
+            $goToStep = 1;
+        } elseif ($goToStep === 2 && empty($_SESSION['recovery_email'])) {
+            $goToStep = 1;
         }
-
-        $mensaje = 'Tu contraseña ha sido cambiada con éxito. Ahora puedes iniciar sesión.';
-        $tipo_mensaje = 'success';
-
-        // Limpiar sesión
-        unset($_SESSION['recovery_email']);
-        $goToStep = 1;
-    } else {
-        $mensaje = 'Las contraseñas no coinciden.';
-        $tipo_mensaje = 'error';
-        $goToStep = 3;
     }
 }
 ?>
@@ -347,17 +417,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_password']) && is
         <div class="login-header">
             <img src="<?php echo esc_url(plugins_url('bolsa-empleo/includes/img/logo-aess-jpg.png')); ?>"
                 alt="Logo AESS" class="logo">
-            <h1>Recuperar Contraseña</h1>
+            <h1>Recuperar contraseña</h1>
             <p>Sigue los pasos para restablecer tu clave</p>
         </div>
 
         <!-- Paso 1: Ingresar correo -->
         <form id="step1" class="recovery-step <?php echo (!isset($goToStep) || $goToStep == 1) ? 'active' : ''; ?>"
             method="post">
+            <input type="hidden" name="recovery_step" value="1">
             <div class="form-group">
                 <label for="recovery-email">Correo electrónico</label>
                 <input type="email" id="recovery-email" name="recovery_email" class="input-field"
-                    placeholder="tu@email.com" required>
+                    placeholder="tu@email.com" value="<?php echo esc_attr($_SESSION['recovery_email'] ?? ''); ?>" required>
             </div>
             <button type="submit" class="login-button">Enviar código</button>
         </form>
@@ -365,23 +436,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_password']) && is
         <!-- Paso 2: Ingresar código -->
         <form id="step2" class="recovery-step <?php echo (isset($goToStep) && $goToStep == 2) ? 'active' : ''; ?>"
             method="post">
+            <input type="hidden" name="recovery_step" value="2">
             <input type="hidden" name="recovery_email" value="<?php echo esc_attr($_SESSION['recovery_email'] ?? ''); ?>">
             <div class="form-group">
                 <label for="verification-code">Código de verificación</label>
                 <input type="text" id="verification-code" name="verification_code" class="input-field"
-                    placeholder="Ingresa el código" required>
+                    placeholder="Ingresa el código" maxlength="10" required autocomplete="one-time-code">
             </div>
-            <button type="submit" class="login-button">Verificar</button>
+            <button type="submit" class="login-button">Verificar código</button>
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="<?php echo esc_url(add_query_arg('step', '1')); ?>" style="font-size: 13px; color: var(--primary-color); text-decoration: none;">
+                    ¿No recibiste el código? Solicitar uno nuevo
+                </a>
+            </div>
         </form>
 
         <!-- Paso 3: Nueva contraseña -->
         <form id="step3" class="recovery-step <?php echo (isset($goToStep) && $goToStep == 3) ? 'active' : ''; ?>"
             method="post">
+            <input type="hidden" name="recovery_step" value="3">
             <div class="form-group">
                 <label for="new-password">Nueva contraseña</label>
                 <div class="password-wrapper">
                     <input type="password" id="new-password" name="new_password" class="input-field"
-                        placeholder="••••••••" required>
+                        placeholder="••••••••" minlength="6" required>
                     <button type="button" class="toggle-password" onclick="togglePass('new-password', this)">
                         <i class="fa-solid fa-eye"></i>
                     </button>
@@ -392,14 +470,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_password']) && is
                 <label for="confirm-password">Repetir contraseña</label>
                 <div class="password-wrapper">
                     <input type="password" id="confirm-password" name="confirm_password" class="input-field"
-                        placeholder="••••••••" required>
+                        placeholder="••••••••" minlength="6" required>
                     <button type="button" class="toggle-password" onclick="togglePass('confirm-password', this)">
                         <i class="fa-solid fa-eye"></i>
                     </button>
                 </div>
             </div>
 
-            <button type="submit" class="login-button">Aceptar nueva contraseña</button>
+            <button type="submit" class="login-button">Guardar nueva contraseña</button>
         </form>
 
         <div class="back-link">

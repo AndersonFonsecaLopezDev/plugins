@@ -2,7 +2,7 @@
 /*
 Plugin Name: Bolsa de empleo
 Description: Plugin para consultar informacion de las hojas de vida
-Version: 1.3
+Version: 1.3.1
 Requires at least: 5.8
 Requires PHP: 7.4
 Author: Anderson Fonseca Lopez
